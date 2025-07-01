@@ -29,7 +29,7 @@
 #include "CRC32.h"
 #include "printf.h"
 
-int         countZX=0;
+int         fileCount=0;
 int         ucGameAct=0;
 int         ucGameChoice = -1;
 FIDraco     gpFic[MAX_FILES];
@@ -234,12 +234,12 @@ void dsDisplayFiles(u16 NoDebGame, u8 ucSel)
   u8 maxLen;
 
   DSPrint(31,6,0,(NoDebGame>0 ? "<" : " "));
-  DSPrint(31,22,0,(NoDebGame+14<countZX ? ">" : " "));
+  DSPrint(31,22,0,(NoDebGame+14<fileCount ? ">" : " "));
 
   for (ucBcl=0;ucBcl<17; ucBcl++)
   {
     ucGame= ucBcl+NoDebGame;
-    if (ucGame < countZX)
+    if (ucGame < fileCount)
     {
       maxLen=strlen(gpFic[ucGame].szName);
       strcpy(szName,gpFic[ucGame].szName);
@@ -295,7 +295,7 @@ void DracoDSFindFiles(u8 bTapeOnly)
   struct dirent *pent;
 
   uNbFile=0;
-  countZX=0;
+  fileCount=0;
 
   dir = opendir(".");
   while (((pent=readdir(dir))!=NULL) && (uNbFile<MAX_FILES))
@@ -312,7 +312,7 @@ void DracoDSFindFiles(u8 bTapeOnly)
             strcpy(gpFic[uNbFile].szName,szFile);
             gpFic[uNbFile].uType = DIRECTORY;
             uNbFile++;
-            countZX++;
+            fileCount++;
         }
       }
     }
@@ -325,7 +325,7 @@ void DracoDSFindFiles(u8 bTapeOnly)
               strcpy(gpFic[uNbFile].szName,szFile);
               gpFic[uNbFile].uType = DRACO_FILE;
               uNbFile++;
-              countZX++;
+              fileCount++;
             }
           }
           else
@@ -334,13 +334,13 @@ void DracoDSFindFiles(u8 bTapeOnly)
               strcpy(gpFic[uNbFile].szName,szFile);
               gpFic[uNbFile].uType = DRACO_FILE;
               uNbFile++;
-              countZX++;
+              fileCount++;
             }
             if ( (strcasecmp(strrchr(szFile, '.'), ".cas") == 0) )  {
               strcpy(gpFic[uNbFile].szName,szFile);
               gpFic[uNbFile].uType = DRACO_FILE;
               uNbFile++;
-              countZX++;
+              fileCount++;
             }
         }
       }
@@ -351,9 +351,9 @@ void DracoDSFindFiles(u8 bTapeOnly)
   // ----------------------------------------------
   // If we found any files, go sort the list...
   // ----------------------------------------------
-  if (countZX)
+  if (fileCount)
   {
-    qsort (gpFic, countZX, sizeof(FIDraco), Filescmp);
+    qsort (gpFic, fileCount, sizeof(FIDraco), Filescmp);
   }
 }
 
@@ -375,13 +375,13 @@ u8 DracoDSLoadFile(u8 bTapeOnly)
 
   ucGameChoice = -1;
 
-  nbRomPerPage = (countZX>=17 ? 17 : countZX);
-  uNbRSPage = (countZX>=5 ? 5 : countZX);
+  nbRomPerPage = (fileCount>=17 ? 17 : fileCount);
+  uNbRSPage = (fileCount>=5 ? 5 : fileCount);
 
-  if (ucGameAct>countZX-nbRomPerPage)
+  if (ucGameAct>fileCount-nbRomPerPage)
   {
-    firstRomDisplay=countZX-nbRomPerPage;
-    romSelected=ucGameAct-countZX+nbRomPerPage;
+    firstRomDisplay=fileCount-nbRomPerPage;
+    romSelected=ucGameAct-fileCount+nbRomPerPage;
   }
   else
   {
@@ -389,7 +389,7 @@ u8 DracoDSLoadFile(u8 bTapeOnly)
     romSelected=0;
   }
 
-  if (romSelected >= countZX) romSelected = 0; // Just start at the top
+  if (romSelected >= fileCount) romSelected = 0; // Just start at the top
 
   dsDisplayFiles(firstRomDisplay,romSelected);
 
@@ -402,14 +402,14 @@ u8 DracoDSLoadFile(u8 bTapeOnly)
     {
       if (!ucHaut)
       {
-        ucGameAct = (ucGameAct>0 ? ucGameAct-1 : countZX-1);
+        ucGameAct = (ucGameAct>0 ? ucGameAct-1 : fileCount-1);
         if (romSelected>uNbRSPage) { romSelected -= 1; }
         else {
           if (firstRomDisplay>0) { firstRomDisplay -= 1; }
           else {
             if (romSelected>0) { romSelected -= 1; }
             else {
-              firstRomDisplay=countZX-nbRomPerPage;
+              firstRomDisplay=fileCount-nbRomPerPage;
               romSelected=nbRomPerPage-1;
             }
           }
@@ -431,10 +431,10 @@ u8 DracoDSLoadFile(u8 bTapeOnly)
     if (keysCurrent() & KEY_DOWN)
     {
       if (!ucBas) {
-        ucGameAct = (ucGameAct< countZX-1 ? ucGameAct+1 : 0);
+        ucGameAct = (ucGameAct< fileCount-1 ? ucGameAct+1 : 0);
         if (romSelected<uNbRSPage-1) { romSelected += 1; }
         else {
-          if (firstRomDisplay<countZX-nbRomPerPage) { firstRomDisplay += 1; }
+          if (firstRomDisplay<fileCount-nbRomPerPage) { firstRomDisplay += 1; }
           else {
             if (romSelected<nbRomPerPage-1) { romSelected += 1; }
             else {
@@ -464,10 +464,10 @@ u8 DracoDSLoadFile(u8 bTapeOnly)
     {
       if (!ucSBas)
       {
-        ucGameAct = (ucGameAct< countZX-nbRomPerPage ? ucGameAct+nbRomPerPage : countZX-nbRomPerPage);
-        if (firstRomDisplay<countZX-nbRomPerPage) { firstRomDisplay += nbRomPerPage; }
-        else { firstRomDisplay = countZX-nbRomPerPage; }
-        if (ucGameAct == countZX-nbRomPerPage) romSelected = 0;
+        ucGameAct = (ucGameAct< fileCount-nbRomPerPage ? ucGameAct+nbRomPerPage : fileCount-nbRomPerPage);
+        if (firstRomDisplay<fileCount-nbRomPerPage) { firstRomDisplay += nbRomPerPage; }
+        else { firstRomDisplay = fileCount-nbRomPerPage; }
+        if (ucGameAct == fileCount-nbRomPerPage) romSelected = 0;
         ucSBas=0x01;
         dsDisplayFiles(firstRomDisplay,romSelected);
       }
@@ -533,11 +533,11 @@ u8 DracoDSLoadFile(u8 bTapeOnly)
         chdir(gpFic[ucGameAct].szName);
         DracoDSFindFiles(bTapeOnly);
         ucGameAct = 0;
-        nbRomPerPage = (countZX>=17 ? 17 : countZX);
-        uNbRSPage = (countZX>=5 ? 5 : countZX);
-        if (ucGameAct>countZX-nbRomPerPage) {
-          firstRomDisplay=countZX-nbRomPerPage;
-          romSelected=ucGameAct-countZX+nbRomPerPage;
+        nbRomPerPage = (fileCount>=17 ? 17 : fileCount);
+        uNbRSPage = (fileCount>=5 ? 5 : fileCount);
+        if (ucGameAct>fileCount-nbRomPerPage) {
+          firstRomDisplay=fileCount-nbRomPerPage;
+          romSelected=ucGameAct-fileCount+nbRomPerPage;
         }
         else {
           firstRomDisplay=ucGameAct;
@@ -654,17 +654,17 @@ void SaveConfig(bool bShow)
 
 void MapPlayer1(void)
 {
-    myConfig.keymap[0]   = 0;    // NDS D-Pad mapped to Kempston Joystick UP
-    myConfig.keymap[1]   = 1;    // NDS D-Pad mapped to Kempston Joystick DOWN
-    myConfig.keymap[2]   = 2;    // NDS D-Pad mapped to Kempston Joystick LEFT
-    myConfig.keymap[3]   = 3;    // NDS D-Pad mapped to Kempston Joystick RIGHT
-    myConfig.keymap[4]   = 4;    // NDS A Button mapped to Kempston Fire
+    myConfig.keymap[0]   = 0;    // NDS D-Pad mapped to Joystick UP
+    myConfig.keymap[1]   = 1;    // NDS D-Pad mapped to Joystick DOWN
+    myConfig.keymap[2]   = 2;    // NDS D-Pad mapped to Joystick LEFT
+    myConfig.keymap[3]   = 3;    // NDS D-Pad mapped to Joystick RIGHT
+    myConfig.keymap[4]   = 4;    // NDS A Button mapped Joystick Fire
 
-    myConfig.keymap[5]   = 0;    // NDS B Button mapped to Kempston Joystick UP (jump)
+    myConfig.keymap[5]   = 0;    // NDS B Button mapped Joystick UP
     myConfig.keymap[6]   = 43;   // NDS X Button mapped to SPACE
     myConfig.keymap[7]   = 44;   // NDS Y Button mapped to RETURN
-    myConfig.keymap[8]   = 41;   // NDS R Button mapped to SHIFT
-    myConfig.keymap[9]   = 42;   // NDS L Button mapped to SYMBOL
+    myConfig.keymap[8]   = 5;    // NDS R Button mapped to 'A'
+    myConfig.keymap[9]   = 6;    // NDS L Button mapped to 'B'
     myConfig.keymap[10]  = 40;   // NDS START mapped to '0'
     myConfig.keymap[11]  = 31;   // NDS SELECT mapped to '1'
 }
@@ -779,7 +779,7 @@ void SetDefaultGameConfig(void)
     myConfig.autoLoad    = 1;                           // Default is to to auto-load TAP and TZX games
     myConfig.gameSpeed   = 0;                           // Default is 100% game speed
     myConfig.forceCSS    = 0;                           // Normal - not forced Color Select
-    myConfig.reserved3   = 0;
+    myConfig.graphicsMode= 0;                           // Normal - auto detect graphics mode
     myConfig.reserved4   = 0;
     myConfig.reserved5   = 0;
     myConfig.reserved6   = 0;
@@ -866,6 +866,22 @@ const struct options_t Option_Table[2][20] =
         {"AUTO FIRE",      {"OFF", "ON"},                                              &myConfig.autoFire,          2},
         {"GAME SPEED",     {"100%", "110%", "120%", "90%", "80%"},                     &myConfig.gameSpeed,         5},
         {"FORCE CSS",      {"NORMAL", "COLOR SET 0", "COLOR SET 1"},                   &myConfig.forceCSS,          3},        
+        {"FORCE VDG",      {"NORMAL", "GRAPHICS 1C", "GRAPHICS 1R", "GRAPHICS 2C", 
+                            "GRAPHICS 2R", "GRAPHICS 3C", "GRAPHICS 3R", 
+                            "GRAPHICS 6C", "GRAPHICS 6R"},                             &myConfig.graphicsMode,      9},        
+        
+        
+    // GRAPHICS_1C,        // 4 color  64x64   1024
+    // GRAPHICS_1R,        // 2 color  128x64  1024
+    // GRAPHICS_2C,        // 4 color  128x64  1536
+    // GRAPHICS_2R,        // 2 color  128x96  1536   PMODE0
+    // GRAPHICS_3C,        // 4 color  128x96  3072   PMODE1
+    // GRAPHICS_3R,        // 2 color  128x192 3072   PMODE2
+    // GRAPHICS_6C,        // 4 color  128x192 6144   PMODE3
+    // GRAPHICS_6R,        // 2 color  256x192 6144   PMODE4
+
+
+        
         {"NDS D-PAD",      {"NORMAL", "SLIDE-N-GLIDE"},                                &myConfig.dpad,              2},
         {"JOYSTICK",       {"RIGHT", "LEFT"},                                          &myConfig.joystick,          2},
         {"JOY TYPE",       {"DIGITAL", "ANALOG SLOW", "ANALOG MEDIUM", "ANALOG FAST"}, &myConfig.joyType,           4},        

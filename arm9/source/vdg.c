@@ -795,42 +795,59 @@ static video_mode_t vdg_get_mode(void)
         
         sam_2x_rez = 0;
         
-        switch ( pia_video_mode & 0x0e  )
+        if (myConfig.graphicsMode)
         {
-            case 0x00:
-                debug[0]++;
-                mode = GRAPHICS_1C;
-                break;
-            case 0x02:
-                debug[1]++;
-                mode = GRAPHICS_1R;
-                break;
-            case 0x04:
-                debug[2]++;
-                mode = GRAPHICS_2C;
-                if (sam_video_mode == 0x04) mode = GRAPHICS_3C; // Bump up to 3K higher-rez mode
-                break;
-            case 0x06:
-                debug[3]++;
-                mode = GRAPHICS_2R;
-                break;
-            case 0x08:
-                debug[4]++;
-                mode = GRAPHICS_3C;
-                break;
-            case 0x0a:
-                debug[5]++;
-                mode = GRAPHICS_3R;
-                break;
-            case 0x0c:
-                debug[6]++;
-                mode = GRAPHICS_6C;
-                break;
-            case 0x0e:
-                debug[7]++;
-                mode = GRAPHICS_6R;
-                if (sam_video_mode == 0x04) sam_2x_rez = 1;     // Essentially 256x96 using 3K
-                break;
+            switch (myConfig.graphicsMode)
+            {
+                case 1: mode = GRAPHICS_1C;  break;
+                case 2: mode = GRAPHICS_1R;  break;
+                case 3: mode = GRAPHICS_2C;  break;
+                case 4: mode = GRAPHICS_2R;  break;
+                case 5: mode = GRAPHICS_3C;  break;
+                case 6: mode = GRAPHICS_3R;  break;
+                case 7: mode = GRAPHICS_6C;  break;
+                case 8: mode = GRAPHICS_6R;  break;
+            }
+        }
+        else
+        {        
+            switch ( pia_video_mode & 0x0e  )
+            {
+                case 0x00:
+                    debug[0]++;
+                    mode = GRAPHICS_1C;
+                    break;
+                case 0x02:
+                    debug[1]++;
+                    mode = GRAPHICS_1R;
+                    break;
+                case 0x04:
+                    debug[2]++;
+                    mode = GRAPHICS_2C;
+                    if (sam_video_mode == 0x04) mode = GRAPHICS_3C; // Bump up to 3K higher-rez mode
+                    break;
+                case 0x06:
+                    debug[3]++;
+                    mode = GRAPHICS_2R;
+                    break;
+                case 0x08:
+                    debug[4]++;
+                    mode = GRAPHICS_3C;
+                    break;
+                case 0x0a:
+                    debug[5]++;
+                    mode = GRAPHICS_3R;
+                    break;
+                case 0x0c:
+                    debug[6]++;
+                    mode = GRAPHICS_6C;
+                    break;
+                case 0x0e:
+                    debug[7]++;
+                    mode = GRAPHICS_6R;
+                    if (sam_video_mode == 0x04) sam_2x_rez = 1;     // Essentially 256x96 using 3K
+                    break;
+            }
         }
     }
     else // Text Modes...
