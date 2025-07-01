@@ -105,30 +105,30 @@ typedef enum
 } video_mode_t;
 
 /* -----------------------------------------
-   Module static functions
+   Module functions
 ----------------------------------------- */
-static void vdg_render_alpha_semi4(int vdg_mem_base);
-static void vdg_render_semi6(int vdg_mem_base);
-static void vdg_render_semi_ext(video_mode_t mode, int vdg_mem_base);
-static void vdg_render_resl_graph(video_mode_t mode, int vdg_mem_base);
-static void vdg_render_color_graph(video_mode_t mode, int vdg_mem_base);
+void vdg_render_alpha_semi4(int vdg_mem_base);
+void vdg_render_semi6(int vdg_mem_base);
+void vdg_render_semi_ext(video_mode_t mode, int vdg_mem_base);
+void vdg_render_resl_graph(video_mode_t mode, int vdg_mem_base);
+void vdg_render_color_graph(video_mode_t mode, int vdg_mem_base);
 
-static video_mode_t vdg_get_mode(void);
+video_mode_t vdg_get_mode(void);
 
 /* -----------------------------------------
    Module globals
 ----------------------------------------- */
-static uint8_t      video_ram_offset;
-static int          sam_video_mode;
-uint8_t             pia_video_mode;
-static video_mode_t current_mode;
-static uint8_t     *fbp;
-static uint8_t      sam_2x_rez = 0;
+uint8_t      video_ram_offset;
+int          sam_video_mode;
+uint8_t      pia_video_mode;
+video_mode_t current_mode;
+uint8_t     *fbp;
+uint8_t      sam_2x_rez = 0;
 
 /* The following table lists the pixel ratio of columns and rows
  * relative to a 768x384 frame buffer resolution.
  */
-static const int resolution[][3] __attribute__((section(".dtcm"))) = {
+int resolution[][3] __attribute__((section(".dtcm"))) = {
     { 1, 1,  512 },  // ALPHA_INTERNAL, 2 color 32x16 512B Default
     { 1, 1,  512 },  // ALPHA_EXTERNAL, 4 color 32x16 512B
     { 1, 1,  512 },  // SEMI_GRAPHICS_4, 8 color 64x32 512B
@@ -147,7 +147,7 @@ static const int resolution[][3] __attribute__((section(".dtcm"))) = {
     { 1, 1, 6144 },  // DMA, 2 color 256x192 6144B
 };
 
-static uint8_t const colors[] __attribute__((section(".dtcm"))) = {
+uint8_t colors[] __attribute__((section(".dtcm"))) = {
         FB_LIGHT_GREEN,
         FB_YELLOW,
         FB_LIGHT_BLUE,
@@ -158,6 +158,8 @@ static uint8_t const colors[] __attribute__((section(".dtcm"))) = {
         FB_LIGHT_MAGENTA,
         FB_BROWN,
 };
+
+uint32_t color_translation_32[8][16] __attribute__((section(".dtcm"))) = {0};
 
 /*------------------------------------------------
  * vdg_init()
@@ -180,6 +182,32 @@ void vdg_init(void)
     current_mode = ALPHA_INTERNAL;
     
     sam_2x_rez = 0;
+
+    for (int color = 0; color < 8; color++)
+    {
+        for (int i=0; i<16; i++)
+        {
+            switch (i)
+            {
+                case 0x0: color_translation_32[color][i] = (FB_BLACK<<0)       | (FB_BLACK<<8)      | (FB_BLACK<<16)      | (FB_BLACK<<24);         break;
+                case 0x1: color_translation_32[color][i] = (FB_BLACK<<0)       | (FB_BLACK<<8)      | (FB_BLACK<<16)      | (colors[color]<<24);    break;
+                case 0x2: color_translation_32[color][i] = (FB_BLACK<<0)       | (FB_BLACK<<8)      | (colors[color]<<16) | (FB_BLACK<<24);         break;
+                case 0x3: color_translation_32[color][i] = (FB_BLACK<<0)       | (FB_BLACK<<8)      | (colors[color]<<16) | (colors[color]<<24);    break;
+                case 0x4: color_translation_32[color][i] = (FB_BLACK<<0)       | (colors[color]<<8) | (FB_BLACK<<16)      | (FB_BLACK<<24);         break;
+                case 0x5: color_translation_32[color][i] = (FB_BLACK<<0)       | (colors[color]<<8) | (FB_BLACK<<16)      | (colors[color]<<24);    break;
+                case 0x6: color_translation_32[color][i] = (FB_BLACK<<0)       | (colors[color]<<8) | (colors[color]<<16) | (FB_BLACK<<24);         break;
+                case 0x7: color_translation_32[color][i] = (FB_BLACK<<0)       | (colors[color]<<8) | (colors[color]<<16) | (colors[color]<<24);    break;
+                case 0x8: color_translation_32[color][i] = (colors[color]<<0)  | (FB_BLACK<<8)      | (FB_BLACK<<16)      | (FB_BLACK<<24);         break;
+                case 0x9: color_translation_32[color][i] = (colors[color]<<0)  | (FB_BLACK<<8)      | (FB_BLACK<<16)      | (colors[color]<<24);    break;
+                case 0xA: color_translation_32[color][i] = (colors[color]<<0)  | (FB_BLACK<<8)      | (colors[color]<<16) | (FB_BLACK<<24);         break;
+                case 0xB: color_translation_32[color][i] = (colors[color]<<0)  | (FB_BLACK<<8)      | (colors[color]<<16) | (colors[color]<<24);    break;
+                case 0xC: color_translation_32[color][i] = (colors[color]<<0)  | (colors[color]<<8) | (FB_BLACK<<16)      | (FB_BLACK<<24);         break;
+                case 0xD: color_translation_32[color][i] = (colors[color]<<0)  | (colors[color]<<8) | (FB_BLACK<<16)      | (colors[color]<<24);    break;
+                case 0xE: color_translation_32[color][i] = (colors[color]<<0)  | (colors[color]<<8) | (colors[color]<<16) | (FB_BLACK<<24);         break;
+                case 0xF: color_translation_32[color][i] = (colors[color]<<0)  | (colors[color]<<8) | (colors[color]<<16) | (colors[color]<<24);    break;
+            }
+        }
+    }
 }
 
 /*------------------------------------------------
@@ -328,16 +356,14 @@ ITCM_CODE void vdg_render_alpha_semi4(int vdg_mem_base)
     int         c, row, col, font_row, font_col;
     int         char_index, row_address;
     uint8_t     bit_pattern, pix_pos;
-    uint8_t     color_set, fg_color, bg_color, tmp;
+    uint8_t     color_set, fg_color, bg_color;
 
-    uint8_t    *screen_buffer;
-
-    screen_buffer = fbp;
+    uint32_t    *screen_buffer = (uint32_t *)fbp;
 
     if ( pia_video_mode & PIA_COLOR_SET )
-        color_set = colors[DEF_COLOR_CSS_1];
+        color_set = DEF_COLOR_CSS_1;
     else
-        color_set = colors[DEF_COLOR_CSS_0];
+        color_set = DEF_COLOR_CSS_0;
 
     for ( row = 0; row < SCREEN_HEIGHT_CHAR; row++ )
     {
@@ -349,8 +375,6 @@ ITCM_CODE void vdg_render_alpha_semi4(int vdg_mem_base)
             {
                 c = memory[col + row_address];
 
-                bg_color = FB_BLACK;
-
                 /* Mode dependent initializations
                  * for text or semigraphics 4:
                  * - Determine foreground and background colors
@@ -360,7 +384,7 @@ ITCM_CODE void vdg_render_alpha_semi4(int vdg_mem_base)
                  */
                 if ( (uint8_t)c & CHAR_SEMI_GRAPHICS )
                 {
-                    fg_color = colors[(((uint8_t)c & 0b01110000) >> 4)];
+                    fg_color = (((uint8_t)c & 0b01110000) >> 4);
                     char_index = (int)(((uint8_t) c) & SEMI_GRAPH4_MASK);
                     bit_pattern = semi_graph_4[char_index][font_row];
                 }
@@ -368,45 +392,18 @@ ITCM_CODE void vdg_render_alpha_semi4(int vdg_mem_base)
                 {
                     fg_color = color_set;
 
-                    if ( (uint8_t)c & CHAR_INVERSE )
-                    {
-                        tmp = fg_color;
-                        fg_color = bg_color;
-                        bg_color = tmp;
-                    }
                     char_index = (int)(((uint8_t) c) & ~(CHAR_SEMI_GRAPHICS | CHAR_INVERSE));
                     bit_pattern = font_img5x7[char_index][font_row];
+                    if ( (uint8_t)c & CHAR_INVERSE )
+                    {
+                        bit_pattern = ~bit_pattern;
+                    }
                 }
 
                 /* Render a row of pixels in a temporary buffer
                  */
-                pix_pos = 0x80;
-
-                if (!bit_pattern)
-                {
-                    memset(screen_buffer, bg_color, 8);
-                    screen_buffer+=8;
-                }
-                else
-                for ( font_col = 0; font_col < FONT_WIDTH; font_col++ )
-                {
-                    /* Bit is set in Font, print pixel(s) in text color
-                    */
-                    if ( (bit_pattern & pix_pos) )
-                    {
-                        *screen_buffer++ = fg_color;
-                    }
-                    /* Bit is cleared in Font
-                    */
-                    else
-                    {
-                        *screen_buffer++ = bg_color;
-                    }
-
-                    /* Move to the next pixel position
-                    */
-                    pix_pos = pix_pos >> 1;
-                }
+                *screen_buffer++ = color_translation_32[fg_color][bit_pattern >> 4];
+                *screen_buffer++ = color_translation_32[fg_color][bit_pattern & 0xF];
             }
         }
     }
@@ -421,7 +418,7 @@ ITCM_CODE void vdg_render_alpha_semi4(int vdg_mem_base)
  * return: None
  *
  */
-ITCM_CODE static void vdg_render_semi6(int vdg_mem_base)
+ITCM_CODE void vdg_render_semi6(int vdg_mem_base)
 {
     int         c, row, col, font_row, font_col, color_set;
     int         char_index, row_address;
@@ -488,7 +485,7 @@ ITCM_CODE static void vdg_render_semi6(int vdg_mem_base)
  * return: none
  *
  */
-ITCM_CODE static void vdg_render_semi_ext(video_mode_t mode, int vdg_mem_base)
+ITCM_CODE void vdg_render_semi_ext(video_mode_t mode, int vdg_mem_base)
 {
     int         row, seg_row, scan_line, col, font_col, font_row;
     int         segments, seg_scan_lines;
@@ -615,7 +612,7 @@ ITCM_CODE static void vdg_render_semi_ext(video_mode_t mode, int vdg_mem_base)
  * return: none
  *
  */
-ITCM_CODE static void vdg_render_resl_graph(video_mode_t mode, int vdg_mem_base)
+ITCM_CODE void vdg_render_resl_graph(video_mode_t mode, int vdg_mem_base)
 {
     int         i, vdg_mem_offset, element, buffer_index;
     int         video_mem, row_rep;
@@ -719,7 +716,7 @@ ITCM_CODE static void vdg_render_resl_graph(video_mode_t mode, int vdg_mem_base)
  * return: none
  *
  */
-ITCM_CODE static void vdg_render_color_graph(video_mode_t mode, int vdg_mem_base)
+ITCM_CODE void vdg_render_color_graph(video_mode_t mode, int vdg_mem_base)
 {
     int         i, vdg_mem_offset, element, buffer_index;
     int         video_mem, row_rep, color_set, color;
@@ -774,7 +771,7 @@ ITCM_CODE static void vdg_render_color_graph(video_mode_t mode, int vdg_mem_base
  * return: Video mode
  *
  */
-static video_mode_t vdg_get_mode(void)
+video_mode_t vdg_get_mode(void)
 {
     video_mode_t mode = UNDEFINED;
 
