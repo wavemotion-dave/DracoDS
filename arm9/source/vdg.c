@@ -119,12 +119,13 @@ video_mode_t vdg_get_mode(void);
 /* -----------------------------------------
    Module globals
 ----------------------------------------- */
-uint8_t      video_ram_offset;
-int          sam_video_mode;
+int          video_ram_offset   __attribute__((section(".dtcm")));
+int          sam_video_mode     __attribute__((section(".dtcm")));
+int          sam_2x_rez         __attribute__((section(".dtcm"))) = 1;
+
 uint8_t      pia_video_mode;
 video_mode_t current_mode;
 uint8_t     *fbp;
-uint8_t      sam_2x_rez = 0;
 
 /* The following table lists the pixel ratio of columns and rows
  * relative to a 768x384 frame buffer resolution.
@@ -182,7 +183,7 @@ void vdg_init(void)
      */
     current_mode = ALPHA_INTERNAL;
     
-    sam_2x_rez = 0;
+    sam_2x_rez = 1;
 
     for (int color = 0; color < 8; color++)
     {
@@ -639,7 +640,7 @@ ITCM_CODE void vdg_render_resl_graph(video_mode_t mode, int vdg_mem_base)
         fg_color = colors[DEF_COLOR_CSS_0];
     }
 
-    for ( vdg_mem_offset = 0; vdg_mem_offset < video_mem / (1+sam_2x_rez); vdg_mem_offset++)
+    for ( vdg_mem_offset = 0; vdg_mem_offset < video_mem / sam_2x_rez; vdg_mem_offset++)
     {
         pixels_byte = memory[vdg_mem_offset + vdg_mem_base];
 
@@ -672,7 +673,7 @@ ITCM_CODE void vdg_render_resl_graph(video_mode_t mode, int vdg_mem_base)
 
         if ( buffer_index >= SCREEN_WIDTH_PIX )
         {
-            for ( i = 0; i < row_rep * (sam_2x_rez+1); i++ )
+            for ( i = 0; i < row_rep * sam_2x_rez; i++ )
             {
                 memcpy(screen_buffer, pixel_row, SCREEN_WIDTH_PIX);
                 screen_buffer += SCREEN_WIDTH_PIX;
@@ -686,6 +687,7 @@ ITCM_CODE void vdg_render_resl_graph(video_mode_t mode, int vdg_mem_base)
 // --------------------------------------------------------------------
 // Handler for GRAPHICS_6R - this one is high-rez with artifacting...
 // --------------------------------------------------------------------
+int ds_lite_frameskip = 0;
 ITCM_CODE void vdg_render_artifacting(video_mode_t mode, int vdg_mem_base)
 {
     int         i, vdg_mem_offset, element, buffer_index;
@@ -695,6 +697,11 @@ ITCM_CODE void vdg_render_artifacting(video_mode_t mode, int vdg_mem_base)
     uint8_t     last_pixel = 99;
     uint8_t     pixel_row[SCREEN_WIDTH_PIX+16];
 
+    if (!isDSiMode()) 
+    {
+        if ((++ds_lite_frameskip & 3) == 0) return;
+    }
+    
     screen_buffer = fbp;
 
     video_mem = resolution[mode][RES_MEM];
@@ -710,7 +717,7 @@ ITCM_CODE void vdg_render_artifacting(video_mode_t mode, int vdg_mem_base)
         fg_color = colors[DEF_COLOR_CSS_0];
     }
 
-    for ( vdg_mem_offset = 0; vdg_mem_offset < video_mem / (1+sam_2x_rez); vdg_mem_offset++)
+    for ( vdg_mem_offset = 0; vdg_mem_offset < video_mem / sam_2x_rez; vdg_mem_offset++)
     {
         pixels_byte = memory[vdg_mem_offset + vdg_mem_base];
 
@@ -768,7 +775,7 @@ ITCM_CODE void vdg_render_artifacting(video_mode_t mode, int vdg_mem_base)
             // A few games like Monster Maze and Temple of ROM are 256x192 VDG mode but the
             // SAM bits indicate a 256x96 mode... In essence, they are doing 256x192 but only
             // using 3K of memory and the vertical resolution is doubled. sam_2x_rez handles that.
-            for ( i = 0; i < row_rep * (sam_2x_rez+1); i++ )
+            for ( i = 0; i < row_rep * sam_2x_rez; i++ )
             {
                 memcpy(screen_buffer, pixel_row, SCREEN_WIDTH_PIX);
                 screen_buffer += SCREEN_WIDTH_PIX;
@@ -864,7 +871,7 @@ video_mode_t vdg_get_mode(void)
         // that only draws half a screen.
         // ------------------------------------------------------------------------------
         
-        sam_2x_rez = 0;
+        sam_2x_rez = 1;
         
         if (myConfig.graphicsMode)
         {
@@ -916,7 +923,7 @@ video_mode_t vdg_get_mode(void)
                 case 0x0e:
                     debug[7]++;
                     mode = GRAPHICS_6R;
-                    if (sam_video_mode == 0x04) sam_2x_rez = 1;     // Essentially 256x96 using 3K
+                    if (sam_video_mode == 0x04) sam_2x_rez = 2;     // Essentially 256x96 using 3K
                     break;
             }
         }
