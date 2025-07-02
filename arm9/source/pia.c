@@ -729,7 +729,11 @@ static uint8_t io_handler_pia1_pb(uint16_t address, uint8_t data, mem_operation_
         vdg_set_mode_pia(((data >> 3) & 0x1f));
         
         extern signed short int beeper_vol;
-        beeper_vol = (data & 0x02) ? 0xA00 : 0x000;  // TODO: single-bit Beeper isn't working...
+        
+        if (data & 0x02) // Beeper Pulse
+        {
+            beeper_vol = (beeper_vol ? 0x000:0xFFF);
+        }
     }
 
     /* A read to the port address has the effect of resetting

@@ -112,6 +112,7 @@ void vdg_render_semi6(int vdg_mem_base);
 void vdg_render_semi_ext(video_mode_t mode, int vdg_mem_base);
 void vdg_render_resl_graph(video_mode_t mode, int vdg_mem_base);
 void vdg_render_color_graph(video_mode_t mode, int vdg_mem_base);
+void vdg_render_artifacting(video_mode_t mode, int vdg_mem_base);
 
 video_mode_t vdg_get_mode(void);
 
@@ -262,8 +263,11 @@ ITCM_CODE void vdg_render(void)
         case GRAPHICS_1R:
         case GRAPHICS_2R:
         case GRAPHICS_3R:
-        case GRAPHICS_6R:
             vdg_render_resl_graph(current_mode, vdg_mem_base);
+            break;
+            
+        case GRAPHICS_6R:
+            vdg_render_artifacting(current_mode, vdg_mem_base);
             break;
 
         case SEMI_GRAPHICS_8:
@@ -353,10 +357,10 @@ void vdg_set_mode_pia(uint8_t pia_mode)
  */
 ITCM_CODE void vdg_render_alpha_semi4(int vdg_mem_base)
 {
-    int         c, row, col, font_row, font_col;
+    int         c, row, col, font_row;
     int         char_index, row_address;
-    uint8_t     bit_pattern, pix_pos;
-    uint8_t     color_set, fg_color, bg_color;
+    uint8_t     bit_pattern;
+    uint8_t     color_set, fg_color;
 
     uint32_t    *screen_buffer = (uint32_t *)fbp;
 
@@ -375,7 +379,7 @@ ITCM_CODE void vdg_render_alpha_semi4(int vdg_mem_base)
             {
                 c = memory[col + row_address];
 
-                /* Mode dependent initializations
+                /* Mode dependent initialization
                  * for text or semigraphics 4:
                  * - Determine foreground and background colors
                  * - Character pattern array
@@ -400,7 +404,7 @@ ITCM_CODE void vdg_render_alpha_semi4(int vdg_mem_base)
                     }
                 }
 
-                /* Render a row of pixels in a temporary buffer
+                /* Render a row of pixels directly to the screen buffer - 32-bit speed!
                  */
                 *screen_buffer++ = color_translation_32[fg_color][bit_pattern >> 4];
                 *screen_buffer++ = color_translation_32[fg_color][bit_pattern & 0xF];
@@ -606,13 +610,83 @@ ITCM_CODE void vdg_render_semi_ext(video_mode_t mode, int vdg_mem_base)
  * vdg_render_resl_graph()
  *
  *  Render high resolution graphics modes:
- *  GRAPHICS_1R, GRAPHICS_2R, GRAPHICS_3R, and GRAPHICS_6R.
+ *  GRAPHICS_1R, GRAPHICS_2R, GRAPHICS_3R.
  *
  * param:  Mode, base address of video memory buffer.
  * return: none
  *
  */
 ITCM_CODE void vdg_render_resl_graph(video_mode_t mode, int vdg_mem_base)
+{
+    int         i, vdg_mem_offset, element, buffer_index;
+    int         video_mem, row_rep;
+    uint8_t     pixels_byte, fg_color, pixel;
+    uint8_t    *screen_buffer;
+    uint8_t     pixel_row[SCREEN_WIDTH_PIX+16];
+
+    screen_buffer = fbp;
+
+    video_mem = resolution[mode][RES_MEM];
+    row_rep = resolution[mode][RES_ROW_REP];
+    buffer_index = 0;
+
+    if ( pia_video_mode & PIA_COLOR_SET )
+    {
+        fg_color = colors[DEF_COLOR_CSS_1];
+    }
+    else
+    {
+        fg_color = colors[DEF_COLOR_CSS_0];
+    }
+
+    for ( vdg_mem_offset = 0; vdg_mem_offset < video_mem / (1+sam_2x_rez); vdg_mem_offset++)
+    {
+        pixels_byte = memory[vdg_mem_offset + vdg_mem_base];
+
+        if (pixels_byte == 0x00)
+        {
+            memset(pixel_row+buffer_index, FB_BLACK, 16);
+            buffer_index += 16;
+        }
+        else if (pixels_byte == 0xFF)
+        {
+            memset(pixel_row+buffer_index, fg_color, 16);
+            buffer_index += 16;
+        }
+        else
+        for ( element = 7; element >= 0; element--)
+        {
+            if ( (pixels_byte >> element) & 0x01 )
+            {
+                pixel = fg_color;
+            }
+            else
+            {
+                pixel = FB_BLACK;
+            }
+
+            // Expand 2x
+            pixel_row[buffer_index++] = pixel;
+            pixel_row[buffer_index++] = pixel;
+        }
+
+        if ( buffer_index >= SCREEN_WIDTH_PIX )
+        {
+            for ( i = 0; i < row_rep * (sam_2x_rez+1); i++ )
+            {
+                memcpy(screen_buffer, pixel_row, SCREEN_WIDTH_PIX);
+                screen_buffer += SCREEN_WIDTH_PIX;
+            }
+
+            buffer_index = 0;
+        }
+    }
+}
+
+// --------------------------------------------------------------------
+// Handler for GRAPHICS_6R - this one is high-rez with artifacting...
+// --------------------------------------------------------------------
+ITCM_CODE void vdg_render_artifacting(video_mode_t mode, int vdg_mem_base)
 {
     int         i, vdg_mem_offset, element, buffer_index;
     int         video_mem, row_rep;
@@ -642,59 +716,58 @@ ITCM_CODE void vdg_render_resl_graph(video_mode_t mode, int vdg_mem_base)
 
         if (pixels_byte == 0x00)
         {
-            if ( mode != GRAPHICS_6R ) // Expand 2x
-            {
-                memset(pixel_row+buffer_index, FB_BLACK, 16);
-                buffer_index += 16;
-            }
-            else
-            {
-                memset(pixel_row+buffer_index, FB_BLACK, 8);
-                buffer_index += 8;
-            }
+            memset(pixel_row+buffer_index, FB_BLACK, 8);
+            buffer_index += 8;
             last_pixel = pixel = FB_BLACK;
         }
-        else
-        for ( element = 7; element >= 0; element--)
+        else if (pixels_byte == 0xFF)
         {
-            if ( (pixels_byte >> element) & 0x01 )
+            memset(pixel_row+buffer_index, fg_color, 8);
+            buffer_index += 8;
+            last_pixel = pixel = fg_color;
+        }
+        else if (pixels_byte == 0xAA)
+        {
+            memset(pixel_row+buffer_index, ARTIFACT_ORANGE, 8);
+            buffer_index += 8;
+            last_pixel = pixel = FB_BLACK;
+        }
+        else if (pixels_byte == 0x55)
+        {
+            memset(pixel_row+buffer_index, ARTIFACT_BLUE , 8);
+            buffer_index += 8;
+            last_pixel = pixel = fg_color;
+        }
+        else
+        for ( element = 0x80; element != 0; element >>= 1)
+        {
+            if (pixels_byte & element)
             {
                 pixel = fg_color;
+                if (pixel != last_pixel)
+                {
+                    last_pixel = pixel;
+                    pixel = (buffer_index & 1) ? ARTIFACT_BLUE : ARTIFACT_ORANGE;
+                }
             }
             else
             {
                 pixel = FB_BLACK;
-            }
-
-            if ( mode != GRAPHICS_6R ) // Expand 2x
-            {
-                pixel_row[buffer_index++] = pixel;
-                pixel_row[buffer_index++] = pixel;
-            }
-            else // Possible artifact colors
-            {
                 if (pixel != last_pixel)
                 {
                     last_pixel = pixel;
-                    if (buffer_index & 1)
-                    {
-                        if (pixel == FB_BLACK) pixel = ARTIFACT_ORANGE; else pixel=ARTIFACT_BLUE;
-                    }
-                    else
-                    {
-                        if (pixel == FB_BLACK) pixel = ARTIFACT_BLUE; else pixel=ARTIFACT_ORANGE;
-                    }
+                    pixel = (buffer_index & 1) ? ARTIFACT_ORANGE : ARTIFACT_BLUE;
                 }
-                pixel_row[buffer_index++] = pixel;
             }
+            
+            pixel_row[buffer_index++] = pixel;
         }
 
         if ( buffer_index >= SCREEN_WIDTH_PIX )
         {
             // A few games like Monster Maze and Temple of ROM are 256x192 VDG mode but the
             // SAM bits indicate a 256x96 mode... In essence, they are doing 256x192 but only
-            // using 3K of memory and the vertical resolution is somehow doubled. We handle
-            // that here - at least until I can figure out what's really going on!
+            // using 3K of memory and the vertical resolution is doubled. sam_2x_rez handles that.
             for ( i = 0; i < row_rep * (sam_2x_rez+1); i++ )
             {
                 memcpy(screen_buffer, pixel_row, SCREEN_WIDTH_PIX);
@@ -705,6 +778,7 @@ ITCM_CODE void vdg_render_resl_graph(video_mode_t mode, int vdg_mem_base)
         }
     }
 }
+
 
 /*------------------------------------------------
  * vdg_render_color_graph()
