@@ -124,8 +124,8 @@ static void    tst(uint8_t byte);
 
 /* CPU op-code support functions
  */
-static void     branch(int instruction, int long_short, uint16_t effective_address, int *cycles);
-static int      get_eff_addr(int op_code, int *cycles);
+static void     branch(int instruction, int long_short, uint16_t effective_address);
+static int      get_eff_addr(int op_code);
 static uint16_t read_register(int reg);
 static void     write_register(int reg, uint16_t data);
 
@@ -309,7 +309,6 @@ void cpu_check_reset(void)
  */
 ITCM_CODE void cpu_run(void)
 {
-    int         cycles;
     int         eff_addr;
     uint8_t     operand8;
     uint16_t    operand16;
@@ -330,34 +329,37 @@ ITCM_CODE void cpu_run(void)
          * and stay in wait mode, or if an interrupt was latched
          * then execution will proceed with op-code fetch.
          */
-        if ( cpu.cpu_state == CPU_SYNC )
+        if (cpu.cpu_state) // Something OTHER than CPU_EXEC
         {
-            if ( intr_latch & (INT_NMI | INT_FIRQ | INT_IRQ) )
+            if ( cpu.cpu_state == CPU_SYNC )
             {
-                cycles_this_scanline = 0;
-                cpu.cpu_state = CPU_EXEC;
+                if ( intr_latch & (INT_NMI | INT_FIRQ | INT_IRQ) )
+                {
+                    cycles_this_scanline = 0;
+                    cpu.cpu_state = CPU_EXEC;
+                }
+                else
+                {
+                    return; // Waiting for an interrupt (masked or not)
+                }
             }
-            else
+            
+            if (cpu.cpu_state == CPU_HALTED)
             {
-                return;
+                if ( !(cc.f) && (intr_latch & INT_FIRQ) )
+                {
+                    cpu.cpu_state = CPU_EXEC;
+                    cpu.pc = (mem_read(VEC_FIRQ) << 8) + mem_read(VEC_FIRQ+1);
+                }
+                else if ( !(cc.i) && (intr_latch & INT_IRQ) )
+                {
+                    cpu.cpu_state = CPU_EXEC;
+                    cpu.pc = (mem_read(VEC_IRQ) << 8) + mem_read(VEC_IRQ+1);
+                }
+                else return; // We're waiting for an unmasked interrupt
             }
         }
         
-        if (cpu.cpu_state == CPU_HALTED)
-        {
-            if ( !(cc.f) && (intr_latch & INT_FIRQ) )
-            {
-                cpu.cpu_state = CPU_EXEC;
-                cpu.pc = (mem_read(VEC_FIRQ) << 8) + mem_read(VEC_FIRQ+1);
-            }
-            else if ( !(cc.i) && (intr_latch & INT_IRQ) )
-            {
-                cpu.cpu_state = CPU_EXEC;
-                cpu.pc = (mem_read(VEC_IRQ) << 8) + mem_read(VEC_IRQ+1);
-            }
-            else return; // We're waiting for an unmasked interrupt
-        }
-        else
         if (intr_latch)
         {
             /* If an interrupt is received and it is enabled, then
@@ -370,7 +372,7 @@ ITCM_CODE void cpu_run(void)
              * The NMI signal is transition driven.
              * The NMI latch/logic is cleared when it is acknowledged.
              * FIRQ and IRQ will be samples at each op-code cycle,
-             * but if the IRQ/FIRQ signal was removed before sapling
+             * but if the IRQ/FIRQ signal was removed before sampling
              * then it will not be serviced.
              * The IRQ and FIRQ signal is level driven.
              */
@@ -378,7 +380,7 @@ ITCM_CODE void cpu_run(void)
             {
                 cpu.cpu_state = CPU_EXEC;
                 cc.e = CC_FLAG_SET;
-                cycles += 20;
+                cycles_this_scanline += 20;
                 
                 cpu.s--;
                 mem_write(cpu.s, cpu.pc & 0xff);
@@ -416,7 +418,7 @@ ITCM_CODE void cpu_run(void)
             {
                 cpu.cpu_state = CPU_EXEC;
                 cc.e = CC_FLAG_CLR;
-                cycles += 10;
+                cycles_this_scanline += 10;
                 
                 cpu.s--;
                 mem_write(cpu.s, cpu.pc & 0xff);
@@ -434,7 +436,7 @@ ITCM_CODE void cpu_run(void)
             {
                 cpu.cpu_state = CPU_EXEC;
                 cc.e = CC_FLAG_SET;
-                cycles += 20;
+                cycles_this_scanline += 20;
                 
                 cpu.s--;
                 mem_write(cpu.s, cpu.pc & 0xff);
@@ -470,185 +472,182 @@ ITCM_CODE void cpu_run(void)
         // Fetch the OP Code directly from memory
         op_code = memory[cpu.pc++];
         
-        /* Double-byte 0x10 prefix
-         */
-        if ( op_code == 0x10 )
-        {
-            op_code = memory[cpu.pc++];
-            
-            cycles = machine_code_10[op_code].cycles;
-
-            eff_addr = get_eff_addr(machine_code_10[op_code].mode, &cycles);
-
-            switch ( op_code )
-            {
-                /* CMPD
-                 */
-                case 0x83:
-                case 0x93:
-                case 0xa3:
-                case 0xb3:
-                    operand8 = (uint8_t) mem_read(eff_addr);
-                    eff_addr++;
-                    operand16 = ((uint16_t) operand8 << 8) + (uint16_t) mem_read(eff_addr);
-                    cmp16(d, operand16);
-                    break;
-
-                /* CMPY
-                 */
-                case 0x8c:
-                case 0x9c:
-                case 0xac:
-                case 0xbc:
-                    operand8 = (uint8_t) mem_read(eff_addr);
-                    eff_addr++;
-                    operand16 = ((uint16_t) operand8 << 8) + (uint16_t) mem_read(eff_addr);
-                    cmp16(cpu.y, operand16);
-                    break;
-
-                /* LDS
-                 */
-                case 0xce:
-                case 0xde:
-                case 0xee:
-                case 0xfe:
-                    operand8 = (uint8_t) mem_read(eff_addr);
-                    eff_addr++;
-                    cpu.s = ((uint16_t) operand8 << 8) + (uint16_t) mem_read(eff_addr);
-                    eval_cc_z16(cpu.s);
-                    eval_cc_n16(cpu.s);
-                    cc.v = CC_FLAG_CLR;
-                    cpu.nmi_armed = 1;
-                    break;
-
-                /* LDY
-                 */
-                case 0x8e:
-                case 0x9e:
-                case 0xae:
-                case 0xbe:
-                    operand8 = (uint8_t) mem_read(eff_addr);
-                    eff_addr++;
-                    cpu.y = ((uint16_t) operand8 << 8) + (uint16_t) mem_read(eff_addr);
-                    eval_cc_z16(cpu.y);
-                    eval_cc_n16(cpu.y);
-                    cc.v = CC_FLAG_CLR;
-                    break;
-
-                /* STS
-                 */
-                case 0xdf:
-                case 0xef:
-                case 0xff:
-                    mem_write(eff_addr, (uint8_t) (cpu.s >> 8));
-                    mem_write(eff_addr + 1, (uint8_t) (cpu.s));
-                    eval_cc_z16(cpu.s);
-                    eval_cc_n16(cpu.s);
-                    cc.v = CC_FLAG_CLR;
-                    break;
-
-                /* STY
-                 */
-                case 0x9f:
-                case 0xaf:
-                case 0xbf:
-                    mem_write(eff_addr, (uint8_t) (cpu.y >> 8));
-                    mem_write(eff_addr + 1, (uint8_t) (cpu.y));
-                    eval_cc_z16(cpu.y);
-                    eval_cc_n16(cpu.y);
-                    cc.v = CC_FLAG_CLR;
-                    break;
-
-                /* LBRN
-                 */
-                case 0x21:
-                    // Long branch never
-                    break;
-
-                /* Long conditional branches
-                 */
-                case 0x22 ... 0x2f:
-                    branch(op_code, 1, eff_addr, &cycles);
-                    break;
-
-                /* SWI2
-                 */
-                case 0x3f:
-                    swi(2);
-                    break;
-
-                default:
-                    /* Exception: Illegal 0x10 op-code cpu_run()
-                     */
-                    debug[7] = 7777;
-                    cpu.cpu_state = CPU_EXCEPTION;
-                    cpu.exception_line_num = __LINE__;
-            }
-        }
-        /* Double-byte 0x11 prefix
-         */
-        else if ( op_code == 0x11 )
-        {
-            op_code = memory[cpu.pc++];
-            
-            cycles = machine_code_11[op_code].cycles;
-            
-            eff_addr = get_eff_addr(machine_code_11[op_code].mode, &cycles);
-
-            switch ( op_code )
-            {
-                /* CMPU
-                 */
-                case 0x83:
-                case 0x93:
-                case 0xa3:
-                case 0xb3:
-                    operand8 = (uint8_t) mem_read(eff_addr);
-                    eff_addr++;
-                    operand16 = ((uint16_t) operand8 << 8) + (uint16_t) mem_read(eff_addr);
-                    cmp16(cpu.u, operand16);
-                    break;
-
-                /* CMPS
-                 */
-                case 0x8c:
-                case 0x9c:
-                case 0xac:
-                case 0xbc:
-                    operand8 = (uint8_t) mem_read(eff_addr);
-                    eff_addr++;
-                    operand16 = ((uint16_t) operand8 << 8) + (uint16_t) mem_read(eff_addr);
-                    cmp16(cpu.s, operand16);
-                    break;
-
-                /* SWI3
-                 */
-                case 0x3f:
-                    swi(3);
-                    break;
-
-                default:
-                    /* Exception: Illegal 0x11 op-code cpu_run()
-                     */
-                    debug[7] = 8888;
-                    cpu.cpu_state = CPU_EXCEPTION;
-                    cpu.exception_line_num = __LINE__;
-            }
-        }
-        /* Common op-code processing
-         */
-        else
+        // Process the Op-Code... handle the double-byte instructions as part of the normal case
         {
             /* 'operand8' will be operand byte, and for a 16-bit operand 'operand8'
              * will be the high order byte and low order byte should be read separately
              * and combined into 16-bit value.
              */
-            cycles = machine_code[op_code].cycles;
+            cycles_this_scanline += machine_code[op_code].cycles;
 
-            eff_addr = get_eff_addr(machine_code[op_code].mode, &cycles);
+            eff_addr = get_eff_addr(machine_code[op_code].mode);
 
             switch ( op_code )
             {
+                case 0x11:
+                {
+                    op_code = memory[cpu.pc++];
+                    
+                    cycles_this_scanline += machine_code_11[op_code].cycles;
+                    
+                    eff_addr = get_eff_addr(machine_code_11[op_code].mode);
+
+                    switch ( op_code )
+                    {
+                        /* CMPU
+                         */
+                        case 0x83:
+                        case 0x93:
+                        case 0xa3:
+                        case 0xb3:
+                            operand8 = (uint8_t) mem_read(eff_addr);
+                            eff_addr++;
+                            operand16 = ((uint16_t) operand8 << 8) + (uint16_t) mem_read(eff_addr);
+                            cmp16(cpu.u, operand16);
+                            break;
+
+                        /* CMPS
+                         */
+                        case 0x8c:
+                        case 0x9c:
+                        case 0xac:
+                        case 0xbc:
+                            operand8 = (uint8_t) mem_read(eff_addr);
+                            eff_addr++;
+                            operand16 = ((uint16_t) operand8 << 8) + (uint16_t) mem_read(eff_addr);
+                            cmp16(cpu.s, operand16);
+                            break;
+
+                        /* SWI3
+                         */
+                        case 0x3f:
+                            swi(3);
+                            break;
+
+                        default:
+                            /* Exception: Illegal 0x11 op-code cpu_run()
+                             */
+                            debug[7] = 8888;
+                            cpu.cpu_state = CPU_EXCEPTION;
+                            cpu.exception_line_num = __LINE__;
+                    }
+                }
+                break;
+                
+                case 0x10:
+                {
+                    op_code = memory[cpu.pc++];
+                    
+                    cycles_this_scanline += machine_code_10[op_code].cycles;
+
+                    eff_addr = get_eff_addr(machine_code_10[op_code].mode);
+
+                    switch ( op_code )
+                    {
+                        /* CMPD
+                         */
+                        case 0x83:
+                        case 0x93:
+                        case 0xa3:
+                        case 0xb3:
+                            operand8 = (uint8_t) mem_read(eff_addr);
+                            eff_addr++;
+                            operand16 = ((uint16_t) operand8 << 8) + (uint16_t) mem_read(eff_addr);
+                            cmp16(d, operand16);
+                            break;
+
+                        /* CMPY
+                         */
+                        case 0x8c:
+                        case 0x9c:
+                        case 0xac:
+                        case 0xbc:
+                            operand8 = (uint8_t) mem_read(eff_addr);
+                            eff_addr++;
+                            operand16 = ((uint16_t) operand8 << 8) + (uint16_t) mem_read(eff_addr);
+                            cmp16(cpu.y, operand16);
+                            break;
+
+                        /* LDS
+                         */
+                        case 0xce:
+                        case 0xde:
+                        case 0xee:
+                        case 0xfe:
+                            operand8 = (uint8_t) mem_read(eff_addr);
+                            eff_addr++;
+                            cpu.s = ((uint16_t) operand8 << 8) + (uint16_t) mem_read(eff_addr);
+                            eval_cc_z16(cpu.s);
+                            eval_cc_n16(cpu.s);
+                            cc.v = CC_FLAG_CLR;
+                            cpu.nmi_armed = 1;
+                            break;
+
+                        /* LDY
+                         */
+                        case 0x8e:
+                        case 0x9e:
+                        case 0xae:
+                        case 0xbe:
+                            operand8 = (uint8_t) mem_read(eff_addr);
+                            eff_addr++;
+                            cpu.y = ((uint16_t) operand8 << 8) + (uint16_t) mem_read(eff_addr);
+                            eval_cc_z16(cpu.y);
+                            eval_cc_n16(cpu.y);
+                            cc.v = CC_FLAG_CLR;
+                            break;
+
+                        /* STS
+                         */
+                        case 0xdf:
+                        case 0xef:
+                        case 0xff:
+                            mem_write(eff_addr, (uint8_t) (cpu.s >> 8));
+                            mem_write(eff_addr + 1, (uint8_t) (cpu.s));
+                            eval_cc_z16(cpu.s);
+                            eval_cc_n16(cpu.s);
+                            cc.v = CC_FLAG_CLR;
+                            break;
+
+                        /* STY
+                         */
+                        case 0x9f:
+                        case 0xaf:
+                        case 0xbf:
+                            mem_write(eff_addr, (uint8_t) (cpu.y >> 8));
+                            mem_write(eff_addr + 1, (uint8_t) (cpu.y));
+                            eval_cc_z16(cpu.y);
+                            eval_cc_n16(cpu.y);
+                            cc.v = CC_FLAG_CLR;
+                            break;
+
+                        /* LBRN
+                         */
+                        case 0x21:
+                            // Long branch never
+                            break;
+
+                        /* Long conditional branches
+                         */
+                        case 0x22 ... 0x2f:
+                            branch(op_code, 1, eff_addr);
+                            break;
+
+                        /* SWI2
+                         */
+                        case 0x3f:
+                            swi(2);
+                            break;
+
+                        default:
+                            /* Exception: Illegal 0x10 op-code cpu_run()
+                             */
+                            debug[7] = 7777;
+                            cpu.cpu_state = CPU_EXCEPTION;
+                            cpu.exception_line_num = __LINE__;
+                    }
+                }
+                break;                
                 /* ABX
                  */
                 case 0x3a:
@@ -1126,24 +1125,24 @@ ITCM_CODE void cpu_run(void)
                  */
                 case 0x34:
                     operand8 = (uint8_t) mem_read(eff_addr);
-                    pshs(operand8, &cycles);
+                    pshs(operand8, &cycles_this_scanline);
                     break;
 
                 case 0x36:
                     operand8 = (uint8_t) mem_read(eff_addr);
-                    pshu(operand8, &cycles);
+                    pshu(operand8, &cycles_this_scanline);
                     break;
 
                 /* PULS, PULU
                  */
                 case 0x35:
                     operand8 = (uint8_t) mem_read(eff_addr);
-                    puls(operand8, &cycles);
+                    puls(operand8, &cycles_this_scanline);
                     break;
 
                 case 0x37:
                     operand8 = (uint8_t) mem_read(eff_addr);
-                    pulu(operand8, &cycles);
+                    pulu(operand8, &cycles_this_scanline);
                     break;
 
                 /* ROL, ROLA, ROLB
@@ -1185,7 +1184,7 @@ ITCM_CODE void cpu_run(void)
                 /* RTI
                  */
                 case 0x3b:
-                    rti(&cycles);
+                    rti(&cycles_this_scanline);
                     break;
 
                 /* RTS
@@ -1388,7 +1387,7 @@ ITCM_CODE void cpu_run(void)
                 /* Short conditional branches
                  */
                 case 0x22 ... 0x2f:
-                    branch(op_code, 0, eff_addr, &cycles);
+                    branch(op_code, 0, eff_addr);
                     break;
                     
                 case 0x87:
@@ -1445,7 +1444,6 @@ ITCM_CODE void cpu_run(void)
             }
         }
         
-        cycles_this_scanline += cycles;
         if (cycles_this_scanline >= CPU_CYCLES_PER_LINE)
         {
             cycles_this_scanline -= CPU_CYCLES_PER_LINE;
@@ -2534,7 +2532,7 @@ static void tfr(uint8_t regs)
  *  Test 8 bit operand and set V,Z,N flags.
  *
  */
-static void tst(uint8_t byte)
+static void inline __attribute__((always_inline)) tst(uint8_t byte)
 {
     eval_cc_z((uint16_t) byte);
     eval_cc_n((uint16_t) byte);
@@ -2551,10 +2549,10 @@ static void tst(uint8_t byte)
  *          pointer to opcode cycles.
  *  return: Nothing
  */
-static void inline __attribute__((always_inline)) do_branch(int long_short, uint16_t effective_address, int *cycles)
+static void inline __attribute__((always_inline)) do_branch(int long_short, uint16_t effective_address)
 {
     cpu.pc = effective_address;
-    (*cycles) += long_short;
+    cycles_this_scanline += long_short;
 }
 
 
@@ -2573,7 +2571,7 @@ static void inline __attribute__((always_inline)) do_branch(int long_short, uint
  *          pointer to opcode cycles.
  *  return: Nothing
  */
-static void branch(int instruction, int long_short, uint16_t effective_address, int *cycles)
+static void inline __attribute__((always_inline)) branch(int instruction, int long_short, uint16_t effective_address)
 {
     /* Parse the branch condition and apply
        offset if branch is taken.
@@ -2584,98 +2582,98 @@ static void branch(int instruction, int long_short, uint16_t effective_address, 
          */
         case 0x22:
             if ( cc.c == CC_FLAG_CLR && cc.z == CC_FLAG_CLR )
-                do_branch(long_short, effective_address, cycles);
+                do_branch(long_short, effective_address);
             break;
 
         /* BLS / LBLS
          */
         case 0x23:
             if ( cc.c == CC_FLAG_SET || cc.z == CC_FLAG_SET )
-                do_branch(long_short, effective_address, cycles);
+                do_branch(long_short, effective_address);
             break;
 
         /* BHS / LBHS / BCC / LBCC
          */
         case 0x24:
             if ( cc.c == CC_FLAG_CLR )
-                do_branch(long_short, effective_address, cycles);
+                do_branch(long_short, effective_address);
             break;
 
         /* BLO / LBLO / BCS / LBCS
          */
         case 0x25:
             if ( cc.c == CC_FLAG_SET )
-                do_branch(long_short, effective_address, cycles);
+                do_branch(long_short, effective_address);
             break;
 
         /* BNE / LBNE
          */
         case 0x26:
             if ( cc.z == CC_FLAG_CLR )
-                do_branch(long_short, effective_address, cycles);
+                do_branch(long_short, effective_address);
             break;
 
         /* BEQ / LBEQ
          */
         case 0x27:
             if ( cc.z == CC_FLAG_SET )
-                do_branch(long_short, effective_address, cycles);
+                do_branch(long_short, effective_address);
             break;
 
         /* BVC / LBVC
          */
         case 0x28:
             if ( cc.v == CC_FLAG_CLR )
-                do_branch(long_short, effective_address, cycles);
+                do_branch(long_short, effective_address);
             break;
 
         /* BVS / LBVS
          */
         case 0x29:
             if ( cc.v == CC_FLAG_SET )
-                do_branch(long_short, effective_address, cycles);
+                do_branch(long_short, effective_address);
             break;
 
         /* BPL / LBPL
          */
         case 0x2a:
             if ( cc.n == CC_FLAG_CLR )
-                do_branch(long_short, effective_address, cycles);
+                do_branch(long_short, effective_address);
             break;
 
         /* BMI / LBMI
          */
         case 0x2b:
             if ( cc.n == CC_FLAG_SET )
-                do_branch(long_short, effective_address, cycles);
+                do_branch(long_short, effective_address);
             break;
 
         /* BGE / LBGE
          */
         case 0x2c:
             if ( cc.n == cc.v )
-                do_branch(long_short, effective_address, cycles);
+                do_branch(long_short, effective_address);
             break;
 
         /* BLT / LBLT
          */
         case 0x2d:
             if ( cc.n != cc.v )
-                do_branch(long_short, effective_address, cycles);
+                do_branch(long_short, effective_address);
             break;
 
         /* BGT / LBGT
          */
         case 0x2e:
             if ( cc.n == cc.v && cc.z == CC_FLAG_CLR )
-                do_branch(long_short, effective_address, cycles);
+                do_branch(long_short, effective_address);
             break;
 
         /* BLE / LBLE
          */
         case 0x2f:
             if ( cc.n != cc.v || cc.z == CC_FLAG_SET )
-                do_branch(long_short, effective_address, cycles);
+                do_branch(long_short, effective_address);
             break;
 
         /* Exception: Illegal branch code branch()
@@ -2699,7 +2697,7 @@ static void branch(int instruction, int long_short, uint16_t effective_address, 
  *  param:  Command op code and command cycles and bytes count to update if needed.
  *  return: Effective Address, '0' if error
  */
-static int get_eff_addr(int mode, int *cycles)
+static int get_eff_addr(int mode)
 {
     uint16_t    operand;
     uint16_t    effective_addr = 0;
@@ -2761,47 +2759,47 @@ static int get_eff_addr(int mode, int *cycles)
                     case 0: // EA = ,index+ Auto post-increment by 1
                         effective_addr = *index_reg;
                         (*index_reg) += 1;
-                        (*cycles) += 2;
+                        cycles_this_scanline += 2;
                         break;
 
                     case 1: // EA = ,index++ Auto post-increment by 2
                         effective_addr = *index_reg;
                         (*index_reg) += 2;
-                        (*cycles) += (operand & INDX_POST_INDIRECT) ? 6 : 3;
+                        cycles_this_scanline += (operand & INDX_POST_INDIRECT) ? 6 : 3;
                         break;
 
                     case 2: // EA = ,-index Auto pre-decrement by 1
                         (*index_reg) -= 1;
                         effective_addr = *index_reg;
-                        (*cycles) += 2;
+                        cycles_this_scanline += 2;
                         break;
 
                     case 3: // EA = ,--index Auto pre-decrement by 2
                         (*index_reg) -= 2;
                         effective_addr = *index_reg;
-                        (*cycles) += (operand & INDX_POST_INDIRECT) ? 6 : 3;
+                        cycles_this_scanline += (operand & INDX_POST_INDIRECT) ? 6 : 3;
                         break;
 
                     case 4: // EA = 0,index Zero offset
                         effective_addr = *index_reg;
-                        (*cycles) += (operand & INDX_POST_INDIRECT) ? 3 : 0;
+                        cycles_this_scanline += (operand & INDX_POST_INDIRECT) ? 3 : 0;
                         break;
 
                     case 5: // EA = B,index Acc-B with index
                         effective_addr = *index_reg + SIG_EXTEND(cpu.b);
-                        (*cycles) += (operand & INDX_POST_INDIRECT) ? 4 : 1;
+                        cycles_this_scanline += (operand & INDX_POST_INDIRECT) ? 4 : 1;
                         break;
 
                     case 6: // EA = A,index Acc-A with index
                         effective_addr = *index_reg + SIG_EXTEND(cpu.a);
-                        (*cycles) += (operand & INDX_POST_INDIRECT) ? 4 : 1;
+                        cycles_this_scanline += (operand & INDX_POST_INDIRECT) ? 4 : 1;
                         break;
 
                     case 8: // EA = 8-bit,index 8-bit offset
                         effective_addr = SIG_EXTEND(mem_read(cpu.pc));
                         cpu.pc++;
                         effective_addr += *index_reg;
-                        (*cycles) += (operand & INDX_POST_INDIRECT) ? 4 : 1;
+                        cycles_this_scanline += (operand & INDX_POST_INDIRECT) ? 4 : 1;
                         break;
 
                     case 9: // EA = 16-bit,index 16-bit offset
@@ -2810,19 +2808,19 @@ static int get_eff_addr(int mode, int *cycles)
                         effective_addr += mem_read(cpu.pc);
                         cpu.pc++;
                         effective_addr += *index_reg;
-                        (*cycles) += (operand & INDX_POST_INDIRECT) ? 7 : 4;
+                        cycles_this_scanline += (operand & INDX_POST_INDIRECT) ? 7 : 4;
                         break;
 
                     case 11: // EA = D,index Acc-D with index
                         effective_addr = *index_reg + d;
-                        (*cycles) += (operand & INDX_POST_INDIRECT) ? 7 : 4;
+                        cycles_this_scanline += (operand & INDX_POST_INDIRECT) ? 7 : 4;
                         break;
 
                     case 12: // EA = 8-bit,pc PC relative
                         effective_addr = SIG_EXTEND(mem_read(cpu.pc));
                         cpu.pc++;
                         effective_addr += cpu.pc;
-                        (*cycles) += (operand & INDX_POST_INDIRECT) ? 4 : 1;
+                        cycles_this_scanline += (operand & INDX_POST_INDIRECT) ? 4 : 1;
                         break;
 
                     case 13: // EA = 16-bit,pc PC relative
@@ -2831,7 +2829,7 @@ static int get_eff_addr(int mode, int *cycles)
                         effective_addr += mem_read(cpu.pc);
                         cpu.pc++;
                         effective_addr += cpu.pc;
-                        (*cycles) += (operand & INDX_POST_INDIRECT) ? 8 : 5;
+                        cycles_this_scanline += (operand & INDX_POST_INDIRECT) ? 8 : 5;
                         break;
 
                     case 15: // EA = [addr] Extended Indirect will always be indirect.
@@ -2839,7 +2837,7 @@ static int get_eff_addr(int mode, int *cycles)
                         cpu.pc++;
                         effective_addr += mem_read(cpu.pc);
                         cpu.pc++;
-                        (*cycles) += 5;
+                        cycles_this_scanline += 5;
                         break;
 
                     default:
@@ -2866,7 +2864,7 @@ static int get_eff_addr(int mode, int *cycles)
                 if ( operand & 0x0010 )
                     operand |= 0xfff0;  // Extend the sign of the 5-bit offset into 16-bit
                 effective_addr = *index_reg + operand;
-                (*cycles)++;
+                cycles_this_scanline++;
             }
             break;
 
@@ -3032,7 +3030,7 @@ static void write_register(int reg, uint16_t data)
  *  param:  Input value
  *  return: Nothing
  */
-static void eval_cc_c(uint16_t value)
+static inline void eval_cc_c(uint16_t value)
 {
     cc.c = (value & 0x100) ? CC_FLAG_SET : CC_FLAG_CLR;
 }
@@ -3058,7 +3056,7 @@ static void eval_cc_c16(uint32_t value)
  *  param:  Input value
  *  return: Nothing
  */
-static void eval_cc_z(uint16_t value)
+static inline void eval_cc_z(uint16_t value)
 {
     cc.z = !(value & 0x00ff) ? CC_FLAG_SET : CC_FLAG_CLR;
 }
@@ -3071,7 +3069,7 @@ static void eval_cc_z(uint16_t value)
  *  param:  Input value
  *  return: Nothing
  */
-static void eval_cc_z16(uint32_t value)
+static inline void eval_cc_z16(uint32_t value)
 {
     cc.z = !(value & 0x0000ffff) ? CC_FLAG_SET : CC_FLAG_CLR;
 }
@@ -3084,7 +3082,7 @@ static void eval_cc_z16(uint32_t value)
  *  param:  Input value
  *  return: Nothing
  */
-static void eval_cc_n(uint16_t value)
+static inline void eval_cc_n(uint16_t value)
 {
     cc.n = (value & 0x0080) ? CC_FLAG_SET : CC_FLAG_CLR;
 }
@@ -3097,7 +3095,7 @@ static void eval_cc_n(uint16_t value)
  *  param:  Input value
  *  return: Nothing
  */
-static void eval_cc_n16(uint32_t value)
+static inline void eval_cc_n16(uint32_t value)
 {
     cc.n = (value & 0x00008000) ? CC_FLAG_SET : CC_FLAG_CLR;
 }
@@ -3114,7 +3112,7 @@ static void eval_cc_n16(uint32_t value)
  *  param:  Input operands and result
  *  return: Nothing
  */
-static void eval_cc_v(uint8_t val1, uint8_t val2, uint16_t result)
+static inline void eval_cc_v(uint8_t val1, uint8_t val2, uint16_t result)
 {
     cc.v = ((val1 ^ result) & (val2 ^ result) & 0x0080) ? CC_FLAG_SET : CC_FLAG_CLR;
 }
@@ -3131,7 +3129,7 @@ static void eval_cc_v(uint8_t val1, uint8_t val2, uint16_t result)
  *  param:  Input operands and result
  *  return: Nothing
  */
-static void eval_cc_v16(uint16_t val1, uint16_t val2, uint32_t result)
+static inline void eval_cc_v16(uint16_t val1, uint16_t val2, uint32_t result)
 {
     cc.v = ((val1 ^ result) & (val2 ^ result) & 0x00008000) ? CC_FLAG_SET : CC_FLAG_CLR;
 }
@@ -3145,7 +3143,7 @@ static void eval_cc_v16(uint16_t val1, uint16_t val2, uint32_t result)
  *  param:  Input operands and result
  *  return: Nothing
  */
-static void eval_cc_h(uint8_t val1, uint8_t val2, uint8_t result)
+static inline void eval_cc_h(uint8_t val1, uint8_t val2, uint8_t result)
 {
     /* Half carry in 6809 is only relevant/valid for additions ADD and ADC
      */
@@ -3160,7 +3158,7 @@ static void eval_cc_h(uint8_t val1, uint8_t val2, uint8_t result)
  *  param:  Nothing
  *  return: 8-bit value of CC register
  */
-static uint8_t get_cc(void)
+static inline uint8_t get_cc(void)
 {
     return (uint8_t) ((cc.e << 7) + (cc.f << 6) + (cc.h << 5) + (cc.i << 4) + \
                       (cc.n << 3) + (cc.z << 2) + (cc.v << 1) + cc.c );
@@ -3174,7 +3172,7 @@ static uint8_t get_cc(void)
  *  param:  8-bit value of CC register
  *  return: Nothing
  */
-static void set_cc(uint8_t value)
+static inline  void set_cc(uint8_t value)
 {
     cc.c = (value & 0x01) ? CC_FLAG_SET : CC_FLAG_CLR;
     cc.v = (value & 0x02) ? CC_FLAG_SET : CC_FLAG_CLR;

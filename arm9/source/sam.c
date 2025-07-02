@@ -1,3 +1,14 @@
+// =====================================================================================
+// Copyright (c) 2025 Dave Bernazzani (wavemotion-dave)
+//
+// Copying and distribution of this emulator, its source code and associated
+// readme files, with or without modification, are permitted in any medium without
+// royalty provided this copyright notice is used and wavemotion-dave and eyalabraham
+// (Dragon 32 emu core) are thanked profusely.
+//
+// The Draco-DS emulator is offered as-is, without any warranty. Please see readme.md
+// =====================================================================================
+
 /********************************************************************
  * sam.c
  *
@@ -7,7 +18,7 @@
  *  February 6, 2021
  *
  *******************************************************************/
-
+#include    <nds.h>
 #include    <stdint.h>
 
 #include    "mem.h"
@@ -98,7 +109,7 @@ static uint8_t io_handler_vector_redirect(uint16_t address, uint8_t data, mem_op
  *  param:  Call address, data byte for write operation, and operation type
  *  return: Status or data byte
  */
-static uint8_t io_handler_sam_write(uint16_t address, uint8_t data, mem_operation_t op)
+ITCM_CODE static uint8_t io_handler_sam_write(uint16_t address, uint8_t data, mem_operation_t op)
 {
     uint16_t    register_addr;
 

@@ -161,6 +161,18 @@ uint8_t colors[] __attribute__((section(".dtcm"))) = {
         FB_BROWN,
 };
 
+uint16_t colors16[] __attribute__((section(".dtcm"))) = {
+        (FB_LIGHT_GREEN<<8)   | FB_LIGHT_GREEN,
+        (FB_YELLOW<<8)        | FB_YELLOW,
+        (FB_LIGHT_BLUE<<8)    | FB_LIGHT_BLUE,
+        (FB_LIGHT_RED<<8)     | FB_LIGHT_RED,
+
+        (FB_WHITE<<8)         | FB_WHITE,
+        (FB_CYAN<<8)          | FB_CYAN,
+        (FB_LIGHT_MAGENTA<<8) | FB_LIGHT_MAGENTA,
+        (FB_BROWN<<8)         | FB_BROWN,
+};
+
 uint32_t color_translation_32[8][16] __attribute__((section(".dtcm"))) = {0};
 
 /*------------------------------------------------
@@ -185,6 +197,9 @@ void vdg_init(void)
     
     sam_2x_rez = 1;
 
+    // --------------------------------------------------------------------------
+    // Pre-render the 2-color modes for fast look-up and 32-bit writes for speed
+    // --------------------------------------------------------------------------
     for (int color = 0; color < 8; color++)
     {
         for (int i=0; i<16; i++)
@@ -655,9 +670,9 @@ ITCM_CODE void vdg_render_resl_graph(video_mode_t mode, int vdg_mem_base)
             buffer_index += 16;
         }
         else
-        for ( element = 7; element >= 0; element--)
+        for ( element = 0x80; element != 0; element = element >> 1)
         {
-            if ( (pixels_byte >> element) & 0x01 )
+            if ( pixels_byte & element )
             {
                 pixel = fg_color;
             }
@@ -697,6 +712,10 @@ ITCM_CODE void vdg_render_artifacting(video_mode_t mode, int vdg_mem_base)
     uint8_t     last_pixel = 99;
     uint8_t     pixel_row[SCREEN_WIDTH_PIX+16];
 
+    // -------------------------------------------------------------------------------------
+    // For the DS-Lite/Phat, we need a bit of frameskip to help render the more complex
+    // artifacting high-rez mode. So we show 3 out of 4 frames - which is still quite fine.
+    // -------------------------------------------------------------------------------------
     if (!isDSiMode()) 
     {
         if ((++ds_lite_frameskip & 3) == 0) return;
@@ -799,9 +818,9 @@ ITCM_CODE void vdg_render_artifacting(video_mode_t mode, int vdg_mem_base)
  */
 ITCM_CODE void vdg_render_color_graph(video_mode_t mode, int vdg_mem_base)
 {
-    int         i, vdg_mem_offset, element, buffer_index;
+    int         i, vdg_mem_offset;
     int         video_mem, row_rep, color_set, color;
-    uint8_t     pixels_byte, pixel;
+    uint8_t     pixels_byte;
     uint8_t    *screen_buffer;
     uint8_t     pixel_row[SCREEN_WIDTH_PIX+16];
 
@@ -810,27 +829,29 @@ ITCM_CODE void vdg_render_color_graph(video_mode_t mode, int vdg_mem_base)
     video_mem = resolution[mode][RES_MEM];
     row_rep = resolution[mode][RES_ROW_REP];
     color_set = 4 * (pia_video_mode & PIA_COLOR_SET);
-    buffer_index = 0;
 
+    uint16_t *pixRowPtr = (uint16_t *)pixel_row;
     for ( vdg_mem_offset = 0; vdg_mem_offset < video_mem; vdg_mem_offset++)
     {
         pixels_byte = memory[vdg_mem_offset + vdg_mem_base];
 
-        for ( element = 6; element >= 0; element -= 2)
-        {
-            color = (int)((pixels_byte >> element) & 0x03) + color_set;
-            pixel = colors[color];
+        color = (int)((pixels_byte >> 6)) + color_set;
+        *pixRowPtr++ = colors16[color];
+        if ( mode == GRAPHICS_1C ) *pixRowPtr++ = colors16[color];
 
-            pixel_row[buffer_index++] = pixel;
-            pixel_row[buffer_index++] = pixel;
-            if ( mode == GRAPHICS_1C )
-            {
-                pixel_row[buffer_index++] = pixel;
-                pixel_row[buffer_index++] = pixel;
-            }
-        }
+        color = (int)((pixels_byte >> 4) & 0x03) + color_set;
+        *pixRowPtr++ = colors16[color];
+        if ( mode == GRAPHICS_1C ) *pixRowPtr++ = colors16[color];
 
-        if ( buffer_index >= SCREEN_WIDTH_PIX )
+        color = (int)((pixels_byte >> 2) & 0x03) + color_set;
+        *pixRowPtr++ = colors16[color];
+        if ( mode == GRAPHICS_1C ) *pixRowPtr++ = colors16[color];
+
+        color = (int)((pixels_byte) & 0x03) + color_set;
+        *pixRowPtr++ = colors16[color];
+        if ( mode == GRAPHICS_1C ) *pixRowPtr++ = colors16[color];
+
+        if ( pixRowPtr >= (uint16_t *)(pixel_row+SCREEN_WIDTH_PIX) )
         {
             for ( i = 0; i < row_rep; i++ )
             {
@@ -838,7 +859,7 @@ ITCM_CODE void vdg_render_color_graph(video_mode_t mode, int vdg_mem_base)
                 screen_buffer += SCREEN_WIDTH_PIX;
             }
 
-            buffer_index = 0;
+            pixRowPtr = (uint16_t *)pixel_row;
         }
     }
 }
@@ -852,7 +873,7 @@ ITCM_CODE void vdg_render_color_graph(video_mode_t mode, int vdg_mem_base)
  * return: Video mode
  *
  */
-video_mode_t vdg_get_mode(void)
+ITCM_CODE video_mode_t vdg_get_mode(void)
 {
     video_mode_t mode = UNDEFINED;
 
@@ -873,6 +894,7 @@ video_mode_t vdg_get_mode(void)
         
         sam_2x_rez = 1;
         
+        // See if the configuration has a specific graphics mode override...
         if (myConfig.graphicsMode)
         {
             switch (myConfig.graphicsMode)

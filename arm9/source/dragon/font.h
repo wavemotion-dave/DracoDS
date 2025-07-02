@@ -18,7 +18,7 @@
 #define     FONT_HEIGHT         12
 #define     FONT_WIDTH          8
 
-uint8_t const font_img5x7[][12] = {
+uint8_t font_img5x7[][12] __attribute__((section(".dtcm"))) = {
         // @
         { 0x00, 0x00, 0x1C, 0x22, 0x02, 0x1A, 0x2A, 0x2A, 0x1C, 0x00, 0x00, 0x00 },
         // A
