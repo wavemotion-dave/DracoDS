@@ -65,7 +65,7 @@ char last_file[MAX_FILENAME_LEN]    = "";
 // --------------------------------------------------
 // A few housekeeping vars to help with emulation...
 // --------------------------------------------------
-u8 bFirstTime        = 3;
+u8 bFirstTime        = 1;
 u8 bottom_screen     = 0;
 
 // ---------------------------------------------------------------------------
@@ -77,6 +77,7 @@ u16 timingFrames    __attribute__((section(".dtcm"))) = 0;
 
 u16 joy_x           __attribute__((section(".dtcm"))) = 0;
 u16 joy_y           __attribute__((section(".dtcm"))) = 0;
+u16 joy_dampen      __attribute__((section(".dtcm"))) = 0;
 
 #define JOY_CENTER  33
 
@@ -332,10 +333,11 @@ void ResetDragonTandy(void)
   timingFrames  = 0;
   emuFps=0;
 
-  bFirstTime = 3;
+  bFirstTime = 1;
   bottom_screen = 0;
   
   joy_x = joy_y = JOY_CENTER;
+  joy_dampen = 0;
 }
 
 
@@ -820,7 +822,7 @@ u8 slide_n_glide_key_right = 0;
 void DracoDS_main(void)
 {
   u16 iTx,  iTy;
-  u32 ucDEUX;
+  u32 ucDEUX = 0x0000;
   static u8 dampenClick = 0;
   u8 meta_key = 0;
 
@@ -850,7 +852,7 @@ void DracoDS_main(void)
   // Force the sound engine to turn on when we start emulation
   bStartSoundEngine = 10;
 
-  bFirstTime = 3;
+  bFirstTime = 1;
 
   // -----------------------------------------------------------
   // Stay in this loop running the game until the user exits...
@@ -888,18 +890,6 @@ void DracoDS_main(void)
             }
             DisplayStatusLine(false);
             emuActFrames = 0;
-
-            if (bFirstTime)
-            {
-                if (--bFirstTime == 0)
-                {
-                    if (myConfig.machine == 0) // DRAGON
-                    {
-                        //extern u8 memory[];
-                        //memory[0x0092] = 0x0a; // Speedup tape
-                    }
-                }
-            }
         }
         emuActFrames++;
 
@@ -927,198 +917,217 @@ void DracoDS_main(void)
         }
 
 
-      // If the Z80 Debugger is enabled, call it
-      if (myGlobalConfig.debugger)
-      {
-          ShowDebugger();
-      }
+        // If the Z80 Debugger is enabled, call it
+        if (myGlobalConfig.debugger)
+        {
+            ShowDebugger();
+        } 
 
+        uint16_t keys_current = keysCurrent();
+        
+        // ------------------------------------------------------------------------------------
+        // The first time we press KEY_START, we might be loading up the Cassette or Cartridge
+        // ------------------------------------------------------------------------------------
+        if (bFirstTime)
+        {
+            // START key is also special...
+            if (keys_current & KEY_START)
+            {
+                bFirstTime = 0;
+                if (draco_mode == MODE_CART)
+                {
+                    pia_cart_firq();
+                }
+                else
+                {
+                    BufferKey(7);     // C
+                    BufferKey(16);    // L
+                    BufferKey(19);    // O
+                    BufferKey(5);     // A
+                    BufferKey(8);     // D
+                    BufferKey(17);    // M
+                    BufferKey(48);    // ENTER
+                }
+            }
+        }
+        
       // --------------------------------------------------------------
       // Hold the key press for a brief instant... To allow the
       // emulated CPU to 'see' the key briefly... Good enough.
       // --------------------------------------------------------------
-      if (key_debounce > 0) key_debounce--;
-      else
+      if (BufferedKeysReadIdx == BufferedKeysWriteIdx)
       {
-          // -----------------------------------------------------------
-          // This is where we accumualte the keys pressed... up to 12!
-          // -----------------------------------------------------------
-          kbd_keys_pressed = 0;
-          memset(kbd_keys, 0x00, sizeof(kbd_keys));
-          kbd_key = 0;
-
-          // ------------------------------------------
-          // Handle any screen touch events
-          // ------------------------------------------
-          if  (keysCurrent() & KEY_TOUCH)
-          {
-              // ------------------------------------------------------------------------------------------------
-              // Just a tiny bit of touch debounce so ensure touch screen is pressed for a fraction of a second.
-              // ------------------------------------------------------------------------------------------------
-              if (++touch_debounce > 1)
-              {
-                touchPosition touch;
-                touchRead(&touch);
-                iTx = touch.px;
-                iTy = touch.py;
-
-                // ------------------------------------------------------------
-                // Test the touchscreen for various full keyboard handlers...
-                // ------------------------------------------------------------
-                meta_key = handle_keyboard_press(iTx, iTy);
-
-                // If the special menu key indicates we should show the choice menu, do so here...
-                if (meta_key == MENU_CHOICE_MENU)
-                {
-                    meta_key = MiniMenu();
-                }
-
-                // -------------------------------------------------------------------
-                // If one of the special meta keys was picked, we handle that here...
-                // -------------------------------------------------------------------
-                if (handle_meta_key(meta_key)) return;
-
-                if (++dampenClick > 0)  // Make sure the key is pressed for an appreciable amount of time...
-                {
-                    if (kbd_key != 0)
-                    {
-                        kbd_keys[kbd_keys_pressed++] = kbd_key;
-                        key_debounce = 5;
-                        if (last_kbd_key == 0)
-                        {
-                             mmEffect(SFX_KEYCLICK);  // Play short key click for feedback...
-                        }
-                        last_kbd_key = kbd_key;
-                    }
-                }
-              }
-          } //  SCR_TOUCH
+          if (key_debounce > 0) key_debounce--;
           else
           {
-            touch_debounce = 0;
-            dampenClick = 0;
-            last_kbd_key = 0;
-          }
-      }
+              // -----------------------------------------------------------
+              // This is where we accumualte the keys pressed... up to 12!
+              // -----------------------------------------------------------
+              kbd_keys_pressed = 0;
+              memset(kbd_keys, 0x00, sizeof(kbd_keys));
+              kbd_key = 0;
 
-      // ---------------------------------------------------------------------------
-      //  Test DS keypresses (ABXY, L/R) and map to corresponding Dragon/Tandy keys
-      // ---------------------------------------------------------------------------
-      ucDEUX  = 0;
-      nds_key  = keysCurrent();     // Get any current keys pressed on the NDS
-
-      // -----------------------------------------
-      // Check various key combinations first...
-      // -----------------------------------------
-      if ((nds_key & KEY_L) && (nds_key & KEY_R) && (nds_key & KEY_X))
-      {
-            lcdSwap();
-            WAITVBL;WAITVBL;WAITVBL;WAITVBL;WAITVBL;WAITVBL;
-      }
-      else if ((nds_key & KEY_L) && (nds_key & KEY_R) && (nds_key & KEY_Y))
-      {
-            DSPrint(5,0,0,"SNAPSHOT");
-            screenshot();
-            debug_save();
-            WAITVBL;WAITVBL;WAITVBL;WAITVBL;WAITVBL;WAITVBL;
-            DSPrint(5,0,0,"        ");
-      }
-      else if  (nds_key & (KEY_UP | KEY_DOWN | KEY_LEFT | KEY_RIGHT | KEY_A | KEY_B | KEY_START | KEY_SELECT | KEY_R | KEY_L | KEY_X | KEY_Y))
-      {
-          if (myConfig.dpad == DPAD_SLIDE_N_GLIDE) // CHUCKIE-EGG Style... hold left/right or up/down for a few frames
-          {
-                if (nds_key & KEY_UP)
-                {
-                    slide_n_glide_key_up    = 12;
-                    slide_n_glide_key_down  = 0;
-                }
-                if (nds_key & KEY_DOWN)
-                {
-                    slide_n_glide_key_down  = 12;
-                    slide_n_glide_key_up    = 0;
-                }
-                if (nds_key & KEY_LEFT)
-                {
-                    slide_n_glide_key_left  = 12;
-                    slide_n_glide_key_right = 0;
-                }
-                if (nds_key & KEY_RIGHT)
-                {
-                    slide_n_glide_key_right = 12;
-                    slide_n_glide_key_left  = 0;
-                }
-
-                if (slide_n_glide_key_up)
-                {
-                    slide_n_glide_key_up--;
-                    nds_key |= KEY_UP;
-                }
-
-                if (slide_n_glide_key_down)
-                {
-                    slide_n_glide_key_down--;
-                    nds_key |= KEY_DOWN;
-                }
-
-                if (slide_n_glide_key_left)
-                {
-                    slide_n_glide_key_left--;
-                    nds_key |= KEY_LEFT;
-                }
-
-                if (slide_n_glide_key_right)
-                {
-                    slide_n_glide_key_right--;
-                    nds_key |= KEY_RIGHT;
-                }
-          }
-
-          // --------------------------------------------------------------------------------------------------
-          // There are 12 NDS buttons (D-Pad, XYAB, L/R and Start+Select) - we allow mapping of any of these.
-          // --------------------------------------------------------------------------------------------------
-          for (u8 i=0; i<12; i++)
-          {
-              if (nds_key & NDS_keyMap[i])
+              // ------------------------------------------
+              // Handle any screen touch events
+              // ------------------------------------------
+              if  (keys_current & KEY_TOUCH)
               {
-                  if (myConfig.keymap[i] < 5)   // Joystick key map
+                  // ------------------------------------------------------------------------------------------------
+                  // Just a tiny bit of touch debounce so ensure touch screen is pressed for a fraction of a second.
+                  // ------------------------------------------------------------------------------------------------
+                  if (++touch_debounce > 1)
                   {
-                      ucDEUX  |= keyCoresp[myConfig.keymap[i]];
+                    touchPosition touch;
+                    touchRead(&touch);
+                    iTx = touch.px;
+                    iTy = touch.py;
+
+                    // ------------------------------------------------------------
+                    // Test the touchscreen for various full keyboard handlers...
+                    // ------------------------------------------------------------
+                    meta_key = handle_keyboard_press(iTx, iTy);
+
+                    // If the special menu key indicates we should show the choice menu, do so here...
+                    if (meta_key == MENU_CHOICE_MENU)
+                    {
+                        meta_key = MiniMenu();
+                    }
+
+                    // -------------------------------------------------------------------
+                    // If one of the special meta keys was picked, we handle that here...
+                    // -------------------------------------------------------------------
+                    if (handle_meta_key(meta_key)) return;
+
+                    if (++dampenClick > 0)  // Make sure the key is pressed for an appreciable amount of time...
+                    {
+                        if (kbd_key != 0)
+                        {
+                            kbd_keys[kbd_keys_pressed++] = kbd_key;
+                            key_debounce = 5;
+                            if (last_kbd_key == 0)
+                            {
+                                 mmEffect(SFX_KEYCLICK);  // Play short key click for feedback...
+                            }
+                            last_kbd_key = kbd_key;
+                        }
+                    }
                   }
-                  else // This is a keyboard maping... handle that here... just set the appopriate kbd_key
-                  {
-                      kbd_key = myConfig.keymap[i];
-                      kbd_keys[kbd_keys_pressed++] = kbd_key;
-                  }
-              }
-          }
-          
-          // START key is also special...
-          if (keysCurrent() & KEY_START)
-          {
-              if (draco_mode == MODE_CART)
-              {
-                  pia_cart_firq();
-                  WAITVBL;
-              }
+              } //  SCR_TOUCH
               else
               {
-                  //BufferKeys("CLOADM");
+                touch_debounce = 0;
+                dampenClick = 0;
+                last_kbd_key = 0;
               }
-          }          
-      }
-      else // No NDS keys pressed...
-      {
-          if (slide_n_glide_key_up)    slide_n_glide_key_up--;
-          if (slide_n_glide_key_down)  slide_n_glide_key_down--;
-          if (slide_n_glide_key_left)  slide_n_glide_key_left--;
-          if (slide_n_glide_key_right) slide_n_glide_key_right--;
-          last_mapped_key = 0;
-      }
 
-      // ------------------------------------------------------------------------------------------
-      // Finally, check if there are any buffered keys that need to go into the keyboard handling.
-      // ------------------------------------------------------------------------------------------
-      ProcessBufferedKeys();
+              // ---------------------------------------------------------------------------
+              //  Test DS keypresses (ABXY, L/R) and map to corresponding Dragon/Tandy keys
+              // ---------------------------------------------------------------------------
+              ucDEUX  = 0;
+              nds_key  = keys_current;     // Get any current keys pressed on the NDS
+
+              // -----------------------------------------
+              // Check various key combinations first...
+              // -----------------------------------------
+              if ((nds_key & KEY_L) && (nds_key & KEY_R) && (nds_key & KEY_X))
+              {
+                    lcdSwap();
+                    WAITVBL;WAITVBL;WAITVBL;WAITVBL;WAITVBL;WAITVBL;
+              }
+              else if ((nds_key & KEY_L) && (nds_key & KEY_R) && (nds_key & KEY_Y))
+              {
+                    DSPrint(5,0,0,"SNAPSHOT");
+                    screenshot();
+                    debug_save();
+                    WAITVBL;WAITVBL;WAITVBL;WAITVBL;WAITVBL;WAITVBL;
+                    DSPrint(5,0,0,"        ");
+              }
+              else if  (nds_key & (KEY_UP | KEY_DOWN | KEY_LEFT | KEY_RIGHT | KEY_A | KEY_B | KEY_START | KEY_SELECT | KEY_R | KEY_L | KEY_X | KEY_Y))
+              {
+                  if (myConfig.dpad == DPAD_SLIDE_N_GLIDE) // CHUCKIE-EGG Style... hold left/right or up/down for a few frames
+                  {
+                        if (nds_key & KEY_UP)
+                        {
+                            slide_n_glide_key_up    = 12;
+                            slide_n_glide_key_down  = 0;
+                        }
+                        if (nds_key & KEY_DOWN)
+                        {
+                            slide_n_glide_key_down  = 12;
+                            slide_n_glide_key_up    = 0;
+                        }
+                        if (nds_key & KEY_LEFT)
+                        {
+                            slide_n_glide_key_left  = 12;
+                            slide_n_glide_key_right = 0;
+                        }
+                        if (nds_key & KEY_RIGHT)
+                        {
+                            slide_n_glide_key_right = 12;
+                            slide_n_glide_key_left  = 0;
+                        }
+
+                        if (slide_n_glide_key_up)
+                        {
+                            slide_n_glide_key_up--;
+                            nds_key |= KEY_UP;
+                        }
+
+                        if (slide_n_glide_key_down)
+                        {
+                            slide_n_glide_key_down--;
+                            nds_key |= KEY_DOWN;
+                        }
+
+                        if (slide_n_glide_key_left)
+                        {
+                            slide_n_glide_key_left--;
+                            nds_key |= KEY_LEFT;
+                        }
+
+                        if (slide_n_glide_key_right)
+                        {
+                            slide_n_glide_key_right--;
+                            nds_key |= KEY_RIGHT;
+                        }
+                  }
+
+                  // --------------------------------------------------------------------------------------------------
+                  // There are 12 NDS buttons (D-Pad, XYAB, L/R and Start+Select) - we allow mapping of any of these.
+                  // --------------------------------------------------------------------------------------------------
+                  for (u8 i=0; i<12; i++)
+                  {
+                      if (nds_key & NDS_keyMap[i])
+                      {
+                          if (myConfig.keymap[i] < 5)   // Joystick key map
+                          {
+                              ucDEUX  |= keyCoresp[myConfig.keymap[i]];
+                          }
+                          else // This is a keyboard maping... handle that here... just set the appopriate kbd_key
+                          {
+                              kbd_key = myConfig.keymap[i];
+                              kbd_keys[kbd_keys_pressed++] = kbd_key;
+                          }
+                      }
+                  }
+              }
+              else // No NDS keys pressed...
+              {
+                  if (slide_n_glide_key_up)    slide_n_glide_key_up--;
+                  if (slide_n_glide_key_down)  slide_n_glide_key_down--;
+                  if (slide_n_glide_key_left)  slide_n_glide_key_left--;
+                  if (slide_n_glide_key_right) slide_n_glide_key_right--;
+                  last_mapped_key = 0;
+              }
+          }
+      }
+      else
+      {
+          // ------------------------------------------------------------------------------------------
+          // Finally, check if there are any buffered keys that need to go into the keyboard handling.
+          // ------------------------------------------------------------------------------------------
+          ProcessBufferedKeys();
+      }
 
       // ---------------------------------------------------------
       // Accumulate all bits above into the Joystick State var...
@@ -1158,6 +1167,60 @@ void DracoDS_main(void)
             if ( JoyState & JST_LEFT )  {if (joy_x > 2)  joy_x -= 2; else joy_x = 0;}
             if ( JoyState & JST_RIGHT ) {if (joy_x < 63) joy_x += 2; else joy_x = 64;}
             break;
+
+          case 4:  // Analog Slow - Self Center
+            if (timingFrames & 1)
+            {
+                if ((JoyState & (JST_UP | JST_DOWN | JST_LEFT | JST_RIGHT | JST_FIRE)) == 0)
+                {
+                    if (joy_dampen)
+                    {
+                        if (--joy_dampen == 0)
+                        {
+                            joy_x = joy_y = JOY_CENTER; // Self-centering
+                        }
+                    }
+                }
+                if (JoyState & JST_UP )    {joy_dampen = 10; if (joy_y > 1)  joy_y -= 1; else joy_y = 0;}
+                if (JoyState & JST_DOWN)   {joy_dampen = 10; if (joy_y < 64) joy_y += 1; else joy_y = 64;}
+                if (JoyState & JST_LEFT)   {joy_dampen = 10; if (joy_x > 1)  joy_x -= 1; else joy_x = 0;}
+                if (JoyState & JST_RIGHT)  {joy_dampen = 10; if (joy_x < 64) joy_x += 1; else joy_x = 64;}
+            }
+            break;
+            
+          case 5:  // Analog Medium - Self Center
+            if ((JoyState & (JST_UP | JST_DOWN | JST_LEFT | JST_RIGHT | JST_FIRE)) == 0)
+            {
+                if (joy_dampen)
+                {
+                    if (--joy_dampen == 0)
+                    {
+                        joy_x = joy_y = JOY_CENTER; // Self-centering
+                    }
+                }
+            }
+            if (JoyState & JST_UP )    {joy_dampen = 20; if (joy_y > 1)  joy_y -= 1; else joy_y = 0;}
+            if (JoyState & JST_DOWN)   {joy_dampen = 20; if (joy_y < 64) joy_y += 1; else joy_y = 64;}
+            if (JoyState & JST_LEFT)   {joy_dampen = 20; if (joy_x > 1)  joy_x -= 1; else joy_x = 0;}
+            if (JoyState & JST_RIGHT)  {joy_dampen = 20; if (joy_x < 64) joy_x += 1; else joy_x = 64;}
+            break;
+
+          case 6:  // Analog Fast - Self Center
+            if ((JoyState & (JST_UP | JST_DOWN | JST_LEFT | JST_RIGHT | JST_FIRE)) == 0)
+            {
+                if (joy_dampen)
+                {
+                    if (--joy_dampen == 0)
+                    {
+                        joy_x = joy_y = JOY_CENTER; // Self-centering
+                    }
+                }
+            }
+            if ( JoyState & JST_UP )    {joy_dampen = 20; if (joy_y > 2)  joy_y -= 2; else joy_y = 0;}
+            if ( JoyState & JST_DOWN)   {joy_dampen = 20; if (joy_y < 63) joy_y += 2; else joy_y = 64;}
+            if ( JoyState & JST_LEFT )  {joy_dampen = 20; if (joy_x > 2)  joy_x -= 2; else joy_x = 0;}
+            if ( JoyState & JST_RIGHT ) {joy_dampen = 20; if (joy_x < 63) joy_x += 2; else joy_x = 64;}
+            break;
       }
 
       // --------------------------------------------------
@@ -1180,10 +1243,10 @@ void useVRAM(void)
 {
   vramSetBankB(VRAM_B_LCD);        // 128K VRAM used for snapshot DCAP buffer - but could be repurposed during emulation ...
   vramSetBankD(VRAM_D_LCD);        // Not using this for video but 128K of faster RAM always useful!  Mapped at 0x06860000 -   Unused - reserved for future use
-  vramSetBankE(VRAM_E_LCD);        // Not using this for video but 64K of faster RAM always useful!   Mapped at 0x06880000 -   ..
-  vramSetBankF(VRAM_F_LCD);        // Not using this for video but 16K of faster RAM always useful!   Mapped at 0x06890000 -   ..
-  vramSetBankG(VRAM_G_LCD);        // Not using this for video but 16K of faster RAM always useful!   Mapped at 0x06894000 -   ..
-  vramSetBankH(VRAM_H_LCD);        // Not using this for video but 32K of faster RAM always useful!   Mapped at 0x06898000 -   ..
+  vramSetBankE(VRAM_E_LCD);        // Not using this for video but 64K of faster RAM always useful!   Mapped at 0x06880000 -   Unused - reserved for future use
+  vramSetBankF(VRAM_F_LCD);        // Not using this for video but 16K of faster RAM always useful!   Mapped at 0x06890000 -   Save RAM
+  vramSetBankG(VRAM_G_LCD);        // Not using this for video but 16K of faster RAM always useful!   Mapped at 0x06894000 -   Save ROM
+  vramSetBankH(VRAM_H_LCD);        // Not using this for video but 32K of faster RAM always useful!   Mapped at 0x06898000 -   Unused - reserved for future use
   vramSetBankI(VRAM_I_LCD);        // Not using this for video but 16K of faster RAM always useful!   Mapped at 0x068A0000 -   Unused - reserved for future use
 }
 
@@ -1356,18 +1419,37 @@ void LoadBIOSFiles(void)
     if (!size) size = ReadFileCarefully("dragon32.rom",             DragonBASIC, 0x4000, 0);
     if (!size) size = ReadFileCarefully("/roms/bios/dragon32.rom",  DragonBASIC, 0x4000, 0);
     if (!size) size = ReadFileCarefully("/data/bios/dragon32.rom",  DragonBASIC, 0x4000, 0);
+    
+    if (size) bBIOS_found = true;
 
     // ----------------------------------------------------
     // Try to load the Dragon 32 BIOS/BASIC file
     // ----------------------------------------------------
-               size = ReadFileCarefully("coco.rom",                 CoCoBASIC, 0x4000, 0);
-    if (!size) size = ReadFileCarefully("/roms/bios/coco.rom",      CoCoBASIC, 0x4000, 0);
-    if (!size) size = ReadFileCarefully("/data/bios/coco.rom",      CoCoBASIC, 0x4000, 0);
+    if (bBIOS_found)
+    {
+                   size = ReadFileCarefully("coco.rom",                 CoCoBASIC, 0x4000, 0);
+        if (!size) size = ReadFileCarefully("/roms/bios/coco.rom",      CoCoBASIC, 0x4000, 0);
+        if (!size) size = ReadFileCarefully("/data/bios/coco.rom",      CoCoBASIC, 0x4000, 0);
 
-    if (!size) size = ReadFileCarefully("coco2.rom",                CoCoBASIC, 0x4000, 0);
-    if (!size) size = ReadFileCarefully("/roms/bios/coco2.rom",     CoCoBASIC, 0x4000, 0);
-    if (!size) size = ReadFileCarefully("/data/bios/coco2.rom",     CoCoBASIC, 0x4000, 0);
-    
+        if (!size) size = ReadFileCarefully("coco2.rom",                CoCoBASIC, 0x4000, 0);
+        if (!size) size = ReadFileCarefully("/roms/bios/coco2.rom",     CoCoBASIC, 0x4000, 0);
+        if (!size) size = ReadFileCarefully("/data/bios/coco2.rom",     CoCoBASIC, 0x4000, 0);
+
+        if (!size) 
+        {
+                       size = ReadFileCarefully("extbas11.rom",             CoCoBASIC+0x0000, 0x2000, 0);
+            if (!size) size = ReadFileCarefully("/roms/bios/extbas11.rom",  CoCoBASIC+0x0000, 0x2000, 0);
+            if (!size) size = ReadFileCarefully("/data/bios/extbas11.rom",  CoCoBASIC+0x0000, 0x2000, 0);
+            
+            if (size)
+            {
+                           size = ReadFileCarefully("bas12.rom",                CoCoBASIC+0x2000, 0x2000, 0);
+                if (!size) size = ReadFileCarefully("/roms/bios/bas12.rom",     CoCoBASIC+0x2000, 0x2000, 0);
+                if (!size) size = ReadFileCarefully("/data/bios/bas12.rom",     CoCoBASIC+0x2000, 0x2000, 0);
+            }
+        }        
+    }
+
     if (size) bBIOS_found = true;
 }
 

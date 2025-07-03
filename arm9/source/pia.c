@@ -82,21 +82,22 @@ static uint8_t get_keyboard_row_scan(uint8_t data);
 /* -----------------------------------------
    Module globals
 ----------------------------------------- */
-static int     pia0_ca1_int_enabled = 0;    // HSYNC FIRQ
-static int     pia0_cb1_int_enabled = 0;    // VSYNC IRQ
-static int     pia1_cb1_int_enabled = 0;    // CART  FIRQ
+uint8_t   pia0_ca1_int_enabled __attribute__((section(".dtcm"))) = 0;    // HSYNC FIRQ
+uint8_t   pia0_cb1_int_enabled __attribute__((section(".dtcm"))) = 0;    // VSYNC IRQ
+uint8_t   pia1_cb1_int_enabled __attribute__((section(".dtcm"))) = 0;    // CART  FIRQ
 
-uint8_t mux_select = 0x00;
-static uint8_t joy_selected = 0x00;
-uint16_t dac_output = 0;
-uint8_t sound_enable = 1;
-uint8_t last_comparator = 0;
+uint8_t   mux_select        __attribute__((section(".dtcm"))) = 0x00;
+uint16_t  dac_output        __attribute__((section(".dtcm"))) = 0;
+uint8_t   sound_enable      __attribute__((section(".dtcm"))) = 1;
+uint8_t   last_comparator   __attribute__((section(".dtcm"))) = 0;
+uint8_t   cas_eof           __attribute__((section(".dtcm"))) = 0;
 
 uint8_t pia_is_audio_dac_enabled(void)
 {
     if (sound_enable && !mux_select) return 1;
     else return 0;
 }
+
 
 /*
     Dragon keyboard map
@@ -113,7 +114,7 @@ uint8_t pia_is_audio_dac_enabled(void)
     PA6 | ENT   CLR   BRK   N/C   N/C   N/C   N/C  SHFT |
     PA7 | Comparator input                              |   MSB
 */
-static uint8_t kbd_scan_dragon[81][2] = {
+uint8_t kbd_scan_dragon[60][2] __attribute__((section(".dtcm"))) = {
         // Column     Row
         { 0xff,       255 }, // #0   Reserved for Joy Up
         { 0xff,       255 }, // #1   Reserved for Joy Down
@@ -199,7 +200,7 @@ static uint8_t kbd_scan_dragon[81][2] = {
     PA6 | ENT   CLR   BRK   N/C   N/C   N/C   N/C  SHFT |
     PA7 | Comparator input                              |   MSB
 */
-static uint8_t kbd_scan_coco[81][2] = {
+uint8_t kbd_scan_coco[60][2] __attribute__((section(".dtcm"))) = {
         // Column     Row
         { 0xff,       255 }, // #0   Reserved for Joy Up
         { 0xff,       255 }, // #1   Reserved for Joy Down
@@ -271,7 +272,7 @@ static uint8_t kbd_scan_coco[81][2] = {
 };
 
 
-static uint8_t keyboard_rows[KBD_ROWS] = {
+uint8_t keyboard_rows[KBD_ROWS] __attribute__((section(".dtcm"))) = {
         255,    // row PIA0_PA0
         255,    // row PIA0_PA1
         255,    // row PIA0_PA2
@@ -309,13 +310,13 @@ void pia_init(void)
     pia0_ca1_int_enabled = 0;    // HSYNC FIRQ
     pia0_cb1_int_enabled = 0;    // VSYNC IRQ
     pia1_cb1_int_enabled = 0;    // CART  FIRQ
-    joy_selected = 0x00;
     dac_output = 0;
     sound_enable = 1;
     last_comparator = 0;
     tape_pos = 0;
     tape_motor = 0;
     mux_select = 0x00;
+    cas_eof = 0;
 }
 
 /*------------------------------------------------
@@ -341,7 +342,7 @@ void pia_vsync_irq(void)
     }
 }
 
-void pia_hsync_irq(void)
+void pia_hsync_firq(void)
 {
     /* Set the HSYNC 'on' bit - turns off on next port read
      */
@@ -402,7 +403,7 @@ void pia_cart_firq(void)
  *   10	Left, Horiz
  *   11	Left, Vert
  */
-static uint8_t io_handler_pia0_pa(uint16_t address, uint8_t data, mem_operation_t op)
+ITCM_CODE static uint8_t io_handler_pia0_pa(uint16_t address, uint8_t data, mem_operation_t op)
 {
     uint8_t scan_code = 0;
     uint8_t row_switch_bits;
@@ -512,6 +513,8 @@ static uint8_t io_handler_pia0_pa(uint16_t address, uint8_t data, mem_operation_
         // A read from this port clears the HSync FIRQ
         memory[PIA0_CRA] &= ~PIA_CR_IRQ_STAT;
         cpu_firq(0);
+        
+        debug[0]++;
     }
 
     return data;
@@ -526,7 +529,7 @@ static uint8_t io_handler_pia0_pa(uint16_t address, uint8_t data, mem_operation_
  *  param:  Call address, data byte for write operation, and operation type
  *  return: Status or data byte
  */
-static uint8_t io_handler_pia0_pb(uint16_t address, uint8_t data, mem_operation_t op)
+ITCM_CODE static uint8_t io_handler_pia0_pb(uint16_t address, uint8_t data, mem_operation_t op)
 {
     /* Activate the call back to read keyboard scan code from
      * external AVR interface only when testing the keyboard columns
@@ -544,6 +547,8 @@ static uint8_t io_handler_pia0_pb(uint16_t address, uint8_t data, mem_operation_
     {
         memory[PIA0_CRB] &= ~PIA_CR_IRQ_STAT;  // VSYNC IRQ
         cpu_irq(0);
+        
+        debug[1]++;
     }
 
     return data;
@@ -558,7 +563,7 @@ static uint8_t io_handler_pia0_pb(uint16_t address, uint8_t data, mem_operation_
  *  param:  Call address, data byte for write operation, and operation type
  *  return: Status or data byte
  */
-static uint8_t io_handler_pia0_cra(uint16_t address, uint8_t data, mem_operation_t op)
+ITCM_CODE static uint8_t io_handler_pia0_cra(uint16_t address, uint8_t data, mem_operation_t op)
 {
     if ( op == MEM_WRITE )
     {
@@ -571,7 +576,7 @@ static uint8_t io_handler_pia0_cra(uint16_t address, uint8_t data, mem_operation
     }
     else
     {
-        
+        debug[2]++;
     }
 
     return data;
@@ -586,7 +591,7 @@ static uint8_t io_handler_pia0_cra(uint16_t address, uint8_t data, mem_operation
  *  param:  Call address, data byte for write operation, and operation type
  *  return: Status or data byte
  */
-static uint8_t io_handler_pia0_crb(uint16_t address, uint8_t data, mem_operation_t op)
+ITCM_CODE static uint8_t io_handler_pia0_crb(uint16_t address, uint8_t data, mem_operation_t op)
 {
     if ( op == MEM_WRITE )
     {
@@ -602,18 +607,21 @@ static uint8_t io_handler_pia0_crb(uint16_t address, uint8_t data, mem_operation
     }
     else
     {
-        
+        debug[3]++;
     }
 
     return data;
 }
 
 
-uint8_t loader_tape_fread(uint8_t *byte)
+inline uint8_t loader_tape_fread(void)
 {
-    *byte = ROM_Memory[tape_pos];
-    if (tape_motor) tape_pos++;
-    return (tape_pos > file_size) ? 1 : 0;
+    if (tape_pos > file_size)
+    {
+        cas_eof = 1;
+        return 0x00;
+    }
+    else return ROM_Memory[tape_pos++];
 }
 
 /*------------------------------------------------
@@ -626,15 +634,14 @@ uint8_t loader_tape_fread(uint8_t *byte)
  *  param:  Call address, data byte for write operation, and operation type
  *  return: Status or data byte
  */
-static uint8_t io_handler_pia1_pa(uint16_t address, uint8_t data, mem_operation_t op)
+
+uint8_t tape_byte               __attribute__((section(".dtcm"))) = 0;
+int     bit_index               __attribute__((section(".dtcm"))) = 0;
+int     bit_timing_threshold    __attribute__((section(".dtcm"))) = 0;
+int     bit_timing_count        __attribute__((section(".dtcm"))) = 0;
+
+ITCM_CODE static uint8_t io_handler_pia1_pa(uint16_t address, uint8_t data, mem_operation_t op)
 {
-    static  uint8_t byte = 0;
-    static  int     bit_index = 0;
-    static  int     bit_timing_threshold = 0;
-    static  int     bit_timing_count = 0;
-
-    int     cas_eof;
-
     if ( op == MEM_WRITE )
     {
         dac_output = (data >> 2) & 0x3f;
@@ -657,7 +664,7 @@ static uint8_t io_handler_pia1_pa(uint16_t address, uint8_t data, mem_operation_
          */
         if ( bit_index == 0 )
         {
-            cas_eof = loader_tape_fread(&byte);
+            tape_byte = loader_tape_fread();
 
             bit_index = 9;
             bit_timing_threshold = 0;
@@ -667,13 +674,13 @@ static uint8_t io_handler_pia1_pa(uint16_t address, uint8_t data, mem_operation_
              */
             if ( cas_eof )
             {
-                byte = 0x55;
+                tape_byte = 0x55;
             }
         }
 
         if ( bit_timing_count == bit_timing_threshold )
         {
-            if ( byte & 0b00000001 )
+            if ( tape_byte & 0b00000001 )
             {
                 bit_timing_threshold = BIT_THRESHOLD_HI;
             }
@@ -684,7 +691,7 @@ static uint8_t io_handler_pia1_pa(uint16_t address, uint8_t data, mem_operation_
 
             bit_timing_count = 0;
 
-            byte = byte >> 1;
+            tape_byte = tape_byte >> 1;
             bit_index--;
         }
 
@@ -721,7 +728,7 @@ static uint8_t io_handler_pia1_pa(uint16_t address, uint8_t data, mem_operation_
  *  param:  Call address, data byte for write operation, and operation type
  *  return: Status or data byte
  */
-static uint8_t io_handler_pia1_pb(uint16_t address, uint8_t data, mem_operation_t op)
+ITCM_CODE static uint8_t io_handler_pia1_pb(uint16_t address, uint8_t data, mem_operation_t op)
 {
     extern uint8_t pia_video_mode;
     if ( op == MEM_WRITE )
@@ -759,7 +766,7 @@ static uint8_t io_handler_pia1_pb(uint16_t address, uint8_t data, mem_operation_
  *  param:  Call address, data byte for write operation, and operation type
  *  return: Status or data byte
  */
-static uint8_t io_handler_pia1_cra(uint16_t address, uint8_t data, mem_operation_t op)
+ITCM_CODE static uint8_t io_handler_pia1_cra(uint16_t address, uint8_t data, mem_operation_t op)
 {
     if ( op == MEM_WRITE )
     {
@@ -793,7 +800,7 @@ static uint8_t io_handler_pia1_cra(uint16_t address, uint8_t data, mem_operation
  *  param:  Call address, data byte for write operation, and operation type
  *  return: Status or data byte
  */
-static uint8_t io_handler_pia1_crb(uint16_t address, uint8_t data, mem_operation_t op)
+ITCM_CODE static uint8_t io_handler_pia1_crb(uint16_t address, uint8_t data, mem_operation_t op)
 {
     if ( op == MEM_WRITE )
     {
@@ -821,7 +828,7 @@ static uint8_t io_handler_pia1_crb(uint16_t address, uint8_t data, mem_operation
  *  param:  Row scan bit pattern
  *  return: Column scan bit pattern
  */
-static uint8_t get_keyboard_row_scan(uint8_t row_scan)
+ITCM_CODE static uint8_t get_keyboard_row_scan(uint8_t row_scan)
 {
     uint8_t result = 0;
     uint8_t bit_position = 0x01;

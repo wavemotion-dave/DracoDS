@@ -35,11 +35,10 @@
 static uint8_t io_handler_vector_redirect(uint16_t address, uint8_t data, mem_operation_t op);
 static uint8_t io_handler_sam_write(uint16_t address, uint8_t data, mem_operation_t op);
 
-//static uint8_t io_rom_mode(uint16_t address, uint8_t data, mem_operation_t op);
-//static uint8_t io_ram_mode(uint16_t address, uint8_t data, mem_operation_t op);
-//static uint8_t io_page_lo(uint16_t address, uint8_t data, mem_operation_t op);
-//static uint8_t io_page_hi(uint16_t address, uint8_t data, mem_operation_t op);
+static uint8_t io_rom_mode(uint16_t address, uint8_t data, mem_operation_t op);
+static uint8_t io_ram_mode(uint16_t address, uint8_t data, mem_operation_t op);
 
+uint8_t rom_in = 1;
 
 /* -----------------------------------------
    Module globals
@@ -67,10 +66,8 @@ void sam_init(void)
     mem_define_io(0xfff2, 0xffff, io_handler_vector_redirect);
     mem_define_io(0xffc0, 0xffdf, io_handler_sam_write);
     
-    //mem_define_io(0xFFD4, 0xFFD4, io_page_lo);
-    //mem_define_io(0xFFD5, 0xFFD5, io_page_hi);
-    //mem_define_io(0xFFDE, 0xFFDE, io_rom_mode);
-    //mem_define_io(0xFFDF, 0xFFDF, io_ram_mode);
+    mem_define_io(0xffde, 0xffde, io_rom_mode);
+    mem_define_io(0xffdf, 0xffdf, io_ram_mode);
     
     sam_registers.vdg_mode = 0;             // Alphanumeric mode
     sam_registers.vdg_display_offset = 2;   // Dragon computer text page 0x0400
@@ -78,6 +75,8 @@ void sam_init(void)
     sam_registers.mpu_rate = 0;             // For compatibility, not used
     sam_registers.memory_size = 2;          // For compatibility, not used
     sam_registers.memory_map_type = 0;      // For compatibility maybe future Dragon 64 emulation, not used
+    
+    rom_in = 1;
 }
 
 /*------------------------------------------------
@@ -216,21 +215,20 @@ ITCM_CODE static uint8_t io_handler_sam_write(uint16_t address, uint8_t data, me
 
 
 //TODO: 64K Emulation....
-#if 0
-uint8_t saved_rom[(32*1024)-256];
-uint8_t saved_ram[(32*1024)-256];
 
+#define SAVE_ROM_RAM_SIZE   ((32*1024)-256)
+uint8_t saved_ram[SAVE_ROM_RAM_SIZE];
+uint8_t saved_rom[SAVE_ROM_RAM_SIZE];
 
-uint8_t rom_in = 1;
 static uint8_t io_rom_mode(uint16_t address, uint8_t data, mem_operation_t op)
 {
     if ( op == MEM_WRITE )
     {
-        if (rom_in == 0)
+        if (!rom_in)
         {
-            memcpy(saved_ram, memory+0x8000, sizeof(saved_ram));
-            memcpy(memory+0x8000, saved_rom, sizeof(saved_rom));
-            mem_define_rom(0x8000, 0x8000-256);
+            memcpy(saved_ram, memory+0x8000, SAVE_ROM_RAM_SIZE);
+            memcpy(memory+0x8000, saved_rom, SAVE_ROM_RAM_SIZE);
+            mem_define_rom(0x8000, 0xFF00);
             rom_in = 1;
         }
     }
@@ -241,32 +239,13 @@ static uint8_t io_ram_mode(uint16_t address, uint8_t data, mem_operation_t op)
 {
     if ( op == MEM_WRITE )
     {
-        if (rom_in == 1)
+        if (rom_in)
         {
-            memcpy(saved_rom, memory+0x8000, sizeof(saved_rom));
-            memcpy(memory+0x8000, saved_ram, sizeof(saved_ram));
-            mem_define_ram(0x8000, 0x8000-256);
+            memcpy(saved_rom, memory+0x8000, SAVE_ROM_RAM_SIZE);
+            memcpy(memory+0x8000, saved_ram, SAVE_ROM_RAM_SIZE);
+            mem_define_ram(0x8000, 0xFF00);
             rom_in = 0;
         }
     }   
     return data;
 }
-
-static uint8_t io_page_lo(uint16_t address, uint8_t data, mem_operation_t op)
-{
-    if ( op == MEM_WRITE )
-    {
-        
-    }
-    return data;
-}
-
-static uint8_t io_page_hi(uint16_t address, uint8_t data, mem_operation_t op)
-{
-    if ( op == MEM_WRITE )
-    {
-        
-    }   
-    return data;
-}
-#endif

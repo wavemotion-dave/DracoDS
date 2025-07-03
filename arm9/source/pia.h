@@ -26,7 +26,7 @@ void pia_init(void);
 
 void pia_vsync_irq(void);
 void pia_cart_firq(void);
-void pia_hsync_irq(void);
+void pia_hsync_firq(void);
 int  pia_function_key(void);
 uint8_t pia_is_audio_dac_enabled(void);
 

@@ -110,8 +110,8 @@ ITCM_CODE u32 dragon_run(void)
     // -------------------------------------------------
     // Each scanline generates a Fast IRQ for the HSync
     // -------------------------------------------------
-    pia_hsync_irq();
-
+    pia_hsync_firq();
+    
     // --------------------------------------------
     // Are we at the end of the frame? VSync time!
     // --------------------------------------------

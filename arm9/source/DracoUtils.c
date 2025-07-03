@@ -884,7 +884,8 @@ const struct options_t Option_Table[2][20] =
         
         {"NDS D-PAD",      {"NORMAL", "SLIDE-N-GLIDE"},                                &myConfig.dpad,              2},
         {"JOYSTICK",       {"RIGHT", "LEFT"},                                          &myConfig.joystick,          2},
-        {"JOY TYPE",       {"DIGITAL", "ANALOG SLOW", "ANALOG MEDIUM", "ANALOG FAST"}, &myConfig.joyType,           4},        
+        {"JOY TYPE",       {"DIGITAL", "ANALOG SLOW", "ANALOG MEDIUM", "ANALOG FAST",
+                            "SLOW CENTER", "MEDIUM CENTER", "FAST CENTER"},            &myConfig.joyType,           7},
         
         {NULL,             {"",      ""},                                              NULL,                        1},
     },
@@ -1565,12 +1566,6 @@ void BufferKey(u8 key)
     BufferedKeysWriteIdx = (BufferedKeysWriteIdx+1) % 32;
 }
 
-// Buffer a whole string worth of characters...
-void BufferKeys(char *str)
-{
-    for (int i=0; i<strlen(str); i++)  BufferKey((u8)str[i]);
-}
-
 // ---------------------------------------------------------------------------------------
 // Called every frame... so 1/50th or 1/60th of a second. We will virtually 'press' and
 // hold the key for roughly a tenth of a second and be smart about shift keys...
@@ -1581,21 +1576,20 @@ void ProcessBufferedKeys(void)
     static u8 dampen = 0;
     static u8 buf_held = 0;
 
-    if (++dampen >= next_dampen_time) // Roughly 50ms... experimentally good enough for all systems.
+    if (++dampen >= next_dampen_time) // Roughly 200ms... experimentally good enough
     {
+        kbd_keys_pressed = 0;
         if (BufferedKeysReadIdx != BufferedKeysWriteIdx)
         {
             buf_held = BufferedKeys[BufferedKeysReadIdx];
             BufferedKeysReadIdx = (BufferedKeysReadIdx+1) % 32;
-            if (buf_held == 255) {buf_held = 0; next_dampen_time=30;}
-            else if (buf_held == 254) {buf_held = 0; next_dampen_time=20;} 
-            else next_dampen_time = 10;
+            next_dampen_time = 10;
         } else buf_held = 0;
         dampen = 0;
     }
 
     // See if the shift key should be virtually pressed along with this buffered key...
-    if (buf_held) {kbd_keys[kbd_keys_pressed++] = buf_held;}
+    if (buf_held) {kbd_key = buf_held; kbd_keys[kbd_keys_pressed++] = buf_held;}
 }
 
 

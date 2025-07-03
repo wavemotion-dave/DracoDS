@@ -2697,7 +2697,7 @@ static void inline __attribute__((always_inline)) branch(int instruction, int lo
  *  param:  Command op code and command cycles and bytes count to update if needed.
  *  return: Effective Address, '0' if error
  */
-static int get_eff_addr(int mode)
+static inline __attribute__((always_inline)) int get_eff_addr(int mode)
 {
     uint16_t    operand;
     uint16_t    effective_addr = 0;
