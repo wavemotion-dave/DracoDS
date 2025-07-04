@@ -862,26 +862,13 @@ const struct options_t Option_Table[2][20] =
     // Game Specific Configuration
     {
         {"MACHINE TYPE",   {"DRAGON 32", "TANDY COCO"},                                &myConfig.machine,           2},
-        {"AUTO LOAD",      {"NO", "YES"},                                              &myConfig.autoLoad,          2},
+        {"AUTO LOAD",      {"NO", "CLOADM [EXEC]", "CLOAD [RUN]"},                     &myConfig.autoLoad,          3},
         {"AUTO FIRE",      {"OFF", "ON"},                                              &myConfig.autoFire,          2},
         {"GAME SPEED",     {"100%", "110%", "120%", "90%", "80%"},                     &myConfig.gameSpeed,         5},
         {"FORCE CSS",      {"NORMAL", "COLOR SET 0", "COLOR SET 1"},                   &myConfig.forceCSS,          3},        
         {"FORCE VDG",      {"NORMAL", "GRAPHICS 1C", "GRAPHICS 1R", "GRAPHICS 2C", 
                             "GRAPHICS 2R", "GRAPHICS 3C", "GRAPHICS 3R", 
                             "GRAPHICS 6C", "GRAPHICS 6R"},                             &myConfig.graphicsMode,      9},        
-        
-        
-    // GRAPHICS_1C,        // 4 color  64x64   1024
-    // GRAPHICS_1R,        // 2 color  128x64  1024
-    // GRAPHICS_2C,        // 4 color  128x64  1536
-    // GRAPHICS_2R,        // 2 color  128x96  1536   PMODE0
-    // GRAPHICS_3C,        // 4 color  128x96  3072   PMODE1
-    // GRAPHICS_3R,        // 2 color  128x192 3072   PMODE2
-    // GRAPHICS_6C,        // 4 color  128x192 6144   PMODE3
-    // GRAPHICS_6R,        // 2 color  256x192 6144   PMODE4
-
-
-        
         {"NDS D-PAD",      {"NORMAL", "SLIDE-N-GLIDE"},                                &myConfig.dpad,              2},
         {"JOYSTICK",       {"RIGHT", "LEFT"},                                          &myConfig.joystick,          2},
         {"JOY TYPE",       {"DIGITAL", "ANALOG SLOW", "ANALOG MEDIUM", "ANALOG FAST",
@@ -1287,9 +1274,9 @@ void ReadFileCRCAndConfig(void)
     // ----------------------------------------------------------------------------------
     // Clear the entire ROM buffer[] - fill with 0xFF to emulate non-responsive memory
     // ----------------------------------------------------------------------------------
-    memset(ROM_Memory, 0xFF, MAX_TAPE_SIZE);
+    memset(TapeCartBuffer, 0xFF, MAX_TAPE_SIZE);
 
-    // Grab the all-important file CRC - this also loads the file into ROM_Memory[]
+    // Grab the all-important file CRC - this also loads the file into TapeCartBuffer[]
     getfile_crc(gpFic[ucGameChoice].szName);
 
     if (strstr(gpFic[ucGameChoice].szName, ".ccc") != 0) draco_mode = MODE_CART;
@@ -1572,18 +1559,18 @@ void BufferKey(u8 key)
 // ---------------------------------------------------------------------------------------
 void ProcessBufferedKeys(void)
 {
-    static u8 next_dampen_time = 10;
+    static u8 next_dampen_time = 20;
     static u8 dampen = 0;
     static u8 buf_held = 0;
 
-    if (++dampen >= next_dampen_time) // Roughly 200ms... experimentally good enough
+    if (++dampen >= next_dampen_time) // Roughly 400ms... experimentally good enough
     {
         kbd_keys_pressed = 0;
         if (BufferedKeysReadIdx != BufferedKeysWriteIdx)
         {
             buf_held = BufferedKeys[BufferedKeysReadIdx];
             BufferedKeysReadIdx = (BufferedKeysReadIdx+1) % 32;
-            next_dampen_time = 10;
+            next_dampen_time = 20;
         } else buf_held = 0;
         dampen = 0;
     }
@@ -1704,7 +1691,7 @@ void getfile_crc(const char *filename)
 
 
 /** loadgame() ******************************************************************/
-/* Open a rom file from file system and load it into the ROM_Memory[] buffer    */
+/* Open a rom file from file system and load it into the TapeCartBuffer[] buffer    */
 /********************************************************************************/
 u8 loadgame(const char *filename)
 {
@@ -1734,7 +1721,7 @@ u8 loadgame(const char *filename)
     struct stat stbuf;
     (void)fstat(fileno(handle), &stbuf);
     romSize = stbuf.st_size;
-    fclose(handle); // We only need to close the file - the game ROM is now sitting in ROM_Memory[] from the getFileCrc() handler
+    fclose(handle); // We only need to close the file - the game ROM is now sitting in TapeCartBuffer[] from the getFileCrc() handler
 
     last_file_size = (u32)romSize;
   }

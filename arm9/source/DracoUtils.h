@@ -123,7 +123,7 @@ extern u16 joystick_interrupt;
 extern u8 bFlash;
 extern u32 flash_timer;
 
-extern u8 ROM_Memory[MAX_TAPE_SIZE];
+extern u8 TapeCartBuffer[MAX_TAPE_SIZE];
 
 extern FIDraco gpFic[MAX_FILES];
 extern int uNbRoms;
@@ -134,6 +134,7 @@ extern void LoadConfig(void);
 extern u8   showMessage(char *szCh1, char *szCh2);
 extern void DracoDSFindFiles(u8 bTapeOnly);
 extern void DracoDSChangeOptions(void);
+extern void DracoDSGameOptions(bool bIsGlobal);
 extern void DSPrint(int iX,int iY,int iScr,char *szMessage);
 extern u32  crc32 (unsigned int crc, const unsigned char *buf, unsigned int len);
 extern void FadeToColor(unsigned char ucSens, unsigned short ucBG, unsigned char ucScr, unsigned char valEnd, unsigned char uWait);

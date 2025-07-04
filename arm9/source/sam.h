@@ -13,4 +13,7 @@
 
 void sam_init(void);
 
+extern uint8_t sam_rom_in;
+extern uint16_t map_upper_to_lower;
+
 #endif  /* __SAM_H__ */

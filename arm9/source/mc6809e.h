@@ -55,7 +55,7 @@ machine_code_t machine_code[] __attribute__((section(".dtcm"))) =
     {0x02, ADDR_DIRECT    , 6 , 2},
     {0x03, ADDR_DIRECT    , 6 , 2},
     {0x04, ADDR_DIRECT    , 6 , 2},
-    {0x05, ILLEGAL_OP     , 0 , 1},
+    {0x05, ADDR_DIRECT    , 6 , 2},
     {0x06, ADDR_DIRECT    , 6 , 2},
     {0x07, ADDR_DIRECT    , 6 , 2},
     {0x08, ADDR_DIRECT    , 6 , 2},    // lsl

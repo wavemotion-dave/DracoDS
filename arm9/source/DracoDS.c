@@ -34,6 +34,7 @@
 #include "screenshot.h"
 #include "cpu.h"
 #include "pia.h"
+#include "sam.h"
 
 #include "printf.h"
 
@@ -50,7 +51,7 @@ u32 DY = 0;
 u8 DragonBASIC[0x4000]        = {0};  // We keep the 16k Dragon 32 BASIC/BIOS here
 u8 CoCoBASIC[0x4000]          = {0};  // We keep the 16k Tandy CoCo BASIC/BIOS here (two 8K roms)
 
-u8 ROM_Memory[MAX_TAPE_SIZE];        // This is where we keep the raw untouched file as read from the SD card (.TAP, .TZX, .Z80, etc)
+u8 TapeCartBuffer[MAX_TAPE_SIZE];        // This is where we keep the raw untouched file as read from the SD card (.TAP, .TZX, .Z80, etc)
 
 // ----------------------------------------------------------------------------
 // We track the most recent directory and file loaded... both the initial one
@@ -359,7 +360,7 @@ void ShowDebugger(void)
 // ------------------------------------------------------------
 void DisplayStatusLine(bool bForce)
 {
-    DSPrint(28,0,2, " 32K");
+    DSPrint(29,0,2, (sam_rom_in ? "32K": "64K"));
     
     if (tape_motor)
     {
@@ -377,14 +378,6 @@ void DisplayStatusLine(bool bForce)
         DSPrint(27, 22, 2, "ABC");
         DSPrint(27, 23, 6, "   ");
     }
-}
-
-// ------------------------------------------------------------------------
-// Swap in a new .cas Cassette/Tape - reset position counter to zero.
-// ------------------------------------------------------------------------
-void CassetteInsert(char *filename)
-{
-
 }
 
 
@@ -581,8 +574,8 @@ void MiniMenuShow(bool bClearScreen, u8 sel)
     DSPrint(8,9+mini_menu_items,(sel==mini_menu_items)?2:0,  " HIGH   SCORE  ");  mini_menu_items++;
     DSPrint(8,9+mini_menu_items,(sel==mini_menu_items)?2:0,  " SAVE   STATE  ");  mini_menu_items++;
     DSPrint(8,9+mini_menu_items,(sel==mini_menu_items)?2:0,  " LOAD   STATE  ");  mini_menu_items++;
+    DSPrint(8,9+mini_menu_items,(sel==mini_menu_items)?2:0,  " GAME   OPTIONS");  mini_menu_items++;
     DSPrint(8,9+mini_menu_items,(sel==mini_menu_items)?2:0,  " DEFINE KEYS   ");  mini_menu_items++;
-    DSPrint(8,9+mini_menu_items,(sel==mini_menu_items)?2:0,  " POKE   MEMORY ");  mini_menu_items++;
     DSPrint(8,9+mini_menu_items,(sel==mini_menu_items)?2:0,  " EXIT   MENU   ");  mini_menu_items++;
 }
 
@@ -621,8 +614,8 @@ u8 MiniMenu(void)
             else if (menuSelection == 2) retVal = MENU_CHOICE_HI_SCORE;
             else if (menuSelection == 3) retVal = MENU_CHOICE_SAVE_GAME;
             else if (menuSelection == 4) retVal = MENU_CHOICE_LOAD_GAME;
-            else if (menuSelection == 5) retVal = MENU_CHOICE_DEFINE_KEYS;
-            else if (menuSelection == 6) retVal = MENU_CHOICE_POKE_MEMORY;
+            else if (menuSelection == 5) retVal = MENU_CHOICE_GAME_OPTION;
+            else if (menuSelection == 6) retVal = MENU_CHOICE_DEFINE_KEYS;
             else if (menuSelection == 7) retVal = MENU_CHOICE_NONE;
             else retVal = MENU_CHOICE_NONE;
             break;
@@ -796,7 +789,12 @@ u8 __attribute__((noinline)) handle_meta_key(u8 meta_key)
             SoundUnPause();
             break;
 
-        case MENU_CHOICE_POKE_MEMORY:
+        case MENU_CHOICE_GAME_OPTION:
+            SoundPause();
+            DracoDSGameOptions(0);
+            BottomScreenKeyboard();
+            SoundUnPause();
+            break;
             break;
 
         case MENU_CHOICE_CASSETTE:
@@ -928,7 +926,7 @@ void DracoDS_main(void)
         // ------------------------------------------------------------------------------------
         // The first time we press KEY_START, we might be loading up the Cassette or Cartridge
         // ------------------------------------------------------------------------------------
-        if (bFirstTime)
+        if (bFirstTime && myConfig.autoLoad)
         {
             // START key is also special...
             if (keys_current & KEY_START)
@@ -945,7 +943,10 @@ void DracoDS_main(void)
                     BufferKey(19);    // O
                     BufferKey(5);     // A
                     BufferKey(8);     // D
-                    BufferKey(17);    // M
+                    if (myConfig.autoLoad == 1)
+                    {
+                        BufferKey(17);    // M
+                    }
                     BufferKey(48);    // ENTER
                 }
             }

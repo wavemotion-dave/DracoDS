@@ -332,7 +332,7 @@ void pia_vsync_irq(void)
 {
     /* Set the VSYNC 'on' bit - turns off when port read
      */
-    memory[PIA0_CRB] |= PIA_CR_IRQ_STAT;
+    memory_RAM[PIA0_CRB] |= PIA_CR_IRQ_STAT;
      
     /* Assert vsync interrupt if enabled
      */
@@ -346,7 +346,7 @@ void pia_hsync_firq(void)
 {
     /* Set the HSYNC 'on' bit - turns off on next port read
      */
-    memory[PIA0_CRA] |= PIA_CR_IRQ_STAT;    
+    memory_RAM[PIA0_CRA] |= PIA_CR_IRQ_STAT;    
 
     /* Assert hsync interrupt if enabled
      */
@@ -370,7 +370,7 @@ void pia_cart_firq(void)
 {
     /* Set the cart FIRQ status bit - turns off on next port read
      */
-    memory[PIA1_CRB] |= PIA_CR_IRQ_STAT;
+    memory_RAM[PIA1_CRB] |= PIA_CR_IRQ_STAT;
     
     /* Assert interrupt if enabled
      */
@@ -434,7 +434,7 @@ ITCM_CODE static uint8_t io_handler_pia0_pa(uint16_t address, uint8_t data, mem_
 
         /* Store the appropriate row bit value for PIA0_PA bit pattern
          */
-        row_switch_bits = get_keyboard_row_scan(memory[PIA0_PB]);
+        row_switch_bits = get_keyboard_row_scan(memory_RAM[PIA0_PB]);
         mem_write(PIA0_PA, (int) row_switch_bits);
         
         data = row_switch_bits;        
@@ -511,10 +511,8 @@ ITCM_CODE static uint8_t io_handler_pia0_pa(uint16_t address, uint8_t data, mem_
         }
         
         // A read from this port clears the HSync FIRQ
-        memory[PIA0_CRA] &= ~PIA_CR_IRQ_STAT;
+        memory_RAM[PIA0_CRA] &= ~PIA_CR_IRQ_STAT;
         cpu_firq(0);
-        
-        debug[0]++;
     }
 
     return data;
@@ -545,10 +543,8 @@ ITCM_CODE static uint8_t io_handler_pia0_pb(uint16_t address, uint8_t data, mem_
      */
     else
     {
-        memory[PIA0_CRB] &= ~PIA_CR_IRQ_STAT;  // VSYNC IRQ
+        memory_RAM[PIA0_CRB] &= ~PIA_CR_IRQ_STAT;  // VSYNC IRQ
         cpu_irq(0);
-        
-        debug[1]++;
     }
 
     return data;
@@ -576,7 +572,7 @@ ITCM_CODE static uint8_t io_handler_pia0_cra(uint16_t address, uint8_t data, mem
     }
     else
     {
-        debug[2]++;
+        
     }
 
     return data;
@@ -607,7 +603,7 @@ ITCM_CODE static uint8_t io_handler_pia0_crb(uint16_t address, uint8_t data, mem
     }
     else
     {
-        debug[3]++;
+        
     }
 
     return data;
@@ -621,7 +617,7 @@ inline uint8_t loader_tape_fread(void)
         cas_eof = 1;
         return 0x00;
     }
-    else return ROM_Memory[tape_pos++];
+    else return TapeCartBuffer[tape_pos++];
 }
 
 /*------------------------------------------------
@@ -750,7 +746,7 @@ ITCM_CODE static uint8_t io_handler_pia1_pb(uint16_t address, uint8_t data, mem_
     {
         data = (pia_video_mode << 3); // Also reports 32K
         data |= 1;  // RS232 In/Printer Busy
-        memory[PIA1_CRB] &= ~PIA_CR_IRQ_STAT; // Cart IRQ
+        memory_RAM[PIA1_CRB] &= ~PIA_CR_IRQ_STAT; // Cart IRQ
         cpu_firq(0);
     }
 
@@ -766,7 +762,7 @@ ITCM_CODE static uint8_t io_handler_pia1_pb(uint16_t address, uint8_t data, mem_
  *  param:  Call address, data byte for write operation, and operation type
  *  return: Status or data byte
  */
-ITCM_CODE static uint8_t io_handler_pia1_cra(uint16_t address, uint8_t data, mem_operation_t op)
+static uint8_t io_handler_pia1_cra(uint16_t address, uint8_t data, mem_operation_t op)
 {
     if ( op == MEM_WRITE )
     {
@@ -784,7 +780,7 @@ ITCM_CODE static uint8_t io_handler_pia1_cra(uint16_t address, uint8_t data, mem
     }
     else
     {
-        //debug[6]++;
+        
     }
 
     return data;
@@ -813,7 +809,7 @@ ITCM_CODE static uint8_t io_handler_pia1_crb(uint16_t address, uint8_t data, mem
     }
     else
     {
-        //debug[7]++;
+        
     }
 
     return data;
@@ -828,7 +824,7 @@ ITCM_CODE static uint8_t io_handler_pia1_crb(uint16_t address, uint8_t data, mem
  *  param:  Row scan bit pattern
  *  return: Column scan bit pattern
  */
-ITCM_CODE static uint8_t get_keyboard_row_scan(uint8_t row_scan)
+static uint8_t get_keyboard_row_scan(uint8_t row_scan)
 {
     uint8_t result = 0;
     uint8_t bit_position = 0x01;

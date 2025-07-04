@@ -33,17 +33,21 @@
    Module static functions
 ----------------------------------------- */
 static uint8_t io_handler_vector_redirect(uint16_t address, uint8_t data, mem_operation_t op);
-static uint8_t io_handler_sam_write(uint16_t address, uint8_t data, mem_operation_t op);
+uint8_t io_handler_sam_write(uint16_t address, uint8_t data, mem_operation_t op);
 
 static uint8_t io_rom_mode(uint16_t address, uint8_t data, mem_operation_t op);
 static uint8_t io_ram_mode(uint16_t address, uint8_t data, mem_operation_t op);
 
-uint8_t rom_in = 1;
+static uint8_t io_page_zero(uint16_t address, uint8_t data, mem_operation_t op);
+static uint8_t io_page_one(uint16_t address, uint8_t data, mem_operation_t op);
+
+uint8_t  sam_rom_in          __attribute__((section(".dtcm"))) = 1;
+uint16_t map_upper_to_lower  __attribute__((section(".dtcm"))) = 0x0000;
 
 /* -----------------------------------------
    Module globals
 ----------------------------------------- */
-static struct sam_reg_t
+struct sam_reg_t
 {
     uint8_t vdg_mode;
     uint8_t vdg_display_offset;
@@ -51,7 +55,9 @@ static struct sam_reg_t
     uint8_t mpu_rate;
     uint8_t memory_size;
     uint8_t memory_map_type;
-} sam_registers;
+};
+
+struct sam_reg_t sam_registers __attribute__((section(".dtcm")));
 
 /*------------------------------------------------
  * sam_init()
@@ -66,8 +72,12 @@ void sam_init(void)
     mem_define_io(0xfff2, 0xffff, io_handler_vector_redirect);
     mem_define_io(0xffc0, 0xffdf, io_handler_sam_write);
     
-    mem_define_io(0xffde, 0xffde, io_rom_mode);
-    mem_define_io(0xffdf, 0xffdf, io_ram_mode);
+    mem_define_io(0xffde, 0xffde, io_rom_mode); // RAM/ROM (type 0 map)
+    mem_define_io(0xffdf, 0xffdf, io_ram_mode); // ALL-RAM (type 1 map)
+
+    //TODO: these don't work yet... mapping upper RAM into lower 32K
+    mem_define_io(0xffd4, 0xffd4, io_page_zero);
+    mem_define_io(0xffd5, 0xffd5, io_page_one);
     
     sam_registers.vdg_mode = 0;             // Alphanumeric mode
     sam_registers.vdg_display_offset = 2;   // Dragon computer text page 0x0400
@@ -76,7 +86,8 @@ void sam_init(void)
     sam_registers.memory_size = 2;          // For compatibility, not used
     sam_registers.memory_map_type = 0;      // For compatibility maybe future Dragon 64 emulation, not used
     
-    rom_in = 1;
+    sam_rom_in = 1;                         // ROMs are in place
+    map_upper_to_lower = 0x0000;            // Normal memory map
 }
 
 /*------------------------------------------------
@@ -108,7 +119,7 @@ static uint8_t io_handler_vector_redirect(uint16_t address, uint8_t data, mem_op
  *  param:  Call address, data byte for write operation, and operation type
  *  return: Status or data byte
  */
-ITCM_CODE static uint8_t io_handler_sam_write(uint16_t address, uint8_t data, mem_operation_t op)
+ITCM_CODE uint8_t io_handler_sam_write(uint16_t address, uint8_t data, mem_operation_t op)
 {
     uint16_t    register_addr;
 
@@ -213,24 +224,15 @@ ITCM_CODE static uint8_t io_handler_sam_write(uint16_t address, uint8_t data, me
 }
 
 
-
-//TODO: 64K Emulation....
-
-#define SAVE_ROM_RAM_SIZE   ((32*1024)-256)
-uint8_t saved_ram[SAVE_ROM_RAM_SIZE];
-uint8_t saved_rom[SAVE_ROM_RAM_SIZE];
+// ----------------------------------------------------------------------
+// 64K Emulation - mainly to allow swap of RAM/ROM mode for ALL-RAM mode
+// ----------------------------------------------------------------------
 
 static uint8_t io_rom_mode(uint16_t address, uint8_t data, mem_operation_t op)
 {
     if ( op == MEM_WRITE )
     {
-        if (!rom_in)
-        {
-            memcpy(saved_ram, memory+0x8000, SAVE_ROM_RAM_SIZE);
-            memcpy(memory+0x8000, saved_rom, SAVE_ROM_RAM_SIZE);
-            mem_define_rom(0x8000, 0xFF00);
-            rom_in = 1;
-        }
+        sam_rom_in = 1;
     }
     return data;
 }
@@ -239,13 +241,25 @@ static uint8_t io_ram_mode(uint16_t address, uint8_t data, mem_operation_t op)
 {
     if ( op == MEM_WRITE )
     {
-        if (rom_in)
-        {
-            memcpy(saved_rom, memory+0x8000, SAVE_ROM_RAM_SIZE);
-            memcpy(memory+0x8000, saved_ram, SAVE_ROM_RAM_SIZE);
-            mem_define_ram(0x8000, 0xFF00);
-            rom_in = 0;
-        }
+        sam_rom_in = 0;
     }   
+    return data;
+}
+
+static uint8_t io_page_zero(uint16_t address, uint8_t data, mem_operation_t op)
+{
+    if ( op == MEM_WRITE )
+    {
+        map_upper_to_lower = 0x0000;
+    }
+    return data;
+}
+
+static uint8_t io_page_one(uint16_t address, uint8_t data, mem_operation_t op)
+{
+    if ( op == MEM_WRITE )
+    {
+        map_upper_to_lower = 0x8000;
+    }
     return data;
 }

@@ -18,8 +18,10 @@
  *  July 2, 2020
  *
  *******************************************************************/
+#include    <nds.h>
 
 #include    "mem.h"
+#include    "sam.h"
 
 /* -----------------------------------------
    Local definitions
@@ -32,8 +34,9 @@ static uint8_t do_nothing_io_handler(uint16_t address, uint8_t data, mem_operati
 /* -----------------------------------------
    Module globals
 ----------------------------------------- */
-memory_t memory_i[MEMORY];
-uint8_t  memory[MEMORY];
+io_handler_callback memory_io[MEMORY];  // IO Handler 
+uint8_t  memory_RAM[MEMORY];            // 64K of RAM 
+uint8_t  memory_ROM[MEMORY];            // 64K of ROM but only the upper 32K is ever mapped/used
 
 /*------------------------------------------------
  * mem_init()
@@ -49,35 +52,12 @@ void mem_init(void)
 
     for ( i = 0; i < MEMORY; i++ )
     {
-        memory[i] = 0;
-        memory_i[i].memory_type = MEM_TYPE_RAM;
-        memory_i[i].io_handler = do_nothing_io_handler;
+        memory_RAM[i] = 0;
+        memory_ROM[i] = 0xFF;
+        memory_io[i] = do_nothing_io_handler;
     }
 }
 
-/*------------------------------------------------
- * mem_read()
- *
- *  Read memory address
- *
- *  param:  Memory address
- *  return: Memory content at address
- */
-int mem_read(int address)
-{
-    if ((address & 0xFF00) == 0xFF00)
-    {
-        if ( memory_i[address].memory_type == MEM_TYPE_IO)
-        {
-            /* An attempt to read an IO address will trigger
-             * the callback that may return an alternative value.
-             */
-            memory[address] = memory_i[address].io_handler((uint16_t) address, memory[address], MEM_READ);
-        }
-    }
-
-    return (int)(memory[address]);
-}
 
 /*------------------------------------------------
  * mem_write()
@@ -85,81 +65,25 @@ int mem_read(int address)
  *  Write to memory address
  *
  *  param:  Memory address and data to write
- *  return: ' 0' - write ok,
- *          '-1' - memory location is out of range
- *          '-2' - memory location is ROM
+ *  return: Nothing
  */
-void mem_write(int address, int data)
+ITCM_CODE void mem_write(int address, int data)
 {
     if (address & 0x8000)
     {
-        if ( memory_i[address].memory_type == MEM_TYPE_ROM )
-            return;
-            
-        memory[address] = (uint8_t) data;
-
-        if ( memory_i[address].memory_type == MEM_TYPE_IO )
+        if ((address & 0xFF00) == 0xFF00)
         {
-            memory_i[address].io_handler((uint16_t) address, (uint8_t)data, MEM_WRITE);
+            memory_io[address]((uint16_t) address, (uint8_t)data, MEM_WRITE);
         }
+        else
+        {
+            if ( sam_rom_in ) return; // Else fall through and write below ... 64K mode
+        }        
     }
-    else memory[address] = (uint8_t) data;
+    
+    memory_RAM[address] = (uint8_t) data;
 }
 
-/*------------------------------------------------
- * mem_define_rom()
- *
- *  Define address range as ROM.
- *  Function clears IO flag and callback index.
- *
- *  param:  Memory address range start and end, inclusive
- *  return: ' 0' - write ok,
- *          '-1' - memory location is out of range
- */
-int  mem_define_rom(int addr_start, int addr_end)
-{
-    int i;
-
-    if ( addr_start < 0 || addr_start > (MEMORY-1) ||
-         addr_end < 0   || addr_end > (MEMORY-1)   ||
-         addr_start > addr_end )
-        return MEM_ADD_RANGE;
-
-    for (i = addr_start; i <= addr_end; i++)
-    {
-        memory_i[i].memory_type = MEM_TYPE_ROM;
-    }
-
-    return MEM_OK;
-}
-
-
-/*------------------------------------------------
- * mem_define_ram()
- *
- *  Define address range as RAM.
- *  Function clears IO flag and callback index.
- *
- *  param:  Memory address range start and end, inclusive
- *  return: ' 0' - write ok,
- *          '-1' - memory location is out of range
- */
-int  mem_define_ram(int addr_start, int addr_end)
-{
-    int i;
-
-    if ( addr_start < 0 || addr_start > (MEMORY-1) ||
-         addr_end < 0   || addr_end > (MEMORY-1)   ||
-         addr_start > addr_end )
-        return MEM_ADD_RANGE;
-
-    for (i = addr_start; i <= addr_end; i++)
-    {
-        memory_i[i].memory_type = MEM_TYPE_RAM;
-    }
-
-    return MEM_OK;
-}
 
 /*------------------------------------------------
  * mem_define_io()
@@ -170,50 +94,36 @@ int  mem_define_ram(int addr_start, int addr_end)
  *  param:  Memory address range start to end, inclusive
  *          IO handler callback for the range or NULL
  *  return: ' 0' - write ok,
- *          '-1' - memory location is out of range
- *          '-3' - Cannot hook IO handler
  */
-int  mem_define_io(int addr_start, int addr_end, io_handler_callback io_handler)
+int mem_define_io(int addr_start, int addr_end, io_handler_callback io_handler)
 {
     int i;
 
-    if ( addr_start < 0 || addr_start > (MEMORY-1) ||
-         addr_end < 0   || addr_end > (MEMORY-1)   ||
-         addr_start > addr_end )
-        return MEM_ADD_RANGE;
-
     for (i = addr_start; i <= addr_end; i++)
     {
-        memory_i[i].memory_type = MEM_TYPE_IO;
         if ( io_handler != 0L )
-            memory_i[i].io_handler = io_handler;
+        {
+            memory_io[i] = io_handler;
+        }
     }
 
     return MEM_OK;
 }
 
 /*------------------------------------------------
- * mem_load()
+ * mem_load_rom()
  *
  *  Load a memory range from a data buffer.
- *  Function clears IO, ROM, and callback index fields.
  *
  *  param:  Memory address start, source data buffer and
  *          number of data elements to load
  *  return: ' 0' - write ok,
- *          '-1' - memory location is out of range
  */
-int mem_load(int addr_start, const uint8_t *buffer, int length)
+int mem_load_rom(int addr_start, const uint8_t *buffer, int length)
 {
-    int i;
-
-    if ( addr_start < 0 || addr_start > (MEMORY-1) ||
-         (addr_start + length) > MEMORY )
-        return MEM_ADD_RANGE;
-
-    for (i = 0; i < length; i++)
+    for (int i = 0; i < length; i++)
     {
-        memory[(i+addr_start)] = buffer[i];
+        memory_ROM[(i+addr_start)] = buffer[i];
     }
 
     return MEM_OK;
@@ -229,8 +139,6 @@ int mem_load(int addr_start, const uint8_t *buffer, int length)
  */
 static uint8_t do_nothing_io_handler(uint16_t address, uint8_t data, mem_operation_t op)
 {
-    /* do nothing */
-    /* TODO generate an exception? */
-    return 0;
+    return data;
 }
 

@@ -28,6 +28,8 @@
 
 #define DRACO_SAVE_VER   0x0000       // Change this if the basic format of the .SAV file changes. Invalidates older .sav files.
 
+u8 CompressBuffer[128*1024];
+
 void DracoSaveState()
 {
 

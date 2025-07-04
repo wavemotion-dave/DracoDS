@@ -470,7 +470,7 @@ ITCM_CODE void cpu_run(void)
         }
         
         // Fetch the OP Code directly from memory
-        op_code = memory[cpu.pc++];
+        op_code = mem_read_pc(cpu.pc++);
         
         // Process the Op-Code... handle the double-byte instructions as part of the normal case
         {
@@ -486,7 +486,7 @@ ITCM_CODE void cpu_run(void)
             {
                 case 0x11:
                 {
-                    op_code = memory[cpu.pc++];
+                    op_code = mem_read_pc(cpu.pc++);
                     
                     cycles_this_scanline += machine_code_11[op_code].cycles;
                     
@@ -536,7 +536,7 @@ ITCM_CODE void cpu_run(void)
                 
                 case 0x10:
                 {
-                    op_code = memory[cpu.pc++];
+                    op_code = mem_read_pc(cpu.pc++);
                     
                     cycles_this_scanline += machine_code_10[op_code].cycles;
 
@@ -1044,6 +1044,7 @@ ITCM_CODE void cpu_run(void)
                 /* LSR, LSRA, LSRB
                  */
                 case 0x04:
+                case 0x05:
                 case 0x64:
                 case 0x74:
                     operand8 = (uint8_t) mem_read(eff_addr);
@@ -2705,23 +2706,23 @@ static inline __attribute__((always_inline)) int get_eff_addr(int mode)
     switch ( mode )
     {
         case ADDR_DIRECT:
-            return ((cpu.dp << 8) + memory[cpu.pc++]);
+            return ((cpu.dp << 8) + mem_read_pc(cpu.pc++));
             break;
 
         case ADDR_RELATIVE:
-            operand = memory[cpu.pc++];
+            operand = mem_read_pc(cpu.pc++);
             return (cpu.pc + SIG_EXTEND(operand));
             break;
 
         case ADDR_LRELATIVE:
-            operand = (memory[cpu.pc++] << 8);
-            operand += memory[cpu.pc++];
+            operand = (mem_read_pc(cpu.pc++) << 8);
+            operand += mem_read_pc(cpu.pc++);
             return (cpu.pc + operand);
             break;
 
         case ADDR_INDEXED:
             uint16_t   *index_reg = 0;
-            operand = memory[cpu.pc++];
+            operand = mem_read_pc(cpu.pc++);
 
             switch ( operand & INDX_POST_REG )
             {
@@ -2869,8 +2870,8 @@ static inline __attribute__((always_inline)) int get_eff_addr(int mode)
             break;
 
         case ADDR_EXTENDED:
-            effective_addr = (memory[cpu.pc++] << 8);
-            effective_addr += memory[cpu.pc++];
+            effective_addr = (mem_read_pc(cpu.pc++) << 8);
+            effective_addr += mem_read_pc(cpu.pc++);
             break;
 
         case ADDR_IMMEDIATE:

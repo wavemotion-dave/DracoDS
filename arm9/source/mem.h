@@ -40,23 +40,10 @@ typedef enum
 typedef uint8_t (*io_handler_callback)(uint16_t, uint8_t, mem_operation_t);
 
 
+extern io_handler_callback memory_io[MEMORY];
 
-typedef enum
-{
-    MEM_TYPE_RAM,
-    MEM_TYPE_ROM,
-    MEM_TYPE_IO,
-} memory_flag_t;
-
-typedef struct
-{
-    uint8_t data_byte;
-    memory_flag_t memory_type;
-    io_handler_callback io_handler;
-} memory_t;
-
-extern memory_t memory_i[MEMORY];
-extern uint8_t  memory[MEMORY];
+extern uint8_t  memory_RAM[MEMORY];
+extern uint8_t  memory_ROM[MEMORY];
 
 /********************************************************************
  *  Memory module API
@@ -64,11 +51,50 @@ extern uint8_t  memory[MEMORY];
 
 void mem_init(void);
 
-int  mem_read(int address);
 void mem_write(int address, int data);
-int  mem_define_rom(int addr_start, int addr_end);
-int  mem_define_ram(int addr_start, int addr_end);
 int  mem_define_io(int addr_start, int addr_end, io_handler_callback io_handler);
-int  mem_load(int addr_start, const uint8_t *buffer, int length);
+int  mem_load_rom(int addr_start, const uint8_t *buffer, int length);
+
+extern uint8_t sam_rom_in;
+
+inline __attribute__((always_inline)) uint8_t mem_read_pc(int address)
+{
+    if (sam_rom_in)
+    {
+        if (address & 0x8000) return memory_ROM[address];
+    }
+    
+    return memory_RAM[address];
+}
+
+/*------------------------------------------------
+ * mem_read()
+ *
+ *  Read memory address
+ *
+ *  param:  Memory address
+ *  return: Memory content at address
+ */
+inline __attribute__((always_inline)) uint8_t mem_read(int address)
+{
+    if (address & 0x8000)
+    {
+        if ((address & 0xFF00) == 0xFF00)
+        {
+            /* An attempt to read an IO address will trigger
+             * the callback that may return an alternative value.
+             */
+            memory_RAM[address] = memory_io[address]((uint16_t) address, memory_RAM[address], MEM_READ);
+        }
+        else
+        if (sam_rom_in)
+        {
+            if (address & 0x8000) return memory_ROM[address];
+        }
+    }
+    
+    return memory_RAM[address];
+}
+
 
 #endif  /* __MEM_H__ */

@@ -393,7 +393,7 @@ ITCM_CODE void vdg_render_alpha_semi4(int vdg_mem_base)
         {
             for ( col = 0; col < SCREEN_WIDTH_CHAR; col++ )
             {
-                c = memory[col + row_address];
+                c = memory_RAM[col + row_address];
 
                 /* Mode dependent initialization
                  * for text or semigraphics 4:
@@ -458,7 +458,7 @@ ITCM_CODE void vdg_render_semi6(int vdg_mem_base)
         {
             for ( col = 0; col < SCREEN_WIDTH_CHAR; col++ )
             {
-                c = memory[col + row_address];
+                c = memory_RAM[col + row_address];
 
                 bg_color = FB_BLACK;
                 fg_color = colors[(int)(((c & 0b11000000) >> 6) + color_set)];
@@ -505,7 +505,7 @@ ITCM_CODE void vdg_render_semi6(int vdg_mem_base)
  * return: none
  *
  */
-ITCM_CODE void vdg_render_semi_ext(video_mode_t mode, int vdg_mem_base)
+void vdg_render_semi_ext(video_mode_t mode, int vdg_mem_base)
 {
     int         row, seg_row, scan_line, col, font_col, font_row;
     int         segments, seg_scan_lines;
@@ -552,7 +552,7 @@ ITCM_CODE void vdg_render_semi_ext(video_mode_t mode, int vdg_mem_base)
             {
                 for ( col = 0; col < SCREEN_WIDTH_CHAR; col++ )
                 {
-                    c = memory[col + row_address];
+                    c = memory_RAM[col + row_address];
 
                     /* Mode dependent initializations
                     * for text or semigraphics 4:
@@ -657,7 +657,7 @@ ITCM_CODE void vdg_render_resl_graph(video_mode_t mode, int vdg_mem_base)
 
     for ( vdg_mem_offset = 0; vdg_mem_offset < video_mem / sam_2x_rez; vdg_mem_offset++)
     {
-        pixels_byte = memory[vdg_mem_offset + vdg_mem_base];
+        pixels_byte = memory_RAM[vdg_mem_offset + vdg_mem_base];
 
         if (pixels_byte == 0x00)
         {
@@ -738,7 +738,7 @@ ITCM_CODE void vdg_render_artifacting(video_mode_t mode, int vdg_mem_base)
 
     for ( vdg_mem_offset = 0; vdg_mem_offset < video_mem / sam_2x_rez; vdg_mem_offset++)
     {
-        pixels_byte = memory[vdg_mem_offset + vdg_mem_base];
+        pixels_byte = memory_RAM[vdg_mem_offset + vdg_mem_base];
 
         if (pixels_byte == 0x00)
         {
@@ -833,7 +833,7 @@ ITCM_CODE void vdg_render_color_graph(video_mode_t mode, int vdg_mem_base)
     uint16_t *pixRowPtr = (uint16_t *)pixel_row;
     for ( vdg_mem_offset = 0; vdg_mem_offset < video_mem; vdg_mem_offset++)
     {
-        pixels_byte = memory[vdg_mem_offset + vdg_mem_base];
+        pixels_byte = memory_RAM[vdg_mem_offset + vdg_mem_base];
 
         color = (int)((pixels_byte >> 6)) + color_set;
         *pixRowPtr++ = colors16[color];
@@ -914,36 +914,29 @@ ITCM_CODE video_mode_t vdg_get_mode(void)
             switch ( pia_video_mode & 0x0e  )
             {
                 case 0x00:
-                    debug[0]++;
                     mode = GRAPHICS_1C;
                     break;
                 case 0x02:
-                    debug[1]++;
                     mode = GRAPHICS_1R;
                     break;
                 case 0x04:
-                    debug[2]++;
                     mode = GRAPHICS_2C;
                     if (sam_video_mode == 0x04) mode = GRAPHICS_3C; // Bump up to 3K higher-rez mode
                     break;
                 case 0x06:
-                    debug[3]++;
                     mode = GRAPHICS_2R;
                     break;
                 case 0x08:
-                    debug[4]++;
                     mode = GRAPHICS_3C;
+                    if (sam_video_mode == 0x06) mode = GRAPHICS_6C; // Bump up to 6K higher-rez mode
                     break;
                 case 0x0a:
-                    debug[5]++;
                     mode = GRAPHICS_3R;
                     break;
                 case 0x0c:
-                    debug[6]++;
                     mode = GRAPHICS_6C;
                     break;
                 case 0x0e:
-                    debug[7]++;
                     mode = GRAPHICS_6R;
                     if (sam_video_mode == 0x04) sam_2x_rez = 2;     // Essentially 256x96 using 3K
                     break;

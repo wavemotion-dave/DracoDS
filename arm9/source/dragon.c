@@ -36,14 +36,11 @@
 #define     EXEC_VECTOR_LO          0x9e
 
 
-
 u32 draco_line           __attribute__((section(".dtcm"))) = 0;
 u8  draco_special_key    __attribute__((section(".dtcm"))) = 0;
 u32 last_file_size       __attribute__((section(".dtcm"))) = 0;
 u8  isCompressed         __attribute__((section(".dtcm"))) = 1;
 u8  tape_play_skip_frame __attribute__((section(".dtcm"))) = 0;
-
-u8 CompressBuffer[128*1024];
 
 // ----------------------------------------------------------------------
 // Reset the emulation. Freshly decompress the contents of RAM memory
@@ -64,22 +61,18 @@ void dragon_reset(void)
     pia_init();
     vdg_init();
 
-    mem_define_rom(DRAGON_ROM_START, DRAGON_ROM_END);
-    
-    if (myConfig.machine)
+    if (myConfig.machine) // Tandy vs Dragon... Ready... FIGHT!
     {
-        mem_load(DRAGON_ROM_START, CoCoBASIC, sizeof(CoCoBASIC));
+        mem_load_rom(DRAGON_ROM_START, CoCoBASIC, sizeof(CoCoBASIC));
     }
     else
     {
-        mem_load(DRAGON_ROM_START, DragonBASIC, sizeof(DragonBASIC));
+        mem_load_rom(DRAGON_ROM_START, DragonBASIC, sizeof(DragonBASIC));
     }
 
-    mem_define_rom(CARTRIDGE_ROM_BASE, 0x4000-256);
-    
     if (draco_mode == MODE_CART)
     {
-        mem_load(CARTRIDGE_ROM_BASE, ROM_Memory, 0x4000-256);
+        mem_load_rom(CARTRIDGE_ROM_BASE, TapeCartBuffer, 0x4000-256);
         mem_write(EXEC_VECTOR_HI, 0xc0);
         mem_write(EXEC_VECTOR_LO, 0x00);
     }
