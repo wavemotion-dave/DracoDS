@@ -70,7 +70,7 @@ u32 getCRC32(u8 *buf, u32 size)
 
 // ------------------------------------------------------------------------------------
 // Read the file in and compute CRC... it's a bit slow but good enough and accurate!
-// When this routine finishes, the file will be read into TapeCartBuffer[]
+// When this routine finishes, the file will be read into TapeCartDiskBuffer[]
 // ------------------------------------------------------------------------------------
 u32 getFileCrc(const char* filename)
 {
@@ -83,7 +83,7 @@ u32 getFileCrc(const char* filename)
     // I've seen some rare issues with reading files from the SD card on a DSi so we're doing
     // this slow and careful - we will read twice and ensure that we get the same CRC both 
     // times in order for us to declare that this is a valid read. When we're done, the game
-    // ROM will be placed in the TapeCartBuffer[] and will be ready for use by the rest of the system.
+    // ROM will be placed in the TapeCartDiskBuffer[] and will be ready for use by the rest of the system.
     // --------------------------------------------------------------------------------------------
     do
     {
@@ -91,12 +91,12 @@ u32 getFileCrc(const char* filename)
         file_size = 0;
         crc1 = 0xFFFFFFFF;
         FILE* file = fopen(filename, "rb");
-        while ((bytesRead1 = fread(TapeCartBuffer, 1, MAX_TAPE_SIZE, file)) > 0)
+        while ((bytesRead1 = fread(TapeCartDiskBuffer, 1, MAX_FILE_SIZE, file)) > 0)
         {
             file_size += bytesRead1;
             for (int i=0; i < bytesRead1; i++)
             {
-                crc1 = (crc1 >> 8) ^ crc32_table[(crc1 & 0xFF) ^ (u8)TapeCartBuffer[i]]; 
+                crc1 = (crc1 >> 8) ^ crc32_table[(crc1 & 0xFF) ^ (u8)TapeCartDiskBuffer[i]]; 
             }
         }
         fclose(file);
@@ -104,11 +104,11 @@ u32 getFileCrc(const char* filename)
         // Read #2
         crc2 = 0xFFFFFFFF;
         FILE* file2 = fopen(filename, "rb");
-        while ((bytesRead2 = fread(TapeCartBuffer, 1, MAX_TAPE_SIZE, file2)) > 0)
+        while ((bytesRead2 = fread(TapeCartDiskBuffer, 1, MAX_FILE_SIZE, file2)) > 0)
         {
             for (int i=0; i < bytesRead2; i++)
             {
-                crc2 = (crc2 >> 8) ^ crc32_table[(crc2 & 0xFF) ^ (u8)TapeCartBuffer[i]]; 
+                crc2 = (crc2 >> 8) ^ crc32_table[(crc2 & 0xFF) ^ (u8)TapeCartDiskBuffer[i]]; 
             }
         }
         fclose(file2);

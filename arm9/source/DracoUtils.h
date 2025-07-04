@@ -17,7 +17,7 @@
 
 #define MAX_FILES                   1048
 #define MAX_FILENAME_LEN            160
-#define MAX_TAPE_SIZE               (256*1024) // 256K is big enough for any .CAS or .CCC file
+#define MAX_FILE_SIZE               (256*1024) // 256K is big enough for any .CAS or .CCC file or standard (160K) .DSK file
 
 #define MAX_CONFIGS                 1000
 #define CONFIG_VERSION              0x0001
@@ -123,7 +123,7 @@ extern u16 joystick_interrupt;
 extern u8 bFlash;
 extern u32 flash_timer;
 
-extern u8 TapeCartBuffer[MAX_TAPE_SIZE];
+extern u8 TapeCartDiskBuffer[MAX_FILE_SIZE];
 
 extern FIDraco gpFic[MAX_FILES];
 extern int uNbRoms;

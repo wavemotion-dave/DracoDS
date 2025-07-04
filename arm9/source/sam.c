@@ -33,7 +33,7 @@
    Module static functions
 ----------------------------------------- */
 static uint8_t io_handler_vector_redirect(uint16_t address, uint8_t data, mem_operation_t op);
-uint8_t io_handler_sam_write(uint16_t address, uint8_t data, mem_operation_t op);
+static uint8_t io_handler_sam_write(uint16_t address, uint8_t data, mem_operation_t op);
 
 static uint8_t io_rom_mode(uint16_t address, uint8_t data, mem_operation_t op);
 static uint8_t io_ram_mode(uint16_t address, uint8_t data, mem_operation_t op);
@@ -41,23 +41,11 @@ static uint8_t io_ram_mode(uint16_t address, uint8_t data, mem_operation_t op);
 static uint8_t io_page_zero(uint16_t address, uint8_t data, mem_operation_t op);
 static uint8_t io_page_one(uint16_t address, uint8_t data, mem_operation_t op);
 
-uint8_t  sam_rom_in          __attribute__((section(".dtcm"))) = 1;
-uint16_t map_upper_to_lower  __attribute__((section(".dtcm"))) = 0x0000;
-
 /* -----------------------------------------
-   Module globals
+   Module vars
 ----------------------------------------- */
-struct sam_reg_t
-{
-    uint8_t vdg_mode;
-    uint8_t vdg_display_offset;
-    uint8_t page;
-    uint8_t mpu_rate;
-    uint8_t memory_size;
-    uint8_t memory_map_type;
-};
-
-struct sam_reg_t sam_registers __attribute__((section(".dtcm")));
+uint16_t map_upper_to_lower     __attribute__((section(".dtcm"))) = 0x0000;
+struct sam_reg_t sam_registers  __attribute__((section(".dtcm")));
 
 /*------------------------------------------------
  * sam_init()
@@ -81,12 +69,11 @@ void sam_init(void)
     
     sam_registers.vdg_mode = 0;             // Alphanumeric mode
     sam_registers.vdg_display_offset = 2;   // Dragon computer text page 0x0400
-    sam_registers.page = 1;                 // For compatibility, not used
-    sam_registers.mpu_rate = 0;             // For compatibility, not used
-    sam_registers.memory_size = 2;          // For compatibility, not used
-    sam_registers.memory_map_type = 0;      // For compatibility maybe future Dragon 64 emulation, not used
+    sam_registers.page = 0;                 // 0=Normal, 1=Map upper 32K RAM to lower
+    sam_registers.mpu_rate = 0;             // For compatibility, not used. Fixed to 0.89MHz
+    sam_registers.memory_size = 2;          // For compatibility, not used. Fixed to 64K
+    sam_registers.memory_map_type = 1;      // 1=ROMs in place, 0=ALL RAM mode 64K
     
-    sam_rom_in = 1;                         // ROMs are in place
     map_upper_to_lower = 0x0000;            // Normal memory map
 }
 
@@ -232,7 +219,7 @@ static uint8_t io_rom_mode(uint16_t address, uint8_t data, mem_operation_t op)
 {
     if ( op == MEM_WRITE )
     {
-        sam_rom_in = 1;
+        sam_registers.memory_map_type = 1;
     }
     return data;
 }
@@ -241,7 +228,7 @@ static uint8_t io_ram_mode(uint16_t address, uint8_t data, mem_operation_t op)
 {
     if ( op == MEM_WRITE )
     {
-        sam_rom_in = 0;
+        sam_registers.memory_map_type = 0;
     }   
     return data;
 }
@@ -251,6 +238,7 @@ static uint8_t io_page_zero(uint16_t address, uint8_t data, mem_operation_t op)
     if ( op == MEM_WRITE )
     {
         map_upper_to_lower = 0x0000;
+        sam_registers.page = 0;
     }
     return data;
 }
@@ -260,6 +248,7 @@ static uint8_t io_page_one(uint16_t address, uint8_t data, mem_operation_t op)
     if ( op == MEM_WRITE )
     {
         map_upper_to_lower = 0x8000;
+        sam_registers.page = 1;
     }
     return data;
 }

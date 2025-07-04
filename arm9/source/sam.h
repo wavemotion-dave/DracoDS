@@ -11,9 +11,19 @@
 #ifndef __SAM_H__
 #define __SAM_H__
 
-void sam_init(void);
+struct sam_reg_t
+{
+    uint8_t vdg_mode;
+    uint8_t vdg_display_offset;
+    uint8_t page;
+    uint8_t mpu_rate;
+    uint8_t memory_size;
+    uint8_t memory_map_type;
+};
 
-extern uint8_t sam_rom_in;
+extern struct sam_reg_t sam_registers;
+
+extern void sam_init(void);
 extern uint16_t map_upper_to_lower;
 
 #endif  /* __SAM_H__ */

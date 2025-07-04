@@ -77,7 +77,7 @@ ITCM_CODE void mem_write(int address, int data)
         }
         else
         {
-            if ( sam_rom_in ) return; // Else fall through and write below ... 64K mode
+            if ( sam_registers.memory_map_type ) return; // Else fall through and write below ... 64K mode
         }        
     }
     

@@ -27,7 +27,6 @@ extern u32 DX, DY;
 #define MENU_CHOICE_HI_SCORE    0x05
 #define MENU_CHOICE_DEFINE_KEYS 0x06
 #define MENU_CHOICE_GAME_OPTION 0x07
-#define MENU_CHOICE_CASSETTE    0x08
 #define MENU_CHOICE_MENU        0xFF        // Special brings up a mini-menu of choices
 
 // ------------------------------------------------------------------------------
@@ -88,7 +87,7 @@ extern u32 DX, DY;
 #define META_KBD_SPACE      0xF029
 #define META_KBD_RETURN     0xF02A
 
-#define MAX_KEY_OPTIONS     54
+#define MAX_KEY_OPTIONS     57
 
 // -----------------------------
 // For the Full Keyboard...
@@ -161,7 +160,7 @@ extern void PauseSound(void);
 extern void UnPauseSound(void);
 extern void ResetStatusFlags(void);
 extern void ReadFileCRCAndConfig(void);
-extern void DisplayStatusLine(bool bForce);
+extern void DisplayStatusLine(void);
 extern void ResetDragonTandy(void);
 extern void processDirectAudio(void);
 extern void debug_init();

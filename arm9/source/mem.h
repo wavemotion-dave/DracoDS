@@ -23,13 +23,11 @@
 #define __MEM_H__
 
 #include    <stdint.h>
+#include    "sam.h"
 
 #define     MEMORY                  65536       // 64K Byte
 
 #define     MEM_OK                  0           // Operation ok
-#define     MEM_ADD_RANGE          -1           // Address out of range
-#define     MEM_ROM                -2           // Location is ROM
-#define     MEM_HANDLER_ERR        -3           // Cannot hook IO handler
 
 typedef enum
 {
@@ -55,11 +53,9 @@ void mem_write(int address, int data);
 int  mem_define_io(int addr_start, int addr_end, io_handler_callback io_handler);
 int  mem_load_rom(int addr_start, const uint8_t *buffer, int length);
 
-extern uint8_t sam_rom_in;
-
 inline __attribute__((always_inline)) uint8_t mem_read_pc(int address)
 {
-    if (sam_rom_in)
+    if (sam_registers.memory_map_type)
     {
         if (address & 0x8000) return memory_ROM[address];
     }
@@ -87,7 +83,7 @@ inline __attribute__((always_inline)) uint8_t mem_read(int address)
             memory_RAM[address] = memory_io[address]((uint16_t) address, memory_RAM[address], MEM_READ);
         }
         else
-        if (sam_rom_in)
+        if (sam_registers.memory_map_type)
         {
             if (address & 0x8000) return memory_ROM[address];
         }

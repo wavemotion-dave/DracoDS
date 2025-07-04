@@ -106,11 +106,15 @@ const char szKeyName[MAX_KEY_OPTIONS][16] = {
 
   "KEYBOARD ENTER", // 48
   "KEYBOARD SPACE", // 49
-  
+
   "KEYBOARD UP",    // 50
   "KEYBOARD LEFT",
   "KEYBOARD RIGHT",
   "KEYBOARD DOWN",
+
+  "CLEAR",
+  "SHIFT",          // 55
+  "BREAK"
 };
 
 
@@ -286,7 +290,7 @@ int Filescmp (const void *c1, const void *c2)
 }
 
 /*********************************************************************************
- * Find files (TAP/TZX/Z80/SNA) available - sort them for display.
+ * Find game/program files available - sort them for display.
  ********************************************************************************/
 void DracoDSFindFiles(u8 bTapeOnly)
 {
@@ -661,8 +665,8 @@ void MapPlayer1(void)
     myConfig.keymap[4]   = 4;    // NDS A Button mapped Joystick Fire
 
     myConfig.keymap[5]   = 0;    // NDS B Button mapped Joystick UP
-    myConfig.keymap[6]   = 43;   // NDS X Button mapped to SPACE
-    myConfig.keymap[7]   = 44;   // NDS Y Button mapped to RETURN
+    myConfig.keymap[6]   = 49;   // NDS X Button mapped to SPACE
+    myConfig.keymap[7]   = 48;   // NDS Y Button mapped to RETURN
     myConfig.keymap[8]   = 5;    // NDS R Button mapped to 'A'
     myConfig.keymap[9]   = 6;    // NDS L Button mapped to 'B'
     myConfig.keymap[10]  = 40;   // NDS START mapped to '0'
@@ -676,80 +680,29 @@ void MapQAOP(void)
     myConfig.keymap[1]   =  5;   // A
     myConfig.keymap[2]   = 19;   // O
     myConfig.keymap[3]   = 20;   // P
-    myConfig.keymap[4]   = 43;   // Space
-    myConfig.keymap[5]   = 43;   // Space
-    myConfig.keymap[6]   = 30;   // Z
-    myConfig.keymap[7]   = 30;   // Z
-    myConfig.keymap[8]   = 41;   // NDS R Button mapped to SHIFT
-    myConfig.keymap[9]   = 42;   // NDS L Button mapped to SYMBOL
-    myConfig.keymap[10]  = 40;   // NDS START mapped to '0'
-    myConfig.keymap[11]  = 31;   // NDS SELECT mapped to '1'
-}
-
-void MapWASD(void)
-{
-    myConfig.keymap[0]   = 27;    // W
-    myConfig.keymap[1]   =  5;    // A
-    myConfig.keymap[2]   = 23;    // S
-    myConfig.keymap[3]   =  8;    // D
-    myConfig.keymap[4]   = 43;   // Space
-    myConfig.keymap[5]   = 43;   // Space
-    myConfig.keymap[6]   = 30;   // Z
-    myConfig.keymap[7]   = 30;   // Z
-    myConfig.keymap[8]   = 41;   // NDS R Button mapped to SHIFT
-    myConfig.keymap[9]   = 42;   // NDS L Button mapped to SYMBOL
-    myConfig.keymap[10]  = 40;   // NDS START mapped to '0'
-    myConfig.keymap[11]  = 31;   // NDS SELECT mapped to '1'
-}
-
-void MapZXSpace(void)
-{
-    myConfig.keymap[0]   = 43;   // Space
-    myConfig.keymap[1]   = 18;   // N
-    myConfig.keymap[2]   = 30;   // Z
-    myConfig.keymap[3]   = 28;   // X
-    myConfig.keymap[4]   = 43;   // Space
-    myConfig.keymap[5]   = 43;   // Space
-    myConfig.keymap[6]   = 44;   // Return
-    myConfig.keymap[7]   = 44;   // Return
-    myConfig.keymap[8]   = 41;   // NDS R Button mapped to SHIFT
-    myConfig.keymap[9]   = 42;   // NDS L Button mapped to SYMBOL
+    myConfig.keymap[4]   = 49;   // NDS A Button mapped to Space
+    myConfig.keymap[5]   = 43;   // NDS B Button mapped to Period
+    myConfig.keymap[6]   = 30;   // NDS X Button mapped to Z
+    myConfig.keymap[7]   = 28;   // NDS Y Button mapped to X
+    myConfig.keymap[8]   = 5;    // NDS R Button mapped to 'A'
+    myConfig.keymap[9]   = 6;    // NDS L Button mapped to 'B'
     myConfig.keymap[10]  = 40;   // NDS START mapped to '0'
     myConfig.keymap[11]  = 31;   // NDS SELECT mapped to '1'
 }
 
 
-// 6 (left), 7 (right), 8 (down), 9 (up) and 0 (fire) for Sinclair 1
-// 1 (left), 2 (right), 3 (down), 4 (up) and 5 (fire) for Sinclair 2
-void Sinclair1(void)
-{
-    myConfig.keymap[0]   = 39;   // UP
-    myConfig.keymap[1]   = 38;   // DOWN
-    myConfig.keymap[2]   = 36;   // LEFT
-    myConfig.keymap[3]   = 37;   // RIGHT
-    myConfig.keymap[4]   = 40;   // FIRE
-    myConfig.keymap[5]   = 43;   // Space
-    myConfig.keymap[6]   = 43;   // Space
-    myConfig.keymap[7]   = 43;   // Space
-    myConfig.keymap[8]   = 41;   // NDS R Button mapped to SHIFT
-    myConfig.keymap[9]   = 42;   // NDS L Button mapped to SYMBOL
-    myConfig.keymap[10]  = 40;   // NDS START mapped to '0'
-    myConfig.keymap[11]  = 31;   // NDS SELECT mapped to '1'
-}
-
-// 5 (left), 6 (down), 7 (up), 8 (right)
 void Cursors(void)
 {
-    myConfig.keymap[0]   = 37;   // UP
-    myConfig.keymap[1]   = 36;   // DOWN
-    myConfig.keymap[2]   = 35;   // LEFT
-    myConfig.keymap[3]   = 38;   // RIGHT
-    myConfig.keymap[4]   = 44;   // Return
-    myConfig.keymap[5]   = 43;   // Space
-    myConfig.keymap[6]   = 43;   // Space
-    myConfig.keymap[7]   = 43;   // Space
-    myConfig.keymap[8]   = 41;   // NDS R Button mapped to SHIFT
-    myConfig.keymap[9]   = 42;   // NDS L Button mapped to SYMBOL
+    myConfig.keymap[0]   = 50;   // UP
+    myConfig.keymap[1]   = 53;   // DOWN
+    myConfig.keymap[2]   = 51;   // LEFT
+    myConfig.keymap[3]   = 52;   // RIGHT
+    myConfig.keymap[4]   = 48;   // NDS A Button mapped Return
+    myConfig.keymap[5]   = 49;   // NDS B Button mapped Space
+    myConfig.keymap[6]   = 43;   // NDS X Button mapped Period
+    myConfig.keymap[7]   = 54;   // NDS Y Button mapped Clear
+    myConfig.keymap[8]   = 5;    // NDS R Button mapped to 'A'
+    myConfig.keymap[9]   = 6;    // NDS L Button mapped to 'B'
     myConfig.keymap[10]  = 40;   // NDS START mapped to '0'
     myConfig.keymap[11]  = 31;   // NDS SELECT mapped to '1'
 }
@@ -776,7 +729,7 @@ void SetDefaultGameConfig(void)
     myConfig.joyType     = 0;                           // Joystick is Digital
     myConfig.autoFire    = 0;                           // Default to no auto-fire on either button
     myConfig.dpad        = DPAD_NORMAL;                 // Normal DPAD use - mapped to joystick
-    myConfig.autoLoad    = 1;                           // Default is to to auto-load TAP and TZX games
+    myConfig.autoLoad    = 1;                           // Default is to to auto-load games
     myConfig.gameSpeed   = 0;                           // Default is 100% game speed
     myConfig.forceCSS    = 0;                           // Normal - not forced Color Select
     myConfig.graphicsMode= 0;                           // Normal - auto detect graphics mode
@@ -865,15 +818,15 @@ const struct options_t Option_Table[2][20] =
         {"AUTO LOAD",      {"NO", "CLOADM [EXEC]", "CLOAD [RUN]"},                     &myConfig.autoLoad,          3},
         {"AUTO FIRE",      {"OFF", "ON"},                                              &myConfig.autoFire,          2},
         {"GAME SPEED",     {"100%", "110%", "120%", "90%", "80%"},                     &myConfig.gameSpeed,         5},
-        {"FORCE CSS",      {"NORMAL", "COLOR SET 0", "COLOR SET 1"},                   &myConfig.forceCSS,          3},        
-        {"FORCE VDG",      {"NORMAL", "GRAPHICS 1C", "GRAPHICS 1R", "GRAPHICS 2C", 
-                            "GRAPHICS 2R", "GRAPHICS 3C", "GRAPHICS 3R", 
-                            "GRAPHICS 6C", "GRAPHICS 6R"},                             &myConfig.graphicsMode,      9},        
+        {"FORCE CSS",      {"NORMAL", "COLOR SET 0", "COLOR SET 1"},                   &myConfig.forceCSS,          3},
+        {"FORCE VDG",      {"NORMAL", "GRAPHICS 1C", "GRAPHICS 1R", "GRAPHICS 2C",
+                            "GRAPHICS 2R", "GRAPHICS 3C", "GRAPHICS 3R",
+                            "GRAPHICS 6C", "GRAPHICS 6R"},                             &myConfig.graphicsMode,      9},
         {"NDS D-PAD",      {"NORMAL", "SLIDE-N-GLIDE"},                                &myConfig.dpad,              2},
         {"JOYSTICK",       {"RIGHT", "LEFT"},                                          &myConfig.joystick,          2},
         {"JOY TYPE",       {"DIGITAL", "ANALOG SLOW", "ANALOG MEDIUM", "ANALOG FAST",
                             "SLOW CENTER", "MEDIUM CENTER", "FAST CENTER"},            &myConfig.joyType,           7},
-        
+
         {NULL,             {"",      ""},                                              NULL,                        1},
     },
     // Global Options
@@ -1040,18 +993,15 @@ void DisplayKeymapName(u32 uY)
 u8 keyMapType = 0;
 void SwapKeymap(void)
 {
-    keyMapType = (keyMapType+1) % 6;
+    keyMapType = (keyMapType+1) % 3;
     switch (keyMapType)
     {
-        case 0: MapPlayer1();  DSPrint(10,3,0,("KEMPSTON P1")); break;
-        case 1: Sinclair1();   DSPrint(10,3,0,("SINCLAIR P1")); break;
-        case 2: Cursors();     DSPrint(10,3,0,("  CURSORS  ")); break;
-        case 3: MapQAOP();     DSPrint(10,3,0,("   QAOP    ")); break;
-        case 4: MapWASD();     DSPrint(10,3,0,("   WASD    ")); break;
-        case 5: MapZXSpace();  DSPrint(10,3,0,(" ZX SPACE  ")); break;
+        case 0: MapPlayer1();  DSPrint(12,23,0,("JOYSTICK")); break;
+        case 1: Cursors();     DSPrint(12,23,0,("CURSORS ")); break;
+        case 2: MapQAOP();     DSPrint(12,23,0,("QAOP-ZX ")); break;
     }
     WAITVBL;WAITVBL;WAITVBL;WAITVBL;
-    DSPrint(10,3,0,("           "));
+    DSPrint(12,23,0,("         "));
 }
 
 
@@ -1274,9 +1224,9 @@ void ReadFileCRCAndConfig(void)
     // ----------------------------------------------------------------------------------
     // Clear the entire ROM buffer[] - fill with 0xFF to emulate non-responsive memory
     // ----------------------------------------------------------------------------------
-    memset(TapeCartBuffer, 0xFF, MAX_TAPE_SIZE);
+    memset(TapeCartDiskBuffer, 0xFF, MAX_FILE_SIZE);
 
-    // Grab the all-important file CRC - this also loads the file into TapeCartBuffer[]
+    // Grab the all-important file CRC - this also loads the file into TapeCartDiskBuffer[]
     getfile_crc(gpFic[ucGameChoice].szName);
 
     if (strstr(gpFic[ucGameChoice].szName, ".ccc") != 0) draco_mode = MODE_CART;
@@ -1512,7 +1462,7 @@ void DSPrint(int iX,int iY,int iScr,char *szMessage)
 /******************************************************************************
 * Routine FadeToColor :  Fade from background to black or white
 ******************************************************************************/
-void FadeToColor(unsigned char ucSens, unsigned short ucBG, unsigned char ucScr, unsigned char valEnd, unsigned char uWait) 
+void FadeToColor(unsigned char ucSens, unsigned short ucBG, unsigned char ucScr, unsigned char valEnd, unsigned char uWait)
 {
   unsigned short ucFade;
   unsigned char ucBcl;
@@ -1559,18 +1509,19 @@ void BufferKey(u8 key)
 // ---------------------------------------------------------------------------------------
 void ProcessBufferedKeys(void)
 {
-    static u8 next_dampen_time = 20;
+    static u8 next_dampen_time = 8;
     static u8 dampen = 0;
     static u8 buf_held = 0;
 
-    if (++dampen >= next_dampen_time) // Roughly 400ms... experimentally good enough
+    if (++dampen >= next_dampen_time) // Roughly 150ms... experimentally good enough
     {
         kbd_keys_pressed = 0;
         if (BufferedKeysReadIdx != BufferedKeysWriteIdx)
         {
             buf_held = BufferedKeys[BufferedKeysReadIdx];
             BufferedKeysReadIdx = (BufferedKeysReadIdx+1) % 32;
-            next_dampen_time = 20;
+            next_dampen_time = 8;
+            if (buf_held == 255) {buf_held = 0; kbd_key = 0;}
         } else buf_held = 0;
         dampen = 0;
     }
@@ -1600,7 +1551,7 @@ u8 DragonTandyInit(char *szGame)
   videoSetMode(MODE_5_2D | DISPLAY_BG3_ACTIVE);
   vramSetBankA(VRAM_A_MAIN_BG_0x06000000);      // This is our top emulation screen (where the game is played)
   vramSetBankB(VRAM_B_LCD);
-  
+
   REG_BG3CNT = BG_BMP8_256x256;
   REG_BG3PA = (1<<8);
   REG_BG3PB = 0;
@@ -1633,7 +1584,7 @@ void DragonTandyRun(void)
   BottomScreenKeyboard();                 // Show the game-related screen with keypad / keyboard
 }
 
-u8 Dragon_Coco_palette[18*3] = 
+u8 Dragon_Coco_palette[18*3] =
 {
   0x00, 0x00, 0x00, // FB_BLACK
   0x80, 0x00, 0x00, // FB_BLUE
@@ -1691,7 +1642,7 @@ void getfile_crc(const char *filename)
 
 
 /** loadgame() ******************************************************************/
-/* Open a rom file from file system and load it into the TapeCartBuffer[] buffer    */
+/* Open a rom file from file system and load it into the TapeCartDiskBuffer[] buffer    */
 /********************************************************************************/
 u8 loadgame(const char *filename)
 {
@@ -1721,7 +1672,7 @@ u8 loadgame(const char *filename)
     struct stat stbuf;
     (void)fstat(fileno(handle), &stbuf);
     romSize = stbuf.st_size;
-    fclose(handle); // We only need to close the file - the game ROM is now sitting in TapeCartBuffer[] from the getFileCrc() handler
+    fclose(handle); // We only need to close the file - the game ROM is now sitting in TapeCartDiskBuffer[] from the getFileCrc() handler
 
     last_file_size = (u32)romSize;
   }

@@ -121,7 +121,7 @@ uint8_t kbd_scan_dragon[60][2] __attribute__((section(".dtcm"))) = {
         { 0xff,       255 }, // #2   Reserved for Joy Left
         { 0xff,       255 }, // #3   Reserved for Joy Right
         { 0xff,       255 }, // #4   Reserved for Joy Fire
-        
+
         { 0b11111101,   2 }, // #5   A
         { 0b11111011,   2 }, //      B
         { 0b11110111,   2 }, //      C
@@ -129,7 +129,7 @@ uint8_t kbd_scan_dragon[60][2] __attribute__((section(".dtcm"))) = {
         { 0b11011111,   2 }, //      E
         { 0b10111111,   2 }, // #10  F
         { 0b01111111,   2 }, //      G
-        
+
         { 0b11111110,   3 }, //      H
         { 0b11111101,   3 }, //      I
         { 0b11111011,   3 }, //      J
@@ -138,7 +138,7 @@ uint8_t kbd_scan_dragon[60][2] __attribute__((section(".dtcm"))) = {
         { 0b11011111,   3 }, //      M
         { 0b10111111,   3 }, //      N
         { 0b01111111,   3 }, //      O
-        
+
         { 0b11111110,   4 }, // #20  P
         { 0b11111101,   4 }, //      Q
         { 0b11111011,   4 }, //      R
@@ -151,7 +151,7 @@ uint8_t kbd_scan_dragon[60][2] __attribute__((section(".dtcm"))) = {
         { 0b11111110,   5 }, //      X
         { 0b11111101,   5 }, //      Y
         { 0b11111011,   5 }, // #30  Z
-        
+
         { 0b11111101,   0 }, //      1
         { 0b11111011,   0 }, //      2
         { 0b11110111,   0 }, //      3
@@ -162,7 +162,7 @@ uint8_t kbd_scan_dragon[60][2] __attribute__((section(".dtcm"))) = {
         { 0b11111110,   1 }, //      8
         { 0b11111101,   1 }, //      9
         { 0b11111110,   0 }, // #40  0
-        
+
         { 0b11011111,   1 }, //      -
         { 0b11101111,   1 }, //      ,
         { 0b10111111,   1 }, //      .
@@ -170,19 +170,19 @@ uint8_t kbd_scan_dragon[60][2] __attribute__((section(".dtcm"))) = {
         { 0b11110111,   1 }, // #45  ;
         { 0b01111111,   1 }, //      /
         { 0b11111110,   2 }, //      @
-        
+
         { 0b11111110,   6 }, // #48  Enter
         { 0b01111111,   5 }, // #49  Space bar
-        
+
         { 0b11110111,   5 }, // #50  Up arrow
         { 0b11011111,   5 }, // #51  Left arrow
         { 0b10111111,   5 }, // #52  Right arrow
         { 0b11101111,   5 }, // #53  Down arrow
-        
+
         { 0b11111101,   6 }, // #54  CLEAR
         { 0b01111111,   6 }, // #55  Shift key
         { 0b11111011,   6 }, // #56  Break (ESC key)
-        
+
 };
 
 /*
@@ -215,7 +215,7 @@ uint8_t kbd_scan_coco[60][2] __attribute__((section(".dtcm"))) = {
         { 0b11011111,   0 }, //      E
         { 0b10111111,   0 }, // #10  F
         { 0b01111111,   0 }, //      G
-        
+
         { 0b11111110,   1 }, //      H
         { 0b11111101,   1 }, //      I
         { 0b11111011,   1 }, //      J
@@ -233,7 +233,7 @@ uint8_t kbd_scan_coco[60][2] __attribute__((section(".dtcm"))) = {
         { 0b11011111,   2 }, //      U
         { 0b10111111,   2 }, //      V
         { 0b01111111,   2 }, //      W
-        
+
         { 0b11111110,   3 }, //      X
         { 0b11111101,   3 }, //      Y
         { 0b11111011,   3 }, // #30  Z
@@ -249,7 +249,7 @@ uint8_t kbd_scan_coco[60][2] __attribute__((section(".dtcm"))) = {
         { 0b11111110,   5 }, //      8
         { 0b11111101,   5 }, //      9
         { 0b11111110,   4 }, // #40  0
-        
+
         { 0b11011111,   5 }, //      -
         { 0b11101111,   5 }, //      ,
         { 0b10111111,   5 }, //      .
@@ -257,18 +257,18 @@ uint8_t kbd_scan_coco[60][2] __attribute__((section(".dtcm"))) = {
         { 0b11110111,   5 }, // #45  ;
         { 0b01111111,   5 }, //      /
         { 0b11111110,   0 }, //      @
-        
+
         { 0b11111110,   6 }, //      Enter
         { 0b01111111,   3 }, //      Space bar
-        
+
         { 0b11110111,   3 }, // #50  Up arrow
         { 0b11011111,   3 }, //      Left arrow
         { 0b10111111,   3 }, //      Right arrow
         { 0b11101111,   3 }, //      Down arrow
-        
+
         { 0b11111101,   6 }, //      CLEAR
         { 0b01111111,   6 }, // #55  Shift key
-        { 0b11111011,   6 }, //      Break (ESC key)        
+        { 0b11111011,   6 }, //      Break (ESC key)
 };
 
 
@@ -301,12 +301,12 @@ void pia_init(void)
     mem_define_io(PIA0_CRB, PIA0_CRB, io_handler_pia0_crb); // Field sync interrupt
 
     mem_define_io(PIA1_PA, PIA1_PA, io_handler_pia1_pa);    // 6-bit DAC output, cassette interface input bit
-    
+
     mem_define_io(PIA1_PB,    PIA1_PB,    io_handler_pia1_pb);    // VDG mode bits output
-    
+
     mem_define_io(PIA1_CRA, PIA1_CRA, io_handler_pia1_cra); // Cassette tape motor control
     mem_define_io(PIA1_CRB, PIA1_CRB, io_handler_pia1_crb); // Audio multiplexer select bit.1
-    
+
     pia0_ca1_int_enabled = 0;    // HSYNC FIRQ
     pia0_cb1_int_enabled = 0;    // VSYNC IRQ
     pia1_cb1_int_enabled = 0;    // CART  FIRQ
@@ -333,7 +333,7 @@ void pia_vsync_irq(void)
     /* Set the VSYNC 'on' bit - turns off when port read
      */
     memory_RAM[PIA0_CRB] |= PIA_CR_IRQ_STAT;
-     
+
     /* Assert vsync interrupt if enabled
      */
     if ( pia0_cb1_int_enabled )
@@ -346,7 +346,7 @@ void pia_hsync_firq(void)
 {
     /* Set the HSYNC 'on' bit - turns off on next port read
      */
-    memory_RAM[PIA0_CRA] |= PIA_CR_IRQ_STAT;    
+    memory_RAM[PIA0_CRA] |= PIA_CR_IRQ_STAT;
 
     /* Assert hsync interrupt if enabled
      */
@@ -371,7 +371,7 @@ void pia_cart_firq(void)
     /* Set the cart FIRQ status bit - turns off on next port read
      */
     memory_RAM[PIA1_CRB] |= PIA_CR_IRQ_STAT;
-    
+
     /* Assert interrupt if enabled
      */
     if ( pia1_cb1_int_enabled )
@@ -396,23 +396,23 @@ void pia_cart_firq(void)
  *
  *  param:  Call address, data byte for write operation, and operation type
  *  return: Status or data byte
- * 
- * Position	Joystick - mux_select bits:
- *   00	Right, Horiz
- *   01	Right, Vert
- *   10	Left, Horiz
- *   11	Left, Vert
+ *
+ * Position Joystick - mux_select bits:
+ *   00 Right, Horiz
+ *   01 Right, Vert
+ *   10 Left, Horiz
+ *   11 Left, Vert
  */
 ITCM_CODE static uint8_t io_handler_pia0_pa(uint16_t address, uint8_t data, mem_operation_t op)
 {
     uint8_t scan_code = 0;
     uint8_t row_switch_bits;
     int     row_index;
-    
+
     if ( op == MEM_READ )
     {
         /* We are reading the keyboard... plus the comparator bit 7  */
-         
+
         memset(keyboard_rows, 255, sizeof(keyboard_rows));
 
         for (int i=0; i<kbd_keys_pressed; i++)
@@ -430,15 +430,15 @@ ITCM_CODE static uint8_t io_handler_pia0_pa(uint16_t address, uint8_t data, mem_
 
                 keyboard_rows[row_index] &= row_switch_bits;
             }
-        }   
+        }
 
         /* Store the appropriate row bit value for PIA0_PA bit pattern
          */
         row_switch_bits = get_keyboard_row_scan(memory_RAM[PIA0_PB]);
         mem_write(PIA0_PA, (int) row_switch_bits);
-        
-        data = row_switch_bits;        
-        
+
+        data = row_switch_bits;
+
         if (myConfig.joystick == 0) // Right Joystick
         {
             uint16_t input = 32;
@@ -496,7 +496,7 @@ ITCM_CODE static uint8_t io_handler_pia0_pa(uint16_t address, uint8_t data, mem_
                 data &= 0x7f;
                 last_comparator = 0x00;
             }
-            
+
             if (!kbd_key)
             {
                 if ( JoyState & JST_FIRE )
@@ -509,7 +509,7 @@ ITCM_CODE static uint8_t io_handler_pia0_pa(uint16_t address, uint8_t data, mem_
                 }
             }
         }
-        
+
         // A read from this port clears the HSync FIRQ
         memory_RAM[PIA0_CRA] &= ~PIA_CR_IRQ_STAT;
         cpu_firq(0);
@@ -572,7 +572,7 @@ ITCM_CODE static uint8_t io_handler_pia0_cra(uint16_t address, uint8_t data, mem
     }
     else
     {
-        
+
     }
 
     return data;
@@ -603,7 +603,7 @@ ITCM_CODE static uint8_t io_handler_pia0_crb(uint16_t address, uint8_t data, mem
     }
     else
     {
-        
+
     }
 
     return data;
@@ -617,7 +617,7 @@ inline uint8_t loader_tape_fread(void)
         cas_eof = 1;
         return 0x00;
     }
-    else return TapeCartBuffer[tape_pos++];
+    else return TapeCartDiskBuffer[tape_pos++];
 }
 
 /*------------------------------------------------
@@ -730,9 +730,9 @@ ITCM_CODE static uint8_t io_handler_pia1_pb(uint16_t address, uint8_t data, mem_
     if ( op == MEM_WRITE )
     {
         vdg_set_mode_pia(((data >> 3) & 0x1f));
-        
+
         extern signed short int beeper_vol;
-        
+
         if (data & 0x02) // Beeper Pulse
         {
             beeper_vol = (beeper_vol ? 0x000:0xFFF);
@@ -780,7 +780,7 @@ static uint8_t io_handler_pia1_cra(uint16_t address, uint8_t data, mem_operation
     }
     else
     {
-        
+
     }
 
     return data;
@@ -809,7 +809,7 @@ ITCM_CODE static uint8_t io_handler_pia1_crb(uint16_t address, uint8_t data, mem
     }
     else
     {
-        
+
     }
 
     return data;

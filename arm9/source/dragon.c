@@ -39,7 +39,6 @@
 u32 draco_line           __attribute__((section(".dtcm"))) = 0;
 u8  draco_special_key    __attribute__((section(".dtcm"))) = 0;
 u32 last_file_size       __attribute__((section(".dtcm"))) = 0;
-u8  isCompressed         __attribute__((section(".dtcm"))) = 1;
 u8  tape_play_skip_frame __attribute__((section(".dtcm"))) = 0;
 
 // ----------------------------------------------------------------------
@@ -70,13 +69,15 @@ void dragon_reset(void)
         mem_load_rom(DRAGON_ROM_START, DragonBASIC, sizeof(DragonBASIC));
     }
 
+    // If the user loaded a cart, place that in memory up to 16K (less 256 bytes)
     if (draco_mode == MODE_CART)
     {
-        mem_load_rom(CARTRIDGE_ROM_BASE, TapeCartBuffer, 0x4000-256);
+        mem_load_rom(CARTRIDGE_ROM_BASE, TapeCartDiskBuffer, 0x4000-256);
         mem_write(EXEC_VECTOR_HI, 0xc0);
         mem_write(EXEC_VECTOR_LO, 0x00);
     }
 
+    // And off we go!!
     cpu_init(DRAGON_ROM_START);
     cpu_reset(1);
     cpu_check_reset();
@@ -84,9 +85,9 @@ void dragon_reset(void)
 
 
 // -----------------------------------------------------------------------------
-// Run the emulation for exactly 1 scanline and handle the VDP interrupt if
-// the emulation has executed the last line of the frame.  This also handles
-// direct beeper and possibly AY sound emulation as well. Crude but effective.
+// Run the emulation for exactly 1 scanline of Audio and CPU. When we reach
+// the VSYNC, we also draw the entire frame. This is not perfect emulation
+// as the frame should be drawn scanline-by-scanline... but good enough for now.
 // -----------------------------------------------------------------------------
 ITCM_CODE u32 dragon_run(void)
 {
@@ -104,15 +105,15 @@ ITCM_CODE u32 dragon_run(void)
     // Each scanline generates a Fast IRQ for the HSync
     // -------------------------------------------------
     pia_hsync_firq();
-    
+
     // --------------------------------------------
     // Are we at the end of the frame? VSync time!
     // --------------------------------------------
     if (++draco_line == (myConfig.machine ? 262:312))
     {
-        vdg_render();
-        pia_vsync_irq();
-        draco_line = 0;
+        vdg_render();       // Draw the frame
+        pia_vsync_irq();    // Render the sync intterupt
+        draco_line = 0;     // Back to the top
         extern int cycles_this_scanline;
         cycles_this_scanline = 0;
         return 1; // End of frame

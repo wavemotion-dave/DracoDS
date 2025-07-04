@@ -40,7 +40,7 @@
 
 // -----------------------------------------------------------------
 // Most handy for development of the emulator is a set of 16 R/W
-// registers and a couple of index vars... we show this when 
+// registers and a couple of index vars... we show this when
 // global settings is set to show the 'Debugger'. It's amazing
 // how handy these general registers are for emulation development.
 // -----------------------------------------------------------------
@@ -51,7 +51,7 @@ u32 DY = 0;
 u8 DragonBASIC[0x4000]        = {0};  // We keep the 16k Dragon 32 BASIC/BIOS here
 u8 CoCoBASIC[0x4000]          = {0};  // We keep the 16k Tandy CoCo BASIC/BIOS here (two 8K roms)
 
-u8 TapeCartBuffer[MAX_TAPE_SIZE];        // This is where we keep the raw untouched file as read from the SD card (.TAP, .TZX, .Z80, etc)
+u8 TapeCartDiskBuffer[MAX_FILE_SIZE];     // This is where we keep the raw untouched file as read from the SD card
 
 // ----------------------------------------------------------------------------
 // We track the most recent directory and file loaded... both the initial one
@@ -213,7 +213,7 @@ ITCM_CODE void processDirectAudio(void)
         {
             last_dac = dac_output*256;
         }
-        
+
         mixer[mixer_write] = beeper_vol + last_dac;
         mixer_write++; mixer_write &= WAVE_DIRECT_BUF_SIZE;
         if (((mixer_write+1)&WAVE_DIRECT_BUF_SIZE) == mixer_read) {breather = 2048;}
@@ -221,7 +221,7 @@ ITCM_CODE void processDirectAudio(void)
 }
 
 // -----------------------------------------------------------------------------------------------
-// The user can override the core emulation speed from 80% to 120% to make games play faster/slow 
+// The user can override the core emulation speed from 80% to 120% to make games play faster/slow
 // than normal. We must adjust the MaxMode sample frequency to match or else we will not have the
 // proper number of samples in our sound buffer... this isn't perfect but it's reasonably good!
 // -----------------------------------------------------------------------------------------------
@@ -236,7 +236,7 @@ void newStreamSampleRate(void)
 
         // Adjust the sample rate to match the core emulation speed... user can override from 80% to 120%
         int new_sample_rate     = (sample_rate * sample_rate_adjust[myConfig.gameSpeed]) / 100;
-        myStream.sampling_rate  = new_sample_rate;        // sample_rate for the ZX to match the AY/Beeper drivers
+        myStream.sampling_rate  = new_sample_rate;        // sample_rate to match the Dragon/Tandy scanline emulation
         myStream.buffer_length  = buffer_size;            // buffer length = (512+16)
         myStream.callback       = OurSoundMixer;          // set callback function
         myStream.format         = MM_STREAM_16BIT_STEREO; // format = stereo 16-bit
@@ -298,7 +298,7 @@ void sound_chip_reset()
 void dsInstallSoundEmuFIFO(void)
 {
   SoundPause();             // Pause any sound output
-  sound_chip_reset();       // Reset the SN, AY and SCC chips
+  sound_chip_reset();       // Reset the sound generator
   setupStream();            // Setup maxmod stream...
   bStartSoundEngine = 5;    // Volume will 'unpause' after 5 frames in the main loop.
 }
@@ -315,7 +315,7 @@ void ResetDragonTandy(void)
 {
   JoyState = 0x00000000;                // Nothing pressed to start
 
-  sound_chip_reset();                   // Reset the AY chip
+  sound_chip_reset();                   // Reset the sound generator
   dragon_reset();                       // Reset the Dragon/Tandy emulation
 
   // -----------------------------------------------------------
@@ -336,7 +336,7 @@ void ResetDragonTandy(void)
 
   bFirstTime = 1;
   bottom_screen = 0;
-  
+
   joy_x = joy_y = JOY_CENTER;
   joy_dampen = 0;
 }
@@ -358,10 +358,10 @@ void ShowDebugger(void)
 // The status line shows the status of the Emulation System
 // on the top line of the bottom DS display.
 // ------------------------------------------------------------
-void DisplayStatusLine(bool bForce)
+void DisplayStatusLine(void)
 {
-    DSPrint(29,0,2, (sam_rom_in ? "32K": "64K"));
-    
+    DSPrint(29,0,2, (sam_registers.memory_map_type ? "32K": "64K"));
+
     if (tape_motor)
     {
         char tmp[5];
@@ -381,179 +381,9 @@ void DisplayStatusLine(bool bForce)
 }
 
 
-// ----------------------------------------------------------------------
-// The Cassette Menu can be called up directly from the keyboard graphic
-// and allows the user to rewind the tape, swap in a new tape, etc.
-// ----------------------------------------------------------------------
-#define MENU_ACTION_END             255 // Always the last sentinal value
-#define MENU_ACTION_EXIT            0   // Exit the menu
-#define MENU_ACTION_PLAY            1   // Play Cassette
-#define MENU_ACTION_STOP            2   // Stop Cassette
-#define MENU_ACTION_SWAP            3   // Swap Cassette
-#define MENU_ACTION_REWIND          4   // Rewind Cassette
-#define MENU_ACTION_POSITION        5   // Position Cassette
-
-#define MENU_ACTION_RESET           98  // Reset the machine
-#define MENU_ACTION_SKIP            99  // Skip this MENU choice
-
-typedef struct
-{
-    char *menu_string;
-    u8    menu_action;
-} MenuItem_t;
-
-typedef struct
-{
-    char *title;
-    u8   start_row;
-    MenuItem_t menulist[15];
-} CassetteDiskMenu_t;
-
-CassetteDiskMenu_t generic_cassette_menu =
-{
-    "CASSETTE MENU", 3,
-    {
-        {" PLAY     CASSETTE  ",      MENU_ACTION_PLAY},
-        {" STOP     CASSETTE  ",      MENU_ACTION_STOP},
-        {" SWAP     CASSETTE  ",      MENU_ACTION_SWAP},
-        {" REWIND   CASSETTE  ",      MENU_ACTION_REWIND},
-        {" POSITION CASSETTE  ",      MENU_ACTION_POSITION},
-        {" EXIT     MENU      ",      MENU_ACTION_EXIT},
-        {" NULL               ",      MENU_ACTION_END},
-    },
-};
-
-
-CassetteDiskMenu_t *menu = &generic_cassette_menu;
-
-// ------------------------------------------------------------------------
-// Show the Cassette/Disk Menu text - highlight the selected row.
-// ------------------------------------------------------------------------
-u8 cassette_menu_items = 0;
-void CassetteMenuShow(bool bClearScreen, u8 sel)
-{
-    cassette_menu_items = 0;
-
-    if (bClearScreen)
-    {
-        // -------------------------------------
-        // Put up the Cassette menu background
-        // -------------------------------------
-        BottomScreenCassette();
-    }
-
-    // ---------------------------------------------------
-    // Pick the right context menu based on the machine
-    // ---------------------------------------------------
-    menu = &generic_cassette_menu;
-
-    // Display the menu title
-    DSPrint(15-(strlen(menu->title)/2), menu->start_row, 6, menu->title);
-
-    // And display all of the menu items
-    while (menu->menulist[cassette_menu_items].menu_action != MENU_ACTION_END)
-    {
-        DSPrint(16-(strlen(menu->menulist[cassette_menu_items].menu_string)/2), menu->start_row+2+cassette_menu_items, (cassette_menu_items == sel) ? 7:6, menu->menulist[cassette_menu_items].menu_string);
-        cassette_menu_items++;
-    }
-
-    // ----------------------------------------------------------------------------------------------
-    // And near the bottom, display the file/rom/disk/cassette that is currently loaded into memory.
-    // ----------------------------------------------------------------------------------------------
-    DisplayFileNameCassette();
-}
-
-// ------------------------------------------------------------------------
-// Handle Cassette mini-menu interface... Allows rewind, swap tape, etc.
-// ------------------------------------------------------------------------
-void CassetteMenu(void)
-{
-  u8 menuSelection = 0;
-
-  SoundPause();
-  while ((keysCurrent() & (KEY_TOUCH | KEY_LEFT | KEY_RIGHT | KEY_A ))!=0);
-
-  // ------------------------------------------------------------------
-  //Show the cassette menu background - we'll draw text on top of this
-  // ------------------------------------------------------------------
-  CassetteMenuShow(true, menuSelection);
-
-  u8 bExitMenu = false;
-  while (true)
-  {
-    nds_key = keysCurrent();
-    if (nds_key)
-    {
-        if (nds_key & KEY_UP)
-        {
-            menuSelection = (menuSelection > 0) ? (menuSelection-1):(cassette_menu_items-1);
-            while (menu->menulist[menuSelection].menu_action == MENU_ACTION_SKIP)
-            {
-                menuSelection = (menuSelection > 0) ? (menuSelection-1):(cassette_menu_items-1);
-            }
-            CassetteMenuShow(false, menuSelection);
-        }
-        if (nds_key & KEY_DOWN)
-        {
-            menuSelection = (menuSelection+1) % cassette_menu_items;
-            while (menu->menulist[menuSelection].menu_action == MENU_ACTION_SKIP)
-            {
-                menuSelection = (menuSelection+1) % cassette_menu_items;
-            }
-            CassetteMenuShow(false, menuSelection);
-        }
-        if (nds_key & KEY_A)    // User has picked a menu item... let's see what it is!
-        {
-            switch(menu->menulist[menuSelection].menu_action)
-            {
-                case MENU_ACTION_EXIT:
-                    bExitMenu = true;
-                    break;
-
-                case MENU_ACTION_PLAY:
-                    bExitMenu = true;
-                    break;
-
-                case MENU_ACTION_STOP:
-                    bExitMenu = true;
-                    break;
-
-                case MENU_ACTION_SWAP:
-                    bExitMenu = true;
-                    break;
-
-                case MENU_ACTION_REWIND:
-                    bExitMenu = true;
-                    break;
-
-                case MENU_ACTION_POSITION:
-                    bExitMenu = true;
-                    break;
-            }
-        }
-        if (nds_key & KEY_B)
-        {
-            bExitMenu = true;
-        }
-
-        if (bExitMenu) break;
-        while ((keysCurrent() & (KEY_UP | KEY_DOWN | KEY_A ))!=0);
-        WAITVBL;WAITVBL;
-    }
-  }
-
-  while ((keysCurrent() & (KEY_UP | KEY_DOWN | KEY_A ))!=0);
-  WAITVBL;WAITVBL;
-
-  BottomScreenKeyboard();  // Could be generic or overlay...
-
-  SoundUnPause();
-}
-
-
 // ------------------------------------------------------------------------
 // Show the Mini Menu - highlight the selected row. This can be called
-// up directly from the ZX Keyboard Graphic - allows the user to quit 
+// up directly from the Keyboard Graphic - allows the user to quit
 // the current game, set high scores, save/load game state, etc.
 // ------------------------------------------------------------------------
 u8 mini_menu_items = 0;
@@ -680,7 +510,7 @@ u8 handle_keyboard_press(u16 iTx, u16 iTy)  // Dragon/Tandy keyboard
         else if ((iTx >= 65)  && (iTx < 86))   kbd_key = 22;
         else if ((iTx >= 88)  && (iTx < 107))  kbd_key = 24;
         else if ((iTx >= 107) && (iTx < 128))  kbd_key = 29;
-        
+
         else if ((iTx >= 128) && (iTx < 149))  kbd_key = 25;
         else if ((iTx >= 149) && (iTx < 170))  kbd_key = 13;
         else if ((iTx >= 170) && (iTx < 191))  kbd_key = 19;
@@ -728,7 +558,7 @@ u8 handle_keyboard_press(u16 iTx, u16 iTy)  // Dragon/Tandy keyboard
         else if ((iTx >= 201) && (iTx < 255))  return MENU_CHOICE_MENU;
     }
 
-    DisplayStatusLine(false);
+    DisplayStatusLine();
 
     return MENU_CHOICE_NONE;
 }
@@ -758,7 +588,7 @@ u8 __attribute__((noinline)) handle_meta_key(u8 meta_key)
                   return 1;
               }
               BottomScreenKeyboard();
-              DisplayStatusLine(true);
+              DisplayStatusLine();
               SoundUnPause();
             break;
 
@@ -795,10 +625,6 @@ u8 __attribute__((noinline)) handle_meta_key(u8 meta_key)
             BottomScreenKeyboard();
             SoundUnPause();
             break;
-            break;
-
-        case MENU_CHOICE_CASSETTE:
-            CassetteMenu();
             break;
     }
 
@@ -846,7 +672,7 @@ void DracoDS_main(void)
   emuFps=0;
 
   newStreamSampleRate();
-  
+
   // Force the sound engine to turn on when we start emulation
   bStartSoundEngine = 10;
 
@@ -886,7 +712,7 @@ void DracoDS_main(void)
                 szChai[3] = 0;
                 DSPrint(0,0,6,szChai);
             }
-            DisplayStatusLine(false);
+            DisplayStatusLine();
             emuActFrames = 0;
         }
         emuActFrames++;
@@ -919,25 +745,26 @@ void DracoDS_main(void)
         if (myGlobalConfig.debugger)
         {
             ShowDebugger();
-        } 
+        }
 
         uint16_t keys_current = keysCurrent();
-        
+
         // ------------------------------------------------------------------------------------
         // The first time we press KEY_START, we might be loading up the Cassette or Cartridge
         // ------------------------------------------------------------------------------------
         if (bFirstTime && myConfig.autoLoad)
         {
-            // START key is also special...
-            if (keys_current & KEY_START)
+            if (draco_mode == MODE_CART)
             {
                 bFirstTime = 0;
-                if (draco_mode == MODE_CART)
+                pia_cart_firq();
+            }
+            else
+            {
+                // START key is also special...
+                if (keys_current & KEY_START)
                 {
-                    pia_cart_firq();
-                }
-                else
-                {
+                    bFirstTime = 0;
                     BufferKey(7);     // C
                     BufferKey(16);    // L
                     BufferKey(19);    // O
@@ -948,10 +775,11 @@ void DracoDS_main(void)
                         BufferKey(17);    // M
                     }
                     BufferKey(48);    // ENTER
+                    BufferKey(255);   // END
                 }
             }
         }
-        
+
       // --------------------------------------------------------------
       // Hold the key press for a brief instant... To allow the
       // emulated CPU to 'see' the key briefly... Good enough.
@@ -1144,7 +972,7 @@ void DracoDS_main(void)
             if ( JoyState & JST_LEFT )  joy_x = 0;
             if ( JoyState & JST_RIGHT ) joy_x = 64;
             break;
-            
+
           case 1:  // Analog Slow - every other frame
             if (timingFrames & 1)
             {
@@ -1154,14 +982,14 @@ void DracoDS_main(void)
                 if ( JoyState & JST_RIGHT ) {if (joy_x < 64) joy_x += 1; else joy_x = 64;}
             }
             break;
-            
+
           case 2:  // Analog Medium
             if ( JoyState & JST_UP )    {if (joy_y > 1)  joy_y -= 1; else joy_y = 0;}
             if ( JoyState & JST_DOWN)   {if (joy_y < 64) joy_y += 1; else joy_y = 64;}
             if ( JoyState & JST_LEFT )  {if (joy_x > 1)  joy_x -= 1; else joy_x = 0;}
             if ( JoyState & JST_RIGHT ) {if (joy_x < 64) joy_x += 1; else joy_x = 64;}
             break;
-            
+
           case 3:  // Analog Fast
             if ( JoyState & JST_UP )    {if (joy_y > 2)  joy_y -= 2; else joy_y = 0;}
             if ( JoyState & JST_DOWN)   {if (joy_y < 63) joy_y += 2; else joy_y = 64;}
@@ -1188,7 +1016,7 @@ void DracoDS_main(void)
                 if (JoyState & JST_RIGHT)  {joy_dampen = 10; if (joy_x < 64) joy_x += 1; else joy_x = 64;}
             }
             break;
-            
+
           case 5:  // Analog Medium - Self Center
             if ((JoyState & (JST_UP | JST_DOWN | JST_LEFT | JST_RIGHT | JST_FIRE)) == 0)
             {
@@ -1269,7 +1097,7 @@ void DracoDSInit(void)
   bg0 = bgInit(0, BgType_Text8bpp,  BgSize_T_256x512, 31,0);
   bg1 = bgInit(1, BgType_Text8bpp,  BgSize_T_256x512, 29,0);
   bgSetPriority(bg0,1);bgSetPriority(bg1,0);
-  
+
   if (myGlobalConfig.defMachine)
   {
       decompress(top_cocoTiles,  bgGetGfxPtr(bg0), LZ77Vram);
@@ -1348,7 +1176,7 @@ void BottomScreenKeyboard(void)
 
     bottom_screen = 2;
 
-    DisplayStatusLine(true);
+    DisplayStatusLine();
 }
 
 
@@ -1381,7 +1209,7 @@ void BottomScreenCassette(void)
 void DracoDSInitCPU(void)
 {
     // -----------------------------------------------
-    // Init bottom screen do display the ZX Keyboard
+    // Init bottom screen do display the Keyboard
     // -----------------------------------------------
     BottomScreenKeyboard();
 }
@@ -1406,7 +1234,7 @@ void LoadBIOSFiles(void)
     // We will look for the various needed BASIC/BIOS roms
     // -----------------------------------------------------
     bBIOS_found = false;
-    
+
     memset(DragonBASIC, 0xFF, sizeof(DragonBASIC));
     memset(CoCoBASIC,   0xFF, sizeof(CoCoBASIC));
 
@@ -1420,7 +1248,7 @@ void LoadBIOSFiles(void)
     if (!size) size = ReadFileCarefully("dragon32.rom",             DragonBASIC, 0x4000, 0);
     if (!size) size = ReadFileCarefully("/roms/bios/dragon32.rom",  DragonBASIC, 0x4000, 0);
     if (!size) size = ReadFileCarefully("/data/bios/dragon32.rom",  DragonBASIC, 0x4000, 0);
-    
+
     if (size) bBIOS_found = true;
 
     // ----------------------------------------------------
@@ -1436,19 +1264,19 @@ void LoadBIOSFiles(void)
         if (!size) size = ReadFileCarefully("/roms/bios/coco2.rom",     CoCoBASIC, 0x4000, 0);
         if (!size) size = ReadFileCarefully("/data/bios/coco2.rom",     CoCoBASIC, 0x4000, 0);
 
-        if (!size) 
+        if (!size)
         {
                        size = ReadFileCarefully("extbas11.rom",             CoCoBASIC+0x0000, 0x2000, 0);
             if (!size) size = ReadFileCarefully("/roms/bios/extbas11.rom",  CoCoBASIC+0x0000, 0x2000, 0);
             if (!size) size = ReadFileCarefully("/data/bios/extbas11.rom",  CoCoBASIC+0x0000, 0x2000, 0);
-            
+
             if (size)
             {
                            size = ReadFileCarefully("bas12.rom",                CoCoBASIC+0x2000, 0x2000, 0);
                 if (!size) size = ReadFileCarefully("/roms/bios/bas12.rom",     CoCoBASIC+0x2000, 0x2000, 0);
                 if (!size) size = ReadFileCarefully("/data/bios/bas12.rom",     CoCoBASIC+0x2000, 0x2000, 0);
             }
-        }        
+        }
     }
 
     if (size) bBIOS_found = true;
