@@ -39,6 +39,13 @@ extern unsigned char DiskROM[0x4000];
 extern char last_path[MAX_FILENAME_LEN];
 extern char last_file[MAX_FILENAME_LEN];
 
+extern u32 draco_line;
+extern u8  draco_special_key;
+extern u32 last_file_size;
+extern u8  tape_play_skip_frame;
+extern u32 draco_scanline_counter;
+
+
 typedef struct {
   char szName[MAX_FILENAME_LEN+1];
   u8 uType;
@@ -107,9 +114,6 @@ extern struct GlobalConfig_t myGlobalConfig;
 
 extern uint16_t joy_x;
 extern uint16_t joy_y;
-
-extern u8 last_special_key;
-extern u8 last_special_key_dampen;
 
 extern u16 JoyState;                    // Joystick management
 

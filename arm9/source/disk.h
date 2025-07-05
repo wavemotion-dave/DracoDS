@@ -11,6 +11,8 @@
 #ifndef __DISK_H__
 #define __DISK_H__
 
+extern uint8_t nmi_enable;
+
 void disk_init(void);
 void disk_io_interrupt(void);
 

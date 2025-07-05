@@ -35,8 +35,7 @@ struct FDC_t            FDC;
 struct FDC_GEOMETRY_t   Geom;
 
 extern void disk_intrq(void);
-extern u8 disk_unsaved_data[];
-static u16 fdc_busy_count = 0;
+
 u8 io_show_status = 0;
 
 void fdc_debug(u8 bWrite, u8 addr, u8 data)
@@ -311,8 +310,6 @@ void fdc_write(u8 addr, u8 data)
             else FDC.command = data;       // Otherwise the last command was a Force Interrupt
         }
         
-        fdc_busy_count = 0;                // New command resets the busy counter for good measure.
-        
         if ((data & 0x80) == 0) // Is this a Type-I command?
         {
             FDC.commandType = 1;                            // Type-I command
@@ -414,7 +411,7 @@ void fdc_init(u8 fdc_type, u8 drives, u8 sides, u8 tracks, u8 sectors, u16 secto
     Geom.sectorSize = sectorSize;                       // The sector size (256, 512, 1024, etc)
     Geom.disk0      = diskBuffer0;                      // Pointer to the first raw sector dump drive       
     Geom.disk1      = diskBuffer1;                      // Pointer to the second raw sector dump drive
-    Geom.startSector= startSector;                      // Starting sector (some systems like MSX will start sector numbering at 1)
+    Geom.startSector= startSector;                      // Starting sector (some systems like CoCo will start sector numbering at 1)
 }
 
 // End of file

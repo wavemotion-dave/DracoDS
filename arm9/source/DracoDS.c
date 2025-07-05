@@ -615,7 +615,7 @@ u8 __attribute__((noinline)) handle_meta_key(u8 meta_key)
             SoundPause();
             if  (showMessage("DO YOU REALLY WANT TO","SAVE GAME STATE ?") == ID_SHM_YES)
             {
-              DracoSaveState();
+                DracoSaveState();
             }
             BottomScreenKeyboard();
             SoundUnPause();
@@ -625,7 +625,7 @@ u8 __attribute__((noinline)) handle_meta_key(u8 meta_key)
             SoundPause();
             if (showMessage("DO YOU REALLY WANT TO","LOAD GAME STATE ?") == ID_SHM_YES)
             {
-              DracoLoadState();
+                DracoLoadState();
             }
             BottomScreenKeyboard();
             SoundUnPause();

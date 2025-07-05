@@ -106,16 +106,6 @@ extern u32 DX, DY;
 
 #define WAITVBL swiWaitForVBlank(); swiWaitForVBlank(); swiWaitForVBlank(); swiWaitForVBlank(); swiWaitForVBlank();
 
-// -------------------------------------------------------------------------
-// This massive patch table consumes 256K (64 x 4 byte function pointers)
-// to allow us faster access to patch routines for tape edge detection.
-// We put it in LCD VRAM as this is slightly faster access on the DS/DSi.
-// 99% of this massive array will be zeroes but we don't have another use
-// for it and it does help speed up the patch lookup - so why not?!
-// -------------------------------------------------------------------------
-typedef u8 (*patchFunc)(void);
-#define PatchLookup ((patchFunc*)0x06860000)
-
 extern u8 draco_mode;
 extern u8 kbd_keys_pressed;
 extern u8 kbd_keys[12];
@@ -128,7 +118,6 @@ extern u16 nds_key;
 extern u8  kbd_key;
 extern u16 vusCptVBL;
 extern u16 *pVidFlipBuf;
-extern u16 *pVidDrawBuf;
 extern u16 keyCoresp[MAX_KEY_OPTIONS];
 extern u16 NDS_keyMap[];
 extern u8 soundEmuPause;
@@ -136,24 +125,7 @@ extern int bg0, bg1, bg0b, bg1b;
 extern u32 last_file_size;
 extern u8  draco_special_key;
 extern u32 draco_current_line;
-extern u16 num_blocks_available;
-extern u16 current_block;
-extern u8  tape_state;
-extern u32 current_block_data_idx;
-extern u32 tape_bytes_processed;
-extern u32 header_pulses;
-extern u16 current_bit;
-extern u32 current_bytes_this_block;
-extern u8  custom_pulse_idx;
-extern u8  handle_last_bits;
-extern u16 loop_counter;
-extern u16 loop_block;
-extern u32 next_edge1;
-extern u32 next_edge2;
-extern u8 give_up_counter;
-extern u32 last_edge;
 extern u8 bottom_screen;
-extern char *loader_type;
 
 extern void BottomScreenOptions(void);
 extern void BottomScreenCassette(void);

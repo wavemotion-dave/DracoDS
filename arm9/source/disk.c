@@ -48,7 +48,7 @@ uint8_t disk_unsaved_data[2];
 /* -----------------------------------------
    Module globals
 ----------------------------------------- */
-static uint8_t nmi_enable = 0;
+uint8_t nmi_enable = 0;
 
 /*------------------------------------------------
  * disk_init()
@@ -60,23 +60,23 @@ static uint8_t nmi_enable = 0;
  */
 void disk_init(void)
 {
-    mem_define_io(0xff48, 0xff4b, io_handler_wd2797);
-    mem_define_io(0xff40, 0xff40, io_handler_drive_ctrl);
+    if (draco_mode >= MODE_DSK)
+    {
+        mem_define_io(0xff48, 0xff4b, io_handler_wd2797);
+        mem_define_io(0xff40, 0xff40, io_handler_drive_ctrl);
 
-    nmi_enable = 0;
-    
-    fdc_reset(true);
-    
-    fdc_init(WD2793, 1, 1, 35, 18, 256, 1, TapeCartDiskBuffer, NULL);
+        nmi_enable = 0;
+        
+        fdc_reset(true);
+        
+        fdc_init(WD2793, 1, 1, 35, 18, 256, 1, TapeCartDiskBuffer, NULL);
+    }
 }
 
 /*------------------------------------------------
- * io_handler_wd2797_cmd_stat()
+ * io_handler_wd2797()
  *
- *  IO call-back handler disk controller WD2797 command/status register
- *
- *  param:  Call address, data byte for write operation, and operation type
- *  return: Status or data byte
+ *  IO call-back handler disk controller WD2797 registers
  */
 static uint8_t io_handler_wd2797(uint16_t address, uint8_t data, mem_operation_t op)
 {
