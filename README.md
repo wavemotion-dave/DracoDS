@@ -30,7 +30,7 @@ Features :
 ![image](./png/dragon_kbd.png)
 ![image](./png/coco_kbd.png)
 
-Copyright :
+Copyright :  
 -----------------------
 DracoDS is Copyright (c) 2025 Dave Bernazzani (wavemotion-dave)
 
@@ -39,7 +39,7 @@ and can be found on github here:
 
 https://github.com/eyalabraham/dragon32-emu
 
-The dragon32-emu graciously allows modification and use via the leinient MIT Licence.
+The dragon32-emu graciously allows modification and use via the lenient MIT Licence.
 
 As far as I'm concerned: as long as there is no commercial use (i.e. no profit is made),
 copying and distribution of this emulator, it's source code and associated readme files,
