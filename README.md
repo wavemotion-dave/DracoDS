@@ -32,56 +32,23 @@ Copyright :
 -----------------------
 DracoDS is Copyright (c) 2025 Dave Bernazzani (wavemotion-dave)
 
-As long as there is no commercial use (i.e. no profit is made),
-copying and distribution of this emulator, it's source code
-and associated readme files, with or without modification, 
-are permitted in any medium without royalty provided this 
-copyright notice is used and wavemotion-dave (Phoenix-Edition),
-Alekmaul (original port) and Marat Fayzullin (ColEM core) are 
-thanked profusely.
+This is a derivitive work of Dragon 32 Emu Copyright (c) 2018 Eyal Abraham (eyalabraham)
+and can be found on github here:
 
-The sound drivers (sn76496, ay38910 and Konami SCC) are libraries
-from FluBBa (Fredrik Ahlström) and those copyrights remain his.
+https://github.com/eyalabraham/dragon32-emu
 
-In addition, since the Z80 CPU and TMS9918 are borrowed from 
-ColEM, please contact Marat (https://fms.komkon.org/ColEm/)
-to make sure he's okay with what you're doing with the emulator
-core.
+The dragon32-emu graciously allows modification and use via the leinient MIT Licence.
 
-The ColecoDS emulator is offered as-is, without any warranty.
+As far as I'm concerned: as long as there is no commercial use (i.e. no profit is made),
+copying and distribution of this emulator, it's source code and associated readme files,
+with or without modification, are permitted in any medium without royalty provided this 
+copyright notice is used and wavemotion-dave and eyalabraham are thanked profusely.
+
+The DracoDS emulator is offered as-is, without any warranty.
 
 Credits :
 -----------------------
-Thanks to Alekmaul who provided the baseline code to work with and to lobo for the menu graphical design.
-
-Thanks to Flubba for the SN76496, AY38910 and SCC sound cores. 
-You can seek out his latest and greatest at https://github.com/FluBBaOfWard
-
-Thanks to the C-BIOS team for the open 
-source MSX BIOS (see cbios.txt)
-
-Thanks to Andy and his amazing Memotech 
-Emulator MEMO which helped me get some
-preliminary and simple MTX-500 support 
-included.
-
-Thanks to Darryl Hirschler for the keyboard graphics 
-for the CreatiVision keypad, the ADAM keyboard,
-the MSX keyboard and the MTX keyboard.
-
-Thanks to Marcel de Kogel who wrote the Adam-EM 
-emulator which is a bit of a grandfather to the
-more modern emulators. I got the final bugs worked 
-out of the VDP emulation and for disk drive
-block caching on the ADAM thanks to his pioneering work.
-
-Special thanks to  Marat Fayzullin, as the 
-author of ColEM which is the code for the 
-core emulation (specifically TMS9918 VDP
-and the CZ80 CPU core).  I think the original 
-port was circa ColEM 2.1 with some fixes and 
-updated Sprite/Line handling from ColEM 5.6. 
-Without Marat - this emulator simply wouldn't exist.
+Thanks to eyalabraham who provided the baseline code - without that work, this derivation doesn't happen.
 
 BIOS/BASIC Files Needed :
 -----------------------
