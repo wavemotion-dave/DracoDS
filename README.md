@@ -95,11 +95,15 @@ Where FILENAME is the desired file as shown in the DIR command.
 
 Joystick Options :
 -----------------------
-TBD
+The Tandy CoCo and Dragon machines used an analog joystick that is difficult to emulate properly on the DS/DSi. To that end, the default 'Joystick' is digital - that 
+is, pressing the D-Pad will emualte extreme analog positions of a real joystick. This works fine for many games... but some games really did take advantage of the
+multi-position of a real analog stick. So you can change the default 'DIGITAL' controller to 3 speeds of Analog - both self-centering and none. Games like POLARIS, for
+example, play fine with the 'SLOW ANALOG' setting.  Experiment and figure out what works best for any given game. Your joystick settings are saved on a per-game basis.
 
 Keyboards :
 -----------------------
-TBD
+Both the Tandy and Dragon keyboards behave the same - there is only the cosmetic difference of the company banner/logo at the top.  Note that due to the limitations
+of the DS touch-screen where only one key can be pressed at a time, the SHIFT key works like a temporary toggle. Press it and then the next key you press will be SHIFT-ed.
 
 Compile Instructions :
 -----------------------
