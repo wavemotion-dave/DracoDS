@@ -30,7 +30,7 @@ Features :
 ![image](./png/dragon_kbd.png)
 ![image](./png/coco_kbd.png)
 
-Copyright :
+Copyright :  
 -----------------------
 DracoDS is Copyright (c) 2025 Dave Bernazzani (wavemotion-dave)
 
@@ -39,7 +39,7 @@ and can be found on github here:
 
 https://github.com/eyalabraham/dragon32-emu
 
-The dragon32-emu graciously allows modification and use via the leinient MIT Licence.
+The dragon32-emu graciously allows modification and use via the lenient MIT Licence.
 
 As far as I'm concerned: as long as there is no commercial use (i.e. no profit is made),
 copying and distribution of this emulator, it's source code and associated readme files,
@@ -102,6 +102,11 @@ Because the artifacting on an NTSC CoCo was a bit hit-or miss (that is, from one
 putting up an artifacting wall of color on the opening screen to allow the user to press RESET so that the color might change... if you see this in any 
 game, just press ENTER (some games might use SPACE) to bypass it.  DracoDS should always present the standard artifacting color set and always be 'right'.
 
+64K Support :
+-----------------------
+The emulators does emulate a full 64K machine but there are some caveats. If the game utilizes just the RAM/ROM and ALL-RAM memory maps, the game should work fine.
+Many such 64K work this way. But if the game utilizes the Paging Register to map the upper RAM into the lower half of the address space - then it will not work 
+with the current emulation. Unfortunately Sailor Man falls into this latter category.
 
 Joystick Options :
 -----------------------
