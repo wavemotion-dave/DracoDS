@@ -45,8 +45,6 @@
 #define     PIACR_CAB2_SET      0x38
 #define     PIACR_CABS_CLR      0x30
 
-#define     KBD_ROWS            7
-
 #define     PIA_CR_INTR         0x01    // CA1/CB1 interrupt enable bit
 #define     PIA_CR_IRQ_STAT     0x80    // IRQA1/IRQB1 status bit
 

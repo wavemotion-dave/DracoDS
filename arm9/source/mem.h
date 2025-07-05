@@ -37,7 +37,6 @@ typedef enum
 
 typedef uint8_t (*io_handler_callback)(uint16_t, uint8_t, mem_operation_t);
 
-
 extern io_handler_callback memory_io[MEMORY];
 
 extern uint8_t  memory_RAM[MEMORY];

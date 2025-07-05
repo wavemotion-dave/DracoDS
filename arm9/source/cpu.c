@@ -151,7 +151,7 @@ static void    set_cc(uint8_t value);
 
 /* MC6809E register file
  */
-static cpu_state_t cpu  __attribute__((section(".dtcm")));
+cpu_state_t cpu  __attribute__((section(".dtcm")));
 
 static struct cc_t
 {

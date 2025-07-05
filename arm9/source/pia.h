@@ -22,6 +22,20 @@
 #ifndef __PIA_H__
 #define __PIA_H__
 
+#define     KBD_ROWS            7
+
+extern uint8_t   pia0_ca1_int_enabled;
+extern uint8_t   pia0_cb1_int_enabled;
+extern uint8_t   pia1_cb1_int_enabled;
+extern uint8_t   mux_select;
+extern uint16_t  dac_output;
+extern uint8_t   sound_enable;
+extern uint8_t   last_comparator;
+extern uint8_t   cas_eof;
+extern uint32_t  tape_pos;
+extern uint16_t  tape_motor;
+extern uint8_t   keyboard_rows[KBD_ROWS];
+
 void pia_init(void);
 
 void pia_vsync_irq(void);

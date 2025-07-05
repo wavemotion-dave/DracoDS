@@ -57,6 +57,8 @@ typedef struct
     int     exception_line_num;
 } cpu_state_t;
 
+extern cpu_state_t cpu;
+
 /********************************************************************
  *  CPU module API
  */
