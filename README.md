@@ -1,8 +1,7 @@
+![image](./png/DRACO-DS.png)
 
 # DracoDS
 DracoDS is a Tandy Color Computer (CoCo 2) and Dragon 32/64 emulator for your DS/DSi/XL/LL handheld.
-
-![image](./png/splash.png)
 
 The Dragon and Tandy machines were quite similar - both using the same Motorola reference design and, when you 
 really look under the hood, it's pretty clear that the Dragon reverse-engineered some of the Tandy
@@ -11,6 +10,8 @@ differences - mainly in the keyboard matrix handling and in some of the disk con
 
 To that end, this emulator is primarily a Tandy CoCo 2 emulator with 32K standard and partial 64K 
 support but it also works for the Dragon 32/64 and can be configured as such.
+
+![image](./png/splash.png)
 
 Features :
 -----------------------
