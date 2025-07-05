@@ -63,6 +63,8 @@ BIOS/BASIC Files Needed :
 
 The disk ROM is optional - but if you don't have it, then .dsk files will be hidden from the loader menu.
 
+Place the BIOS/BASIC files in /roms/bios or else in the same directory as the emulator itself.
+
 Loading Games :
 -----------------------
 There are three kinds of files supported: Cartridges, Cassettes and Disks.
@@ -93,6 +95,13 @@ RUN
 ```
 
 Where FILENAME is the desired file as shown in the DIR command.
+
+Blue or Orange Screen? :
+-----------------------
+Because the artifacting on an NTSC CoCo was a bit hit-or miss (that is, from one setup to another it might reverse the Orange/Blue colors), some games took to 
+putting up an artifacting wall of color on the opening screen to allow the user to press RESET so that the color might change... if you see this in any 
+game, just press ENTER (some games might use SPACE) to bypass it.  DracoDS should always present the standard artifacting color set and always be 'right'.
+
 
 Joystick Options :
 -----------------------
