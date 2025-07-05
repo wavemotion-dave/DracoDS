@@ -1421,10 +1421,10 @@ int main(int argc, char **argv)
     // ---------------------------------------------------------------
     if (!bBIOS_found)
     {
-        DSPrint(2,10,0," ERROR: DRAGON32.rom OR  ");
-        DSPrint(2,12,0,"  COCO.ROM NOT FOUND     ");
-        DSPrint(2,14,0," Put BASIC IN same dir   ");
-        DSPrint(2,15,0,"as EMULATOR or /ROMS/BIOS");
+        DSPrint(2,10,0," ERROR: DRAGON32.ROM OR     ");
+        DSPrint(2,12,0," BAS12.ROM AND EXTBAS11.ROM ");
+        DSPrint(2,14,0," NOT FOUND. PLACE THESE IN  ");
+        DSPrint(2,15,0," /ROMS/BIOS OR WITH EMULATOR");
         while(1) ;  // We're done... Need a bios to run this emulator
     }
 
