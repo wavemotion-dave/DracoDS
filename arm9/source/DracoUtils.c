@@ -346,6 +346,16 @@ void DracoDSFindFiles(u8 bTapeOnly)
               uNbFile++;
               fileCount++;
             }
+            
+            if (bDISKBIOS_found)
+            {
+                if ( (strcasecmp(strrchr(szFile, '.'), ".dsk") == 0) )  {
+                  strcpy(gpFic[uNbFile].szName,szFile);
+                  gpFic[uNbFile].uType = DRACO_FILE;
+                  uNbFile++;
+                  fileCount++;
+                }
+            }
         }
       }
     }
@@ -668,7 +678,7 @@ void MapPlayer1(void)
     myConfig.keymap[6]   = 49;   // NDS X Button mapped to SPACE
     myConfig.keymap[7]   = 48;   // NDS Y Button mapped to RETURN
     myConfig.keymap[8]   = 5;    // NDS R Button mapped to 'A'
-    myConfig.keymap[9]   = 6;    // NDS L Button mapped to 'B'
+    myConfig.keymap[9]   = 55;   // NDS L Button mapped to SHIFT
     myConfig.keymap[10]  = 40;   // NDS START mapped to '0'
     myConfig.keymap[11]  = 31;   // NDS SELECT mapped to '1'
 }
@@ -715,7 +725,7 @@ void SetDefaultGlobalConfig(void)
     myGlobalConfig.showFPS        = 0;    // Don't show FPS counter by default
     myGlobalConfig.lastDir        = 0;    // Default is to start in /roms/dragon
     myGlobalConfig.debugger       = 0;    // Debugger is not shown by default
-    myGlobalConfig.defMachine     = 0;    // Set to DRAGON 32 by default (1=Tandy Coco)
+    myGlobalConfig.defMachine     = 1;    // Set to Tandy by default (0=Dragon)
 }
 
 void SetDefaultGameConfig(void)
@@ -724,7 +734,7 @@ void SetDefaultGameConfig(void)
 
     MapPlayer1();                // Default to Player 1 mapping
 
-    myConfig.machine     = myGlobalConfig.defMachine;   // Default is Dragon 32 (1=Tandy CoCo)
+    myConfig.machine     = myGlobalConfig.defMachine;   // Default is Tandy Coco (0=Dragon)
     myConfig.joystick    = 0;                           // Right Joystick by default
     myConfig.joyType     = 0;                           // Joystick is Digital
     myConfig.autoFire    = 0;                           // Default to no auto-fire on either button
@@ -737,7 +747,7 @@ void SetDefaultGameConfig(void)
     myConfig.reserved5   = 0;
     myConfig.reserved6   = 0;
     myConfig.reserved7   = 0;
-    myConfig.reserved8   = 0xA5;    // So it's easy to spot on an "upgrade" and we can re-default it
+    myConfig.reserved8   = 0;
     myConfig.reserved9   = 0xA5;    // So it's easy to spot on an "upgrade" and we can re-default it
 }
 
@@ -805,7 +815,7 @@ void FindConfig(void)
 struct options_t
 {
     const char  *label;
-    const char  *option[37];
+    const char  *option[12];
     u8          *option_val;
     u8           option_max;
 };
@@ -1233,6 +1243,10 @@ void ReadFileCRCAndConfig(void)
     if (strstr(gpFic[ucGameChoice].szName, ".CCC") != 0) draco_mode = MODE_CART;
     if (strstr(gpFic[ucGameChoice].szName, ".cas") != 0) draco_mode = MODE_CAS;
     if (strstr(gpFic[ucGameChoice].szName, ".CAS") != 0) draco_mode = MODE_CAS;
+    if (strstr(gpFic[ucGameChoice].szName, ".dsk") != 0) draco_mode = MODE_DSK;
+    if (strstr(gpFic[ucGameChoice].szName, ".DSK") != 0) draco_mode = MODE_DSK;
+    if (strstr(gpFic[ucGameChoice].szName, ".vdk") != 0) draco_mode = MODE_VDK;
+    if (strstr(gpFic[ucGameChoice].szName, ".VDK") != 0) draco_mode = MODE_VDK;
 
     FindConfig();    // Try to find keymap and config for this file...
 }
@@ -1513,17 +1527,24 @@ void ProcessBufferedKeys(void)
     static u8 dampen = 0;
     static u8 buf_held = 0;
 
-    if (++dampen >= next_dampen_time) // Roughly 150ms... experimentally good enough
+    if (++dampen >= next_dampen_time) // Roughly 150ms... experimentally good enough for Tandy and Dragon
     {
         kbd_keys_pressed = 0;
-        if (BufferedKeysReadIdx != BufferedKeysWriteIdx)
+        if (dampen == next_dampen_time)
         {
-            buf_held = BufferedKeys[BufferedKeysReadIdx];
-            BufferedKeysReadIdx = (BufferedKeysReadIdx+1) % 32;
-            next_dampen_time = 8;
-            if (buf_held == 255) {buf_held = 0; kbd_key = 0;}
-        } else buf_held = 0;
-        dampen = 0;
+            buf_held = 0x00;
+        }
+        else
+        {
+            if (BufferedKeysReadIdx != BufferedKeysWriteIdx)
+            {
+                buf_held = BufferedKeys[BufferedKeysReadIdx];
+                BufferedKeysReadIdx = (BufferedKeysReadIdx+1) % 32;
+                next_dampen_time = 8;
+                if (buf_held == 255) {buf_held = 0; kbd_key = 0;}
+            } else buf_held = 0;
+            dampen = 0;
+        }
     }
 
     // See if the shift key should be virtually pressed along with this buffered key...

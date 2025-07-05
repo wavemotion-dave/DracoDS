@@ -50,6 +50,7 @@ u32 DY = 0;
 
 u8 DragonBASIC[0x4000]        = {0};  // We keep the 16k Dragon 32 BASIC/BIOS here
 u8 CoCoBASIC[0x4000]          = {0};  // We keep the 16k Tandy CoCo BASIC/BIOS here (two 8K roms)
+u8 DiskROM[0x4000]            = {0};  // We keep the 16k Disk ROM here
 
 u8 TapeCartDiskBuffer[MAX_FILE_SIZE];     // This is where we keep the raw untouched file as read from the SD card
 
@@ -85,7 +86,8 @@ u16 joy_dampen      __attribute__((section(".dtcm"))) = 0;
 // ----------------------------------------------------------------------------------
 // For the various BIOS files - we must have the CoCo and Dragon BASIC files to run
 // ----------------------------------------------------------------------------------
-u8 bBIOS_found   = false;
+u8 bBIOS_found      = false;
+u8 bDISKBIOS_found  = false;
 
 u8 soundEmuPause     __attribute__((section(".dtcm"))) = 1;       // Set to 1 to pause (mute) sound, 0 is sound unmuted (sound channels active)
 
@@ -360,16 +362,27 @@ void ShowDebugger(void)
 // ------------------------------------------------------------
 void DisplayStatusLine(void)
 {
+    extern u8 io_show_status;
+    
     DSPrint(29,0,2, (sam_registers.memory_map_type ? "32K": "64K"));
 
-    if (tape_motor)
+    if (tape_motor || io_show_status)
     {
+        if (io_show_status) --io_show_status;
         char tmp[5];
         // Show cassette in green (playing)
         DSPrint(27, 21, 2, "$%&");
         DSPrint(27, 22, 2, "DEF");
-        sprintf(tmp, "%03d", tape_pos/1024); // Tape Counter in 1K increments
-        DSPrint(27, 23, 6, tmp);
+        
+        if (tape_motor)
+        {
+            sprintf(tmp, "%03d", tape_pos/1024); // Tape Counter in 1K increments
+            DSPrint(27, 23, 6, tmp);
+        }
+        else
+        {
+            DSPrint(27, 23, 6, "DSK");
+        }
     }
     else
     {
@@ -759,7 +772,7 @@ void DracoDS_main(void)
                 bFirstTime = 0;
                 pia_cart_firq();
             }
-            else
+            else if (draco_mode == MODE_CAS)
             {
                 // START key is also special...
                 if (keys_current & KEY_START)
@@ -774,6 +787,19 @@ void DracoDS_main(void)
                     {
                         BufferKey(17);    // M
                     }
+                    BufferKey(48);    // ENTER
+                    BufferKey(255);   // END
+                }
+            }
+            else if (draco_mode == MODE_DSK)
+            {
+                // START key is also special...
+                if (keys_current & KEY_START)
+                {
+                    bFirstTime = 0;
+                    BufferKey(8);     // D
+                    BufferKey(13);    // I
+                    BufferKey(22);    // R
                     BufferKey(48);    // ENTER
                     BufferKey(255);   // END
                 }
@@ -1237,6 +1263,7 @@ void LoadBIOSFiles(void)
 
     memset(DragonBASIC, 0xFF, sizeof(DragonBASIC));
     memset(CoCoBASIC,   0xFF, sizeof(CoCoBASIC));
+    memset(DiskROM,     0xFF, sizeof(DiskROM));
 
     // ----------------------------------------------------
     // Try to load the Dragon 32 BIOS/BASIC file
@@ -1278,8 +1305,14 @@ void LoadBIOSFiles(void)
             }
         }
     }
-
+    
     if (size) bBIOS_found = true;
+    
+    // Optional Disk ROM
+               size = ReadFileCarefully("disk11.rom",                 DiskROM, 0x2000, 0);
+    if (!size) size = ReadFileCarefully("/roms/bios/disk11.rom",      DiskROM, 0x2000, 0);
+    if (!size) size = ReadFileCarefully("/data/bios/disk11.rom",      DiskROM, 0x2000, 0);    
+    if (size) bDISKBIOS_found = true;
 }
 
 /************************************************************************************

@@ -140,7 +140,7 @@ machine_code_t machine_code[] __attribute__((section(".dtcm"))) =
     {0x52, ADDR_INHERENT  , 2 , 1},
     {0x53, ADDR_INHERENT  , 2 , 1},
     {0x54, ADDR_INHERENT  , 2 , 1},
-    {0x55, ILLEGAL_OP     , 0 , 1},
+    {0x55, ADDR_INHERENT  , 2 , 1},
     {0x56, ADDR_INHERENT  , 2 , 1},
     {0x57, ADDR_INHERENT  , 2 , 1},
     {0x58, ADDR_INHERENT  , 2 , 1},    // lslb

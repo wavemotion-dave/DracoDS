@@ -26,6 +26,7 @@
 #include "pia.h"
 #include "vdg.h"
 #include "sam.h"
+#include "disk.h"
 #include "printf.h"
 
 #define     DRAGON_ROM_START        0x8000
@@ -36,10 +37,11 @@
 #define     EXEC_VECTOR_LO          0x9e
 
 
-u32 draco_line           __attribute__((section(".dtcm"))) = 0;
-u8  draco_special_key    __attribute__((section(".dtcm"))) = 0;
-u32 last_file_size       __attribute__((section(".dtcm"))) = 0;
-u8  tape_play_skip_frame __attribute__((section(".dtcm"))) = 0;
+u32 draco_line              __attribute__((section(".dtcm"))) = 0;
+u8  draco_special_key       __attribute__((section(".dtcm"))) = 0;
+u32 last_file_size          __attribute__((section(".dtcm"))) = 0;
+u8  tape_play_skip_frame    __attribute__((section(".dtcm"))) = 0;
+u32 draco_scanline_counter  __attribute__((section(".dtcm"))) = 0;
 
 // ----------------------------------------------------------------------
 // Reset the emulation. Freshly decompress the contents of RAM memory
@@ -51,7 +53,7 @@ u8  tape_play_skip_frame __attribute__((section(".dtcm"))) = 0;
 void dragon_reset(void)
 {
     draco_special_key = 0;
-
+    draco_scanline_counter = 0;
     draco_line = 0;
 
     // Initialize all of the peripherals
@@ -59,6 +61,7 @@ void dragon_reset(void)
     sam_init();
     pia_init();
     vdg_init();
+    disk_init();
 
     if (myConfig.machine) // Tandy vs Dragon... Ready... FIGHT!
     {
@@ -73,6 +76,13 @@ void dragon_reset(void)
     if (draco_mode == MODE_CART)
     {
         mem_load_rom(CARTRIDGE_ROM_BASE, TapeCartDiskBuffer, 0x4000-256);
+        mem_write(EXEC_VECTOR_HI, 0xc0);
+        mem_write(EXEC_VECTOR_LO, 0x00);
+    }
+    
+    if (draco_mode >= MODE_DSK)
+    {
+        mem_load_rom(CARTRIDGE_ROM_BASE, DiskROM, 0x2000);
         mem_write(EXEC_VECTOR_HI, 0xc0);
         mem_write(EXEC_VECTOR_LO, 0x00);
     }

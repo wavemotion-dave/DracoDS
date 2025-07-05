@@ -203,7 +203,6 @@ int cpu_init(int address)
     cpu.firq_asserted = 0;
     cpu.int_latch = 0;
     cpu.cpu_state = CPU_HALTED;
-    cpu.exception_line_num = -1;
 
     /* Check start address and update PC
      */
@@ -408,6 +407,7 @@ ITCM_CODE void cpu_run(void)
                 mem_write(cpu.s, get_cc());
 
                 cpu.nmi_latched = 0;
+                intr_latch &= ~INT_NMI;
 
                 cc.f = CC_FLAG_SET;
                 cc.i = CC_FLAG_SET;
@@ -529,7 +529,6 @@ ITCM_CODE void cpu_run(void)
                              */
                             debug[7] = 8888;
                             cpu.cpu_state = CPU_EXCEPTION;
-                            cpu.exception_line_num = __LINE__;
                     }
                 }
                 break;
@@ -644,7 +643,6 @@ ITCM_CODE void cpu_run(void)
                              */
                             debug[7] = 7777;
                             cpu.cpu_state = CPU_EXCEPTION;
-                            cpu.exception_line_num = __LINE__;
                     }
                 }
                 break;                
@@ -1057,6 +1055,7 @@ ITCM_CODE void cpu_run(void)
                     cpu.a = lsr(cpu.a);
                     break;
 
+                case 0x55:
                 case 0x54:
                     cpu.b = lsr(cpu.b);
                     break;
@@ -1441,7 +1440,8 @@ ITCM_CODE void cpu_run(void)
                      */
                     debug[7] = 9999;
                     cpu.cpu_state = CPU_EXCEPTION;
-                    cpu.exception_line_num = __LINE__;
+                    debug[6] = op_code;
+                
             }
         }
         
@@ -2500,7 +2500,6 @@ static void swi(int swi_id)
             /* Exception: Illegal SWI type swi()
              */
             cpu.cpu_state = CPU_EXCEPTION;
-            cpu.exception_line_num = __LINE__;
     }
 }
 
@@ -2684,7 +2683,6 @@ static void inline __attribute__((always_inline)) branch(int instruction, int lo
          */
         default:
             cpu.cpu_state = CPU_EXCEPTION;
-            cpu.exception_line_num = __LINE__;
     }
 }
 
@@ -2746,7 +2744,6 @@ static inline __attribute__((always_inline)) int get_eff_addr(int mode)
             if ( index_reg == 0 )
             {
                 cpu.cpu_state = CPU_EXCEPTION;
-                cpu.exception_line_num = __LINE__;
                 break;
             }
 
@@ -2845,7 +2842,6 @@ static inline __attribute__((always_inline)) int get_eff_addr(int mode)
                         /* Exception: Illegal indexing mode get_eff_addr()
                          */
                         cpu.cpu_state = CPU_EXCEPTION;
-                        cpu.exception_line_num = __LINE__;
                 }
 
                 /* Resolve indirect addresses
@@ -2954,7 +2950,6 @@ static uint16_t read_register(int reg)
             /* Exception: Illegal register read_register()
              */
             cpu.cpu_state = CPU_EXCEPTION;
-            cpu.exception_line_num = __LINE__;
     }
 
     return temp;
@@ -3019,7 +3014,6 @@ static void write_register(int reg, uint16_t data)
             /* Exception: Illegal register write_register()
              */
             cpu.cpu_state = CPU_EXCEPTION;
-            cpu.exception_line_num = __LINE__;
     }
 }
 

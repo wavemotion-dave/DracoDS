@@ -101,6 +101,8 @@ extern u32 DX, DY;
 // What format is the input file?
 #define MODE_CART           1
 #define MODE_CAS            2
+#define MODE_DSK            3
+#define MODE_VDK            4
 
 #define WAITVBL swiWaitForVBlank(); swiWaitForVBlank(); swiWaitForVBlank(); swiWaitForVBlank(); swiWaitForVBlank();
 

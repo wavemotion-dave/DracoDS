@@ -20,7 +20,7 @@
 #define MAX_FILE_SIZE               (256*1024) // 256K is big enough for any .CAS or .CCC file or standard (160K) .DSK file
 
 #define MAX_CONFIGS                 1000
-#define CONFIG_VERSION              0x0001
+#define CONFIG_VERSION              0x0002
 
 #define DRACO_FILE                  0x01
 #define DIRECTORY                   0x02
@@ -34,6 +34,7 @@
 
 extern unsigned char DragonBASIC[0x4000];
 extern unsigned char CoCoBASIC[0x4000];
+extern unsigned char DiskROM[0x4000];
 
 extern char last_path[MAX_FILENAME_LEN];
 extern char last_file[MAX_FILENAME_LEN];
@@ -49,6 +50,7 @@ extern u32 file_size;
 
 extern uint32_t tape_pos;
 extern uint16_t tape_motor;
+extern uint8_t  bDISKBIOS_found;
 
 typedef u16 word;
 
@@ -109,19 +111,14 @@ extern uint16_t joy_y;
 extern u8 last_special_key;
 extern u8 last_special_key_dampen;
 
-extern u16 JoyState;                    // Joystick / Paddle management
+extern u16 JoyState;                    // Joystick management
 
 extern u32 file_crc;
 extern u8 bFirstTime;
-extern u8 show_tape_counter;
 
 extern u8 BufferedKeys[32];
 extern u8 BufferedKeysWriteIdx;
 extern u8 BufferedKeysReadIdx;
-extern u16 keyboard_interrupt;
-extern u16 joystick_interrupt;
-extern u8 bFlash;
-extern u32 flash_timer;
 
 extern u8 TapeCartDiskBuffer[MAX_FILE_SIZE];
 
