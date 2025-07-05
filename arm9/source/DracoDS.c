@@ -362,7 +362,7 @@ void ShowDebugger(void)
 // ------------------------------------------------------------
 void DisplayStatusLine(void)
 {
-    extern u8 io_show_status;
+    extern u8 io_show_status, shift_key;
     
     DSPrint(29,0,2, (sam_registers.memory_map_type ? "32K": "64K"));
 
@@ -391,6 +391,15 @@ void DisplayStatusLine(void)
         DSPrint(27, 22, 2, "ABC");
         DSPrint(27, 23, 6, "   ");
     }
+    
+    if (shift_key)
+    {
+        DSPrint(1, 19, 2, "@");
+    }
+    else
+    {
+        DSPrint(1, 19, 6, " ");
+    }
 }
 
 
@@ -414,7 +423,6 @@ void MiniMenuShow(bool bClearScreen, u8 sel)
     DSPrint(8,7,6,                                           " DS MINI MENU  ");
     DSPrint(8,9+mini_menu_items,(sel==mini_menu_items)?2:0,  " RESET  GAME   ");  mini_menu_items++;
     DSPrint(8,9+mini_menu_items,(sel==mini_menu_items)?2:0,  " QUIT   GAME   ");  mini_menu_items++;
-    DSPrint(8,9+mini_menu_items,(sel==mini_menu_items)?2:0,  " HIGH   SCORE  ");  mini_menu_items++;
     DSPrint(8,9+mini_menu_items,(sel==mini_menu_items)?2:0,  " SAVE   STATE  ");  mini_menu_items++;
     DSPrint(8,9+mini_menu_items,(sel==mini_menu_items)?2:0,  " LOAD   STATE  ");  mini_menu_items++;
     DSPrint(8,9+mini_menu_items,(sel==mini_menu_items)?2:0,  " GAME   OPTIONS");  mini_menu_items++;
@@ -454,12 +462,11 @@ u8 MiniMenu(void)
         {
             if      (menuSelection == 0) retVal = MENU_CHOICE_RESET_GAME;
             else if (menuSelection == 1) retVal = MENU_CHOICE_END_GAME;
-            else if (menuSelection == 2) retVal = MENU_CHOICE_HI_SCORE;
-            else if (menuSelection == 3) retVal = MENU_CHOICE_SAVE_GAME;
-            else if (menuSelection == 4) retVal = MENU_CHOICE_LOAD_GAME;
-            else if (menuSelection == 5) retVal = MENU_CHOICE_GAME_OPTION;
-            else if (menuSelection == 6) retVal = MENU_CHOICE_DEFINE_KEYS;
-            else if (menuSelection == 7) retVal = MENU_CHOICE_NONE;
+            else if (menuSelection == 2) retVal = MENU_CHOICE_SAVE_GAME;
+            else if (menuSelection == 3) retVal = MENU_CHOICE_LOAD_GAME;
+            else if (menuSelection == 4) retVal = MENU_CHOICE_GAME_OPTION;
+            else if (menuSelection == 5) retVal = MENU_CHOICE_DEFINE_KEYS;
+            else if (menuSelection == 6) retVal = MENU_CHOICE_NONE;
             else retVal = MENU_CHOICE_NONE;
             break;
         }
@@ -494,8 +501,7 @@ u8 MiniMenu(void)
 // IO port is read.
 // -------------------------------------------------------------------------
 
-u8 last_special_key = 0;
-u8 last_special_key_dampen = 0;
+u8 shift_key = 0;
 u8 last_kbd_key = 0;
 
 u8 handle_keyboard_press(u16 iTx, u16 iTy)  // Dragon/Tandy keyboard
@@ -548,7 +554,7 @@ u8 handle_keyboard_press(u16 iTx, u16 iTy)  // Dragon/Tandy keyboard
     }
     else if ((iTy >= 132) && (iTy < 162)) // Row 4 (ZXCV row)
     {
-        if      ((iTx >= 0)   && (iTx < 23))   kbd_key = 55; // Shift
+        if      ((iTx >= 0)   && (iTx < 23))   {kbd_key = 55; shift_key = 55;} // Shift
         else if ((iTx >= 23)  && (iTx < 44))   kbd_key = 30; // Z
         else if ((iTx >= 44)  && (iTx < 65))   kbd_key = 28;
         else if ((iTx >= 65)  && (iTx < 86))   kbd_key = 7;
@@ -857,6 +863,11 @@ void DracoDS_main(void)
                     {
                         if (kbd_key != 0)
                         {
+                            if (shift_key && (kbd_key != shift_key)) // First non-shift key pairs with shift
+                            {
+                                kbd_keys[kbd_keys_pressed++] = shift_key; // Shift
+                                shift_key = 0;
+                            }
                             kbd_keys[kbd_keys_pressed++] = kbd_key;
                             key_debounce = 5;
                             if (last_kbd_key == 0)

@@ -749,6 +749,13 @@ void SetDefaultGameConfig(void)
     myConfig.reserved7   = 0;
     myConfig.reserved8   = 0;
     myConfig.reserved9   = 0xA5;    // So it's easy to spot on an "upgrade" and we can re-default it
+    
+    
+    // We only support TANDY in disk mode
+    if ((draco_mode == MODE_DSK) || (draco_mode == MODE_CART))
+    {
+        myConfig.machine = 1; // CoCo only
+    }
 }
 
 // ----------------------------------------------------------
