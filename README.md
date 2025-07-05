@@ -62,9 +62,36 @@ BIOS/BASIC Files Needed :
 
 The disk ROM is optional - but if you don't have it, then .dsk files will be hidden from the loader menu.
 
-General Compatibility:
+Loading Games :
 -----------------------
-TBD
+There are three kinds of files supported: Cartridges, Cassettes and Disks.
+
+Cartridges are the easiest... simply pick the .ccc filename from the Load Game menu and as soon as you start the emulation, the cartridge should auto-boot.
+
+Cassettes work differently... you must load them up from the BASIC intepreter. So picking a .cas filename from the Load Game menu and starting the emulation
+running should place you into the BASIC of your choice (Tandy CoCo BASIC or Dragon BASIC). From there, you type one of the following pairs of commands depending
+on whether you are loading a Machine Code game (95% of the time this is true) or a BASIC game:
+```
+CLOADM
+EXEC
+
+CLOAD
+RUN
+```
+
+You can press the START button to automatically issue the 'CLOADM' command.
+
+Disks are the most complicated.  After loading you should do a DIR to see the contents of the disk. Then you issue a pair of commands as follows:
+
+```
+LOADM "FILENAME"
+EXEC
+
+LOAD "FILENAME"
+RUN
+```
+
+Where FILENAME is the desired file as shown in the DIR command.
 
 Joystick Options :
 -----------------------
