@@ -4,7 +4,7 @@ DracoDS is a Tandy Color Computer (CoCo 2) and Dragon 32/64 emulator for your DS
 
 ![image](./png/splash.png)
 
-The Dragon and Tandy machines were quite similar - both using the same reference design and, when you 
+The Dragon and Tandy machines were quite similar - both using the same Motorola reference design and, when you 
 really look under the hood, it's pretty clear that the Dragon reverse-engineered some of the Tandy
 hardware such that it was virtually identical in some spots (e.g. Cartridge pinouts). There are some
 differences - mainly in the keyboard matrix handling and in some of the disk controller handling. 
@@ -22,6 +22,7 @@ Features :
 * Save/Load Game State (one slot).
 * Artifacting support to 4-color high-rez mode.
 * LCD Screen Swap (press and hold L+R+X during gameplay).
+* LCD Screen snapshot - (press and hold L+R+Y during gameplay and the .png file will be written to the SD card).
 * Virtual keyboard stylized to the machine you've picked (there is a default global machine and you can override on a per-game basis)
 * Full speed, full sound and full frame-rate even on older hardware.
 
@@ -58,6 +59,8 @@ BIOS/BASIC Files Needed :
 * a82a6254 extbas11.rom - Tando CoCo Extended BASIC 8K
 * 0b9c5415 disk11.rom - Tandy CoCo Disk Extended BASIC 8K
 ```
+
+The disk ROM is optional - but if you don't have it, then .dsk files will be hidden from the loader menu.
 
 General Compatibility:
 -----------------------
