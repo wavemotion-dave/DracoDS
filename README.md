@@ -96,6 +96,11 @@ RUN
 
 Where FILENAME is the desired file as shown in the DIR command.
 
+Dragon vs Tandy Mode :
+-----------------------
+The default mode is Tandy CoCo. You can change the default in Global Settings. You can also override on a per-game basis. Be sure to run games intended for the Dragon in Dragon mode (you should see the Dragon logo on the keyboard) and be sure to run Tandy CoCo games in Tandy mode (the Tandy Color Computer logo should be shown on the main keyboard graphic).
+
+
 Blue or Orange Screen? :
 -----------------------
 Because the artifacting on an NTSC CoCo was a bit hit-or miss (that is, from one setup to another it might reverse the Orange/Blue colors), some games took to 
