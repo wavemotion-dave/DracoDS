@@ -63,6 +63,8 @@ BIOS/BASIC Files Needed :
 
 The disk ROM is optional - but if you don't have it, then .dsk files will be hidden from the loader menu.
 
+Place the BIOS/BASIC files in /roms/bios or else in the same directory as the emulator itself.
+
 Loading Games :
 -----------------------
 There are three kinds of files supported: Cartridges, Cassettes and Disks.
