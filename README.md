@@ -134,6 +134,9 @@ Dungeons of Daggorath :
 My favorite CoCo game! To that end, I've added 5 special 'MACRO' keys to the possible keyboard map to allow you to map a key to "ATTACK LEFT", "ATTACK RIGHT", "MOVE", "TURN LEFT", "TURN RIGHT". 
 Map these to the d-pad or any buttons you wish and playing DoD will be a joy.
 
+Known Issues:
+-----------------------
+* Sailor Man (both .cas and .dsk) loads but soon crashes with screen garbage. Cause unknown.
 
 Compile Instructions :
 -----------------------
