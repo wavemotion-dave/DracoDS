@@ -174,40 +174,55 @@ void fdc_state_machine(void)
                 break;
 
             case 0x80: // Read Sector (single)
+            case 0x90: // Read Sector (multiple)
                 if (FDC.wait_for_read == 0)
                 {
-                    FDC.status |= 0x03;                                  // Data Ready and no errors... still busy
-                    FDC.data = FDC.track_buffer[FDC.track_buffer_idx++]; // Read data from our track buffer
-                    FDC.wait_for_read = 1;                               // Wait for the CPU to fetch the data
-                    if (++FDC.sector_byte_counter >= Geom.sectorSize)    // Did we cross a sector boundary?
+                    if (FDC.track_buffer_idx >= FDC.track_buffer_end) // Is there any more data to put out?
                     {
                         FDC.status &= ~0x03;                // Done. No longer busy. No data ready.
-                        FDC.wait_for_read = 2;              // Don't fetch more FDC data
+                        FDC.wait_for_read=2;                // Don't fetch more FDC data
                         FDC.sector_byte_counter = 0;        // And reset our counter
                         disk_intrq();                       // Let CPU know we're done with command
+                    }
+                    else
+                    {
+                        FDC.status |= 0x03;                                  // Data Ready and no errors... still busy
+                        FDC.data = FDC.track_buffer[FDC.track_buffer_idx++]; // Read data from our track buffer
+                        FDC.wait_for_read = 1;                               // Wait for the CPU to fetch the data
+                        if (++FDC.sector_byte_counter >= Geom.sectorSize)    // Did we cross a sector boundary?
+                        {
+                            if (FDC.command & 0x10) FDC.sector++;       // Bump the sector number only if multiple sector command
+                            FDC.sector_byte_counter = 0;                // And reset our counter
+                        }
                     }
                 }
                 break;
 
+
             case 0xA0: // Write Sector (single)
-                if (FDC.wait_for_write == 3)
+            case 0xB0: // Write Sector (multiple)
+                if (FDC.wait_for_write == 0)
                 {
-                    FDC.status |= 0x03;         // We're good to accept data now
-                    FDC.wait_for_write = 1;     // And start looking for data
-                }
-                else if (FDC.wait_for_write == 0)
-                {
-                    FDC.track_dirty[FDC.drive] = 1;                      // Mark this track as dirty
-                    disk_unsaved_data[FDC.drive] = 1;                    // And we have unsaved data
+                    FDC.track_dirty[FDC.drive] = 1;
+                    disk_unsaved_data[FDC.drive] = 1;
                     FDC.track_buffer[FDC.track_buffer_idx++] = FDC.data; // Store CPU byte into our FDC buffer
-                    FDC.status |= 0x03;                                  // Data Ready and no errors... still busy
-                    FDC.wait_for_write = 1;                              // Wait for the CPU to give us more data
-                    if (++FDC.sector_byte_counter >= Geom.sectorSize)    // Did we cross a sector boundary?
+                    if (FDC.track_buffer_idx >= FDC.track_buffer_end)
                     {
-                        FDC.status &= ~0x03;                // Done. No longer busy. No data ready.
-                        FDC.wait_for_write = 2;             // Don't write more FDC data
-                        FDC.sector_byte_counter = 0;        // And reset our counter
-                        disk_intrq();                       // Let CPU know we're done with command
+                        FDC.status &= ~0x01;            // Done. No longer busy.
+                        FDC.wait_for_write=2;           // Don't write more FDC data
+                        FDC.sector_byte_counter = 0;    // And reset our counter
+                        fdc_flush_track();              // Write the buffer back out 
+                        disk_intrq();                   // Let CPU know we're done with command
+                    }
+                    else
+                    {
+                        FDC.status |= 0x03;                     // Data Ready and no errors... still busy
+                        FDC.wait_for_write = 1;                 // Wait for the CPU to give us more data
+                        if (++FDC.sector_byte_counter >= Geom.sectorSize)   // Did we cross a sector boundary?
+                        {
+                            if (FDC.command & 0x10) FDC.sector++;   // Bump the sector number only if multiple sector command
+                            FDC.sector_byte_counter = 0;            // And reset our counter
+                        }
                     }
                 }
                 break;
@@ -241,7 +256,7 @@ u8 fdc_read(u8 addr)
 {
     if (FDC.drive >= Geom.drives) return (0x80); // Not ready
     
-    fdc_state_machine();    // Clock the floppy drive controller state machine
+    fdc_state_machine();    // Clock the floppy drive controller state machine on reads
     
     fdc_debug(0, addr, 0);  // Debug the read routine
     
@@ -289,6 +304,8 @@ void fdc_write(u8 addr, u8 data)
             break;
         default: break;
     }
+    
+    fdc_state_machine();    // Clock the floppy drive controller state machine on writes
     
     fdc_debug(1, addr, data);   // Debug the write routine
     
@@ -357,7 +374,7 @@ void fdc_write(u8 addr, u8 data)
                 FDC.track_buffer_idx = (FDC.sector-Geom.startSector)*Geom.sectorSize;       // Start writing here
                 FDC.track_buffer_end = (data & 0x10) ? (Geom.sectorSize*Geom.sectors) : (FDC.track_buffer_idx+Geom.sectorSize);
                 FDC.sector_byte_counter = 0;                                                // Reset our sector byte counter
-                FDC.wait_for_write = 3;                                                     // Start the Write Process... we will allow data shortly
+                FDC.wait_for_write = 1;                                                     // Start the Write Process... we allow data immediately
                 io_show_status = 5;                                                         // And let the world know we are writing...
                 FDC.status |= 0x03;                                                         // Data Ready and no errors... still busy
             }            

@@ -48,6 +48,8 @@
 #define     PIA_CR_INTR         0x01    // CA1/CB1 interrupt enable bit
 #define     PIA_CR_IRQ_STAT     0x80    // IRQA1/IRQB1 status bit
 
+#define     PIA_DDR             0x04    // 1=Normal, 0=DDR
+
 #define     MUX_RIGHT_X         0x00
 #define     MUX_RIGHT_Y         0x01
 #define     MUX_LEFT_X          0x02
@@ -61,6 +63,10 @@
 uint32_t tape_pos = 0;
 uint16_t tape_motor = 0;
 
+uint8_t  pia0_ddr_a = PIA_DDR;
+uint8_t  pia0_ddr_b = PIA_DDR;
+uint8_t  pia1_ddr_a = PIA_DDR;
+uint8_t  pia1_ddr_b = PIA_DDR;
 
 /* -----------------------------------------
    Module static functions
@@ -75,7 +81,7 @@ static uint8_t io_handler_pia1_pb(uint16_t address, uint8_t data, mem_operation_
 static uint8_t io_handler_pia1_cra(uint16_t address, uint8_t data, mem_operation_t op);
 static uint8_t io_handler_pia1_crb(uint16_t address, uint8_t data, mem_operation_t op);
 
-static uint8_t get_keyboard_row_scan(uint8_t data);
+ITCM_CODE uint8_t get_keyboard_row_scan(uint8_t data);
 
 /* -----------------------------------------
    Module globals
@@ -180,7 +186,10 @@ uint8_t kbd_scan_dragon[60][2] __attribute__((section(".dtcm"))) = {
         { 0b11111101,   6 }, // #54  CLEAR
         { 0b01111111,   6 }, // #55  Shift key
         { 0b11111011,   6 }, // #56  Break (ESC key)
-
+        
+        { 0b00000000, 255 }, // Reserved 1
+        { 0b00000000, 255 }, // Reserved 2
+        { 0b00000000, 255 }, // Reserved 3
 };
 
 /*
@@ -267,6 +276,10 @@ uint8_t kbd_scan_coco[60][2] __attribute__((section(".dtcm"))) = {
         { 0b11111101,   6 }, //      CLEAR
         { 0b01111111,   6 }, // #55  Shift key
         { 0b11111011,   6 }, //      Break (ESC key)
+
+        { 0b00000000, 255 }, // Reserved 1
+        { 0b00000000, 255 }, // Reserved 2
+        { 0b00000000, 255 }, // Reserved 3
 };
 
 
@@ -293,28 +306,36 @@ void pia_init(void)
     /* Link IO call-backs
      */
     mem_write(PIA0_PA, 0x7f);
-    mem_define_io(PIA0_PA, PIA0_PA, io_handler_pia0_pa);    // Joystick comparator, keyboard row input
-    mem_define_io(PIA0_PB, PIA0_PB, io_handler_pia0_pb);    // Keyboard column output
-    mem_define_io(PIA0_CRA, PIA0_CRA, io_handler_pia0_cra); // Audio multiplexer select bit.0
-    mem_define_io(PIA0_CRB, PIA0_CRB, io_handler_pia0_crb); // Field sync interrupt
+    
+    // Handle all mirrors of the PIA across the IO range of memory
+    for (int mirror=0; mirror<32; mirror += 4)
+    {
+        mem_define_io(PIA0_PA  + mirror,  PIA0_PA,  io_handler_pia0_pa);    // Joystick comparator, keyboard row input
+        mem_define_io(PIA0_PB  + mirror,  PIA0_PB,  io_handler_pia0_pb);    // Keyboard column output
+        mem_define_io(PIA0_CRA + mirror,  PIA0_CRA, io_handler_pia0_cra);   // Audio multiplexer select bit.0
+        mem_define_io(PIA0_CRB + mirror,  PIA0_CRB, io_handler_pia0_crb);   // Field sync interrupt
 
-    mem_define_io(PIA1_PA, PIA1_PA, io_handler_pia1_pa);    // 6-bit DAC output, cassette interface input bit
-
-    mem_define_io(PIA1_PB,    PIA1_PB,    io_handler_pia1_pb);    // VDG mode bits output
-
-    mem_define_io(PIA1_CRA, PIA1_CRA, io_handler_pia1_cra); // Cassette tape motor control
-    mem_define_io(PIA1_CRB, PIA1_CRB, io_handler_pia1_crb); // Audio multiplexer select bit.1
+        mem_define_io(PIA1_PA  + mirror,  PIA1_PA,  io_handler_pia1_pa);    // 6-bit DAC output, cassette interface input bit
+        mem_define_io(PIA1_PB  + mirror,  PIA1_PB,  io_handler_pia1_pb);    // VDG mode bits output
+        mem_define_io(PIA1_CRA + mirror,  PIA1_CRA, io_handler_pia1_cra);   // Cassette tape motor control
+        mem_define_io(PIA1_CRB + mirror,  PIA1_CRB, io_handler_pia1_crb);   // Audio multiplexer select bit.1
+    }
 
     pia0_ca1_int_enabled = 0;    // HSYNC FIRQ
     pia0_cb1_int_enabled = 0;    // VSYNC IRQ
     pia1_cb1_int_enabled = 0;    // CART  FIRQ
-    dac_output = 0;
-    sound_enable = 1;
-    last_comparator = 0;
-    tape_pos = 0;
-    tape_motor = 0;
-    mux_select = 0x00;
-    cas_eof = 0;
+    dac_output           = 0;    // No DAC output to start
+    sound_enable         = 1;    // Sound enable/disable
+    last_comparator      = 0;    // Last comparator value
+    tape_pos             = 0;    // Current tape position 
+    tape_motor           = 0;    // Motor on (1) or off (0)
+    mux_select           = 0x00; // The Comparator Mux
+    cas_eof              = 0;    // End of Cassette File
+    
+    pia0_ddr_a = PIA_DDR;        // Normal Data Register Map
+    pia0_ddr_b = PIA_DDR;        // Normal Data Register Map
+    pia1_ddr_a = PIA_DDR;        // Normal Data Register Map
+    pia1_ddr_b = PIA_DDR;        // Normal Data Register Map
 }
 
 /*------------------------------------------------
@@ -638,7 +659,10 @@ ITCM_CODE static uint8_t io_handler_pia1_pa(uint16_t address, uint8_t data, mem_
 {
     if ( op == MEM_WRITE )
     {
-        dac_output = (data >> 2) & 0x3f;
+        if (pia1_ddr_a) // Does the DDR tell us we are normal output?
+        {
+            dac_output = (data >> 2) & 0x3f;
+        }
     }
     else
     {
@@ -727,13 +751,16 @@ ITCM_CODE static uint8_t io_handler_pia1_pb(uint16_t address, uint8_t data, mem_
     extern uint8_t pia_video_mode;
     if ( op == MEM_WRITE )
     {
-        vdg_set_mode_pia(((data >> 3) & 0x1f));
-
-        extern signed short int beeper_vol;
-
-        if (data & 0x02) // Beeper Pulse
+        if (pia1_ddr_b) // Does the DDR tell us we are normal output?
         {
-            beeper_vol = (beeper_vol ? 0x000:0xFFF);
+            vdg_set_mode_pia(((data >> 3) & 0x1f));
+
+            extern signed short int beeper_vol;
+
+            if (data & 0x02) // Beeper Pulse
+            {
+                beeper_vol = (beeper_vol ? 0x000:0xFFF);
+            }
         }
     }
 
@@ -775,6 +802,8 @@ static uint8_t io_handler_pia1_cra(uint16_t address, uint8_t data, mem_operation
                 tape_motor = 0;
             }
         }
+        
+        pia1_ddr_a = (data & PIA_DDR);
     }
     else
     {
@@ -804,6 +833,8 @@ ITCM_CODE static uint8_t io_handler_pia1_crb(uint16_t address, uint8_t data, mem
             pia1_cb1_int_enabled = 0;
 
         sound_enable = (data & 0x08);
+        
+        pia1_ddr_b = (data & PIA_DDR);
     }
     else
     {
@@ -822,7 +853,7 @@ ITCM_CODE static uint8_t io_handler_pia1_crb(uint16_t address, uint8_t data, mem
  *  param:  Row scan bit pattern
  *  return: Column scan bit pattern
  */
-static uint8_t get_keyboard_row_scan(uint8_t row_scan)
+ITCM_CODE uint8_t get_keyboard_row_scan(uint8_t row_scan)
 {
     uint8_t result = 0;
     uint8_t bit_position = 0x01;

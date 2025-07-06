@@ -25,9 +25,7 @@
 #include    <stdint.h>
 #include    "sam.h"
 
-#define     MEMORY                  65536       // 64K Byte
-
-#define     MEM_OK                  0           // Operation ok
+#define     MEMORY_SIZE    65536       // 64K Byte for the full M6809 memory map
 
 typedef enum
 {
@@ -37,10 +35,10 @@ typedef enum
 
 typedef uint8_t (*io_handler_callback)(uint16_t, uint8_t, mem_operation_t);
 
-extern io_handler_callback memory_io[MEMORY];
+extern io_handler_callback memory_io[MEMORY_SIZE];
 
-extern uint8_t  memory_RAM[MEMORY];
-extern uint8_t  memory_ROM[MEMORY];
+extern uint8_t  memory_RAM[MEMORY_SIZE];
+extern uint8_t  memory_ROM[MEMORY_SIZE];
 
 /********************************************************************
  *  Memory module API
@@ -49,17 +47,19 @@ extern uint8_t  memory_ROM[MEMORY];
 void mem_init(void);
 
 void mem_write(int address, int data);
-int  mem_define_io(int addr_start, int addr_end, io_handler_callback io_handler);
-int  mem_load_rom(int addr_start, const uint8_t *buffer, int length);
+void mem_define_io(int addr_start, int addr_end, io_handler_callback io_handler);
+void mem_load_rom(int addr_start, const uint8_t *buffer, int length);
 
 inline __attribute__((always_inline)) uint8_t mem_read_pc(int address)
 {
-    if (sam_registers.memory_map_type)
+    // See if this is a ROM address
+    if (sam_registers.memory_map_type & address)
     {
-        if (address & 0x8000) return memory_ROM[address];
+        return memory_ROM[address];
     }
     
-    return memory_RAM[address];
+    // This handles Page #1 where upper RAM is mapped to lower address space
+    return memory_RAM[sam_registers.map_upper_to_lower | address];
 }
 
 /*------------------------------------------------
@@ -72,24 +72,20 @@ inline __attribute__((always_inline)) uint8_t mem_read_pc(int address)
  */
 inline __attribute__((always_inline)) uint8_t mem_read(int address)
 {
-    if (address & 0x8000)
+    if ((address & 0xFF00) == 0xFF00)
     {
-        if ((address & 0xFF00) == 0xFF00)
-        {
-            /* An attempt to read an IO address will trigger
-             * the callback that may return an alternative value.
-             */
-            memory_RAM[address] = memory_io[address]((uint16_t) address, memory_RAM[address], MEM_READ);
-        }
-        else
-        if (sam_registers.memory_map_type)
-        {
-            if (address & 0x8000) return memory_ROM[address];
-        }
+        /* An attempt to read an IO address will trigger
+         * the callback that may return an alternative value.
+         */
+        memory_RAM[address] = memory_io[address]((uint16_t) address, memory_RAM[address], MEM_READ);
+    }
+    else if (sam_registers.memory_map_type & address)
+    {
+        return memory_ROM[address];
     }
     
-    return memory_RAM[address];
+    // This handles Page #1 where upper RAM is mapped to lower address space
+    return memory_RAM[sam_registers.map_upper_to_lower | address];
 }
-
 
 #endif  /* __MEM_H__ */
