@@ -305,21 +305,18 @@ void pia_init(void)
 {
     /* Link IO call-backs
      */
-    memory_IO[PIA0_PA & 0xff] = 0x7f;
+    mem_write(PIA0_PA, 0x7f);
     
     // Handle all mirrors of the PIA across the IO range of memory
-    for (int mirror=0; mirror<32; mirror += 4)
-    {
-        mem_define_io(PIA0_PA  + mirror,  PIA0_PA,  io_handler_pia0_pa);    // Joystick comparator, keyboard row input
-        mem_define_io(PIA0_PB  + mirror,  PIA0_PB,  io_handler_pia0_pb);    // Keyboard column output
-        mem_define_io(PIA0_CRA + mirror,  PIA0_CRA, io_handler_pia0_cra);   // Audio multiplexer select bit.0
-        mem_define_io(PIA0_CRB + mirror,  PIA0_CRB, io_handler_pia0_crb);   // Field sync interrupt
+    mem_define_io(PIA0_PA ,  PIA0_PA,  io_handler_pia0_pa);    // Joystick comparator, keyboard row input
+    mem_define_io(PIA0_PB ,  PIA0_PB,  io_handler_pia0_pb);    // Keyboard column output
+    mem_define_io(PIA0_CRA,  PIA0_CRA, io_handler_pia0_cra);   // Audio multiplexer select bit.0
+    mem_define_io(PIA0_CRB,  PIA0_CRB, io_handler_pia0_crb);   // Field sync interrupt
 
-        mem_define_io(PIA1_PA  + mirror,  PIA1_PA,  io_handler_pia1_pa);    // 6-bit DAC output, cassette interface input bit
-        mem_define_io(PIA1_PB  + mirror,  PIA1_PB,  io_handler_pia1_pb);    // VDG mode bits output
-        mem_define_io(PIA1_CRA + mirror,  PIA1_CRA, io_handler_pia1_cra);   // Cassette tape motor control
-        mem_define_io(PIA1_CRB + mirror,  PIA1_CRB, io_handler_pia1_crb);   // Audio multiplexer select bit.1
-    }
+    mem_define_io(PIA1_PA ,  PIA1_PA,  io_handler_pia1_pa);    // 6-bit DAC output, cassette interface input bit
+    mem_define_io(PIA1_PB ,  PIA1_PB,  io_handler_pia1_pb);    // VDG mode bits output
+    mem_define_io(PIA1_CRA,  PIA1_CRA, io_handler_pia1_cra);   // Cassette tape motor control
+    mem_define_io(PIA1_CRB,  PIA1_CRB, io_handler_pia1_crb);   // Audio multiplexer select bit.1
 
     pia0_ca1_int_enabled = 0;    // HSYNC FIRQ
     pia0_cb1_int_enabled = 0;    // VSYNC IRQ
@@ -351,7 +348,7 @@ void pia_vsync_irq(void)
 {
     /* Set the VSYNC 'on' bit - turns off when port read
      */
-    memory_IO[PIA0_CRB & 0xFF] |= PIA_CR_IRQ_STAT;
+    memory_RAM[PIA0_CRB] |= PIA_CR_IRQ_STAT;
 
     /* Assert vsync interrupt if enabled
      */
@@ -365,7 +362,7 @@ void pia_hsync_firq(void)
 {
     /* Set the HSYNC 'on' bit - turns off on next port read
      */
-    memory_IO[PIA0_CRA & 0xFF] |= PIA_CR_IRQ_STAT;
+    memory_RAM[PIA0_CRA] |= PIA_CR_IRQ_STAT;
 
     /* Assert hsync interrupt if enabled
      */
@@ -389,7 +386,7 @@ void pia_cart_firq(void)
 {
     /* Set the cart FIRQ status bit - turns off on next port read
      */
-    memory_IO[PIA1_CRB & 0xFF] |= PIA_CR_IRQ_STAT;
+    memory_RAM[PIA1_CRB] |= PIA_CR_IRQ_STAT;
 
     /* Assert interrupt if enabled
      */
@@ -453,8 +450,8 @@ ITCM_CODE static uint8_t io_handler_pia0_pa(uint16_t address, uint8_t data, mem_
 
         /* Store the appropriate row bit value for PIA0_PA bit pattern
          */
-        row_switch_bits = get_keyboard_row_scan(memory_IO[PIA0_PB & 0xFF]);
-        memory_IO[PIA0_PA & 0xFF] = (uint8_t) row_switch_bits;
+        row_switch_bits = get_keyboard_row_scan(memory_RAM[PIA0_PB]);
+        mem_write(PIA0_PA, (int) row_switch_bits);
 
         data = row_switch_bits;
 
@@ -530,7 +527,7 @@ ITCM_CODE static uint8_t io_handler_pia0_pa(uint16_t address, uint8_t data, mem_
         }
 
         // A read from this port clears the HSync FIRQ
-        memory_IO[PIA0_CRA & 0xFF] &= ~PIA_CR_IRQ_STAT;
+        memory_RAM[PIA0_CRA] &= ~PIA_CR_IRQ_STAT;
         cpu_firq(0);
     }
 
@@ -562,7 +559,7 @@ ITCM_CODE static uint8_t io_handler_pia0_pb(uint16_t address, uint8_t data, mem_
      */
     else
     {
-        memory_IO[PIA0_CRB & 0xFF] &= ~PIA_CR_IRQ_STAT;  // VSYNC IRQ
+        memory_RAM[PIA0_CRB] &= ~PIA_CR_IRQ_STAT;  // VSYNC IRQ
         cpu_irq(0);
     }
 
@@ -587,7 +584,7 @@ ITCM_CODE static uint8_t io_handler_pia0_cra(uint16_t address, uint8_t data, mem
         else
             mux_select &= ~0x01;
 
-        pia0_ca1_int_enabled = (data & 1);
+        pia0_ca1_int_enabled = (data & PIA_CR_INTR);
     }
     else
     {
@@ -610,15 +607,12 @@ ITCM_CODE static uint8_t io_handler_pia0_crb(uint16_t address, uint8_t data, mem
 {
     if ( op == MEM_WRITE )
     {
-        if ( data & PIA_CR_INTR )
-            pia0_cb1_int_enabled = 1;
-        else
-            pia0_cb1_int_enabled = 0;
-
         if ( data & 0x08 )
             mux_select |= 0x02;
         else
             mux_select &= ~0x02;
+            
+        pia0_cb1_int_enabled = (data & PIA_CR_INTR);
     }
     else
     {
@@ -771,7 +765,7 @@ ITCM_CODE static uint8_t io_handler_pia1_pb(uint16_t address, uint8_t data, mem_
     {
         data = (pia_video_mode << 3); // Also reports 32K
         data |= 1;  // RS232 In/Printer Busy
-        memory_IO[PIA1_CRB & 0xFF] &= ~PIA_CR_IRQ_STAT; // Cart IRQ
+        memory_RAM[PIA1_CRB] &= ~PIA_CR_IRQ_STAT; // Cart IRQ
         cpu_firq(0);
     }
 

@@ -75,9 +75,7 @@ ITCM_CODE void mem_write(int address, int data)
 {
     if ((address & 0xFF00) == 0xFF00)
     {
-        memory_IO[address & 0xFF] = data;
         callback_io[address]((uint16_t) address, (uint8_t)data, MEM_WRITE);
-        return;
     }
     else
     {

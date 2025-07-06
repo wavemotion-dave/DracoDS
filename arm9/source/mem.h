@@ -51,17 +51,6 @@ void mem_write(int address, int data);
 void mem_define_io(int addr_start, int addr_end, io_handler_callback io_handler);
 void mem_load_rom(int addr_start, const uint8_t *buffer, int length);
 
-inline __attribute__((always_inline)) uint8_t mem_read_pc(int address)
-{
-    // See if this is a ROM address
-    if (sam_registers.memory_map_type & address)
-    {
-        return memory_ROM[address];
-    }
-    
-    // This handles Page #1 where upper RAM is mapped to lower address space
-    return memory_RAM[sam_registers.map_upper_to_lower | address];
-}
 
 /*------------------------------------------------
  * mem_read()
@@ -78,9 +67,21 @@ inline __attribute__((always_inline)) uint8_t mem_read(int address)
         /* An attempt to read an IO address will trigger
          * the callback that may return an alternative value.
          */
-        return callback_io[address]((uint16_t) address, memory_IO[address & 0xFF], MEM_READ);
+        memory_RAM[address] = callback_io[address]((uint16_t) address, memory_RAM[address], MEM_READ);
     }
     else if (sam_registers.memory_map_type & address)
+    {
+        return memory_ROM[address];
+    }
+    
+    // This handles Page #1 where upper RAM is mapped to lower address space
+    return memory_RAM[sam_registers.map_upper_to_lower | address];
+}
+
+inline __attribute__((always_inline)) uint8_t mem_read_pc(int address)
+{
+    // See if this is a ROM address
+    if (sam_registers.memory_map_type & address)
     {
         return memory_ROM[address];
     }
