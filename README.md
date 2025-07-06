@@ -111,8 +111,9 @@ game, just press ENTER (some games might use SPACE) to bypass it.  DracoDS shoul
 64K Support :
 -----------------------
 The emulators does emulate a full 64K machine but there are some caveats. If the game utilizes just the RAM/ROM and ALL-RAM memory maps, the game should work fine.
-Many such 64K work this way. But if the game utilizes the Paging Register to map the upper RAM into the lower half of the address space - then it will not work 
-with the current emulation. Unfortunately Sailor Man falls into this latter category.
+Many such 64K work this way. But if the game utilizes the Paging Register to map the upper RAM into the lower half of the address space - then it _might_ work 
+with the current emulation. For some reason, a small number of games that seem to utilize this don't work correctly despite my best efforts to produce the right
+RAM addressing. Unfortunately Sailor Man falls into this latter category.
 
 Joystick Options :
 -----------------------
