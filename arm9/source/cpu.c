@@ -523,7 +523,7 @@ ITCM_CODE void cpu_run(void)
                         default:
                             /* Exception: Illegal 0x11 op-code cpu_run()
                              */
-                            debug[7] = 8888;
+                            if (debug[7] == 0) {debug[7] = 8888; debug[6] = op_code;}
                             cpu.cpu_state = CPU_EXCEPTION;
                     }
                 }
@@ -637,7 +637,7 @@ ITCM_CODE void cpu_run(void)
                         default:
                             /* Exception: Illegal 0x10 op-code cpu_run()
                              */
-                            debug[7] = 7777;
+                            if (debug[7] == 0) {debug[7] = 7777; debug[6] = op_code;}
                             cpu.cpu_state = CPU_EXCEPTION;
                     }
                 }
@@ -1090,6 +1090,7 @@ ITCM_CODE void cpu_run(void)
                 /* NOP
                  */
                 case 0x12:
+                case 0x1B:
                     break;
 
                 /* ORA, ORB
@@ -1434,9 +1435,8 @@ ITCM_CODE void cpu_run(void)
                 default:
                     /* Exception: Illegal op-code cpu_run()
                      */
-                    debug[7] = 9999;
+                    if (debug[7] == 0) {debug[7] = 9999; debug[6] = op_code;}
                     cpu.cpu_state = CPU_EXCEPTION;
-                    debug[6] = op_code;
                 
             }
         }

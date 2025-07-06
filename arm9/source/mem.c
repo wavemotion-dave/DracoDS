@@ -34,9 +34,10 @@ static uint8_t do_nothing_io_handler(uint16_t address, uint8_t data, mem_operati
 /* -----------------------------------------
    Module globals
 ----------------------------------------- */
-io_handler_callback memory_io[MEMORY_SIZE];  // IO Handler 
+io_handler_callback callback_io[MEMORY_SIZE];  // IO Handler 
 uint8_t  memory_RAM[MEMORY_SIZE];            // 64K of RAM 
 uint8_t  memory_ROM[MEMORY_SIZE];            // 64K of ROM but only the upper 32K is ever mapped/used
+uint8_t  memory_IO[0x100];                   // 256 bytes of IO Space
 
 /*------------------------------------------------
  * mem_init()
@@ -48,13 +49,16 @@ uint8_t  memory_ROM[MEMORY_SIZE];            // 64K of ROM but only the upper 32
  */
 void mem_init(void)
 {
-    int i;
-
-    for ( i = 0; i < MEMORY_SIZE; i++ )
+    for (int i = 0; i < MEMORY_SIZE; i++ )
     {
-        memory_RAM[i] = 0;
+        memory_RAM[i] = 0x00;
         memory_ROM[i] = 0xFF;
-        memory_io[i] = do_nothing_io_handler;
+        callback_io[i] = do_nothing_io_handler;
+    }
+
+    for (int i = 0; i < 0x100; i++ )
+    {
+        memory_IO[i] = 0x00;
     }
 }
 
@@ -71,11 +75,13 @@ ITCM_CODE void mem_write(int address, int data)
 {
     if ((address & 0xFF00) == 0xFF00)
     {
-        memory_io[address]((uint16_t) address, (uint8_t)data, MEM_WRITE);
+        memory_IO[address & 0xFF] = data;
+        callback_io[address]((uint16_t) address, (uint8_t)data, MEM_WRITE);
+        return;
     }
     else
     {
-        if ( sam_registers.memory_map_type & address ) return; // Else fall through and write below ... 64K mode
+        if ( sam_registers.memory_map_type & address ) return; // Check for ROMs... else fall through and write below (in 64K mode)
     }        
     
     memory_RAM[sam_registers.map_upper_to_lower | address] = (uint8_t) data;
@@ -97,7 +103,7 @@ void mem_define_io(int addr_start, int addr_end, io_handler_callback io_handler)
     {
         if ( io_handler != 0L )
         {
-            memory_io[i] = io_handler;
+            callback_io[i] = io_handler;
         }
     }
 }

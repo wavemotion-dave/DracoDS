@@ -78,7 +78,7 @@ machine_code_t machine_code[] __attribute__((section(".dtcm"))) =
     {0x18, ADDR_INHERENT  , 3 , 1},
     {0x19, ADDR_INHERENT  , 2 , 1},
     {0x1a, ADDR_IMMEDIATE , 3 , 2},
-    {0x1b, ILLEGAL_OP     , 0 , 1},
+    {0x1b, ADDR_INHERENT  , 2 , 1},
     {0x1c, ADDR_IMMEDIATE , 3 , 2},
     {0x1d, ADDR_INHERENT  , 2 , 1},
     {0x1e, ADDR_IMMEDIATE , 8 , 2},

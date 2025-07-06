@@ -32,7 +32,7 @@
 
 #include "lzav.h"
 
-#define DRACO_SAVE_VER   0x0001       // Change this if the basic format of the .SAV file changes. Invalidates older .sav files.
+#define DRACO_SAVE_VER   0x0002       // Change this if the basic format of the .SAV file changes. Invalidates older .sav files.
 
 u8 CompressBuffer[128*1024];
 
@@ -121,7 +121,10 @@ void DracoSaveState()
     if (retVal) retVal = fwrite(&emuFps,                  sizeof(emuFps),                   1, handle);
     if (retVal) retVal = fwrite(&emuActFrames,            sizeof(emuActFrames),             1, handle);
     if (retVal) retVal = fwrite(&timingFrames,            sizeof(timingFrames),             1, handle);
-
+    
+    // IO Memory Space
+    if (retVal) retVal = fwrite(memory_IO,                sizeof(memory_IO),                1, handle);
+    
     // -----------------------------------------------------------------------
     // Compress the 64K RAM data using 'high' compression ratio... it's
     // still quite fast for such small memory buffers and gets us under 32K
@@ -235,6 +238,9 @@ void DracoLoadState()
         if (retVal) retVal = fread(&emuFps,                  sizeof(emuFps),                   1, handle);
         if (retVal) retVal = fread(&emuActFrames,            sizeof(emuActFrames),             1, handle);
         if (retVal) retVal = fread(&timingFrames,            sizeof(timingFrames),             1, handle);
+
+        // IO Memory Space
+        if (retVal) retVal = fread(memory_IO,                sizeof(memory_IO),                1, handle);
 
         // Restore Main RAM memory
         int comp_len = 0;

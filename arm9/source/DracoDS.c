@@ -982,7 +982,7 @@ void DracoDS_main(void)
                           {
                               ucDEUX  |= keyCoresp[myConfig.keymap[i]];
                           }
-                          if (myConfig.keymap[i] >= 60)   // Macro mapping
+                          else if (myConfig.keymap[i] >= 60)   // Macro mapping
                           {
                               switch (myConfig.keymap[i])
                               {

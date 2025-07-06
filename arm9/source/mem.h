@@ -35,10 +35,11 @@ typedef enum
 
 typedef uint8_t (*io_handler_callback)(uint16_t, uint8_t, mem_operation_t);
 
-extern io_handler_callback memory_io[MEMORY_SIZE];
+extern io_handler_callback callback_io[MEMORY_SIZE];
 
 extern uint8_t  memory_RAM[MEMORY_SIZE];
 extern uint8_t  memory_ROM[MEMORY_SIZE];
+extern uint8_t  memory_IO[0x100];
 
 /********************************************************************
  *  Memory module API
@@ -77,7 +78,7 @@ inline __attribute__((always_inline)) uint8_t mem_read(int address)
         /* An attempt to read an IO address will trigger
          * the callback that may return an alternative value.
          */
-        memory_RAM[address] = memory_io[address]((uint16_t) address, memory_RAM[address], MEM_READ);
+        return callback_io[address]((uint16_t) address, memory_IO[address & 0xFF], MEM_READ);
     }
     else if (sam_registers.memory_map_type & address)
     {
