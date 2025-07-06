@@ -374,9 +374,9 @@ ITCM_CODE void vdg_render_semi6(int vdg_mem_base)
     uint8_t     bit_pattern, pix_pos;
     uint8_t     fg_color, bg_color;
 
-    uint8_t    *screen_buffer;
+    uint32_t    *screen_buffer;
 
-    screen_buffer = fbp;
+    screen_buffer = (uint32_t *)fbp;
     color_set = (int)(4 * (pia_video_mode & PIA_COLOR_SET));
 
     for ( row = 0; row < SCREEN_HEIGHT_CHAR; row++ )
@@ -399,25 +399,30 @@ ITCM_CODE void vdg_render_semi6(int vdg_mem_base)
                  */
                 pix_pos = 0x80;
 
+                uint8_t buf[8];
                 for ( font_col = 0; font_col < FONT_WIDTH; font_col++ )
                 {
                     /* Bit is set in Font, print pixel(s) in text color
                     */
                     if ( (bit_pattern & pix_pos) )
                     {
-                        *screen_buffer++ = fg_color;
+                        buf[font_col] = fg_color;
                     }
                     /* Bit is cleared in Font
                     */
                     else
                     {
-                        *screen_buffer++ = bg_color;
+                        buf[font_col] = bg_color;
                     }
 
                     /* Move to the next pixel position
                     */
                     pix_pos = pix_pos >> 1;
                 }
+                
+                uint32_t *ptr32 = (uint32_t *)&buf;
+                *screen_buffer++ = *ptr32++;
+                *screen_buffer++ = *ptr32++;
             }
         }
     }
@@ -440,10 +445,10 @@ ITCM_CODE void vdg_render_semi_ext(video_mode_t mode, int vdg_mem_base)
     int         segments, seg_scan_lines;
     int         c, char_index, row_address;
     uint8_t     bit_pattern, pix_pos;
-    uint8_t     color_set, fg_color, bg_color, tmp;
-    uint8_t    *screen_buffer;
+    uint8_t     color_set, fg_color, bg_color;
+    uint32_t   *screen_buffer;
     
-    screen_buffer = fbp;
+    screen_buffer = (uint32_t *)fbp;
     font_row = 0;
 
     if ( pia_video_mode & PIA_COLOR_SET )
@@ -502,44 +507,50 @@ ITCM_CODE void vdg_render_semi_ext(video_mode_t mode, int vdg_mem_base)
                     {
                         fg_color = color_set;
 
-                        if ( (uint8_t)c & CHAR_INVERSE )
-                        {
-                            tmp = fg_color;
-                            fg_color = bg_color;
-                            bg_color = tmp;
-                        }
                         char_index = (int)(((uint8_t) c) & ~(CHAR_SEMI_GRAPHICS | CHAR_INVERSE));
                         bit_pattern = font_img5x7[char_index][font_row];
-                    }
 
-                    /* Render a row of pixels in a temporary buffer
-                    */
-                    pix_pos = 0x80;
+                        if ( (uint8_t)c & CHAR_INVERSE )
+                        {
+                            bit_pattern = ~bit_pattern;
+                        }
+                    }
 
                     if (!bit_pattern)
                     {
-                        memset(screen_buffer, bg_color, 8);
-                        screen_buffer+=8;
+                        *screen_buffer++ = 0x00000000;
+                        *screen_buffer++ = 0x00000000;
                     }
                     else
-                    for ( font_col = 0; font_col < FONT_WIDTH; font_col++ )
                     {
-                        /* Bit is set in Font, print pixel(s) in text color
+                        /* Render a row of pixels in a temporary buffer
                         */
-                        if ( (bit_pattern & pix_pos) )
-                        {
-                            *screen_buffer++ = fg_color;
-                        }
-                        /* Bit is cleared in Font
-                        */
-                        else
-                        {
-                            *screen_buffer++ = bg_color;
-                        }
+                        pix_pos = 0x80;
 
-                        /* Move to the next pixel position
-                        */
-                        pix_pos = pix_pos >> 1;
+                        uint8_t buf[8];
+                        for ( font_col = 0; font_col < FONT_WIDTH; font_col++ )
+                        {
+                            /* Bit is set in Font, print pixel(s) in text color
+                            */
+                            if ( (bit_pattern & pix_pos) )
+                            {
+                                buf[font_col] = fg_color;
+                            }
+                            /* Bit is cleared in Font
+                            */
+                            else
+                            {
+                                buf[font_col] = bg_color;
+                            }
+
+                            /* Move to the next pixel position
+                            */
+                            pix_pos = pix_pos >> 1;
+                        }
+                        
+                        uint32_t *ptr32 = (uint32_t *)&buf;
+                        *screen_buffer++ = *ptr32++;
+                        *screen_buffer++ = *ptr32++;
                     }
                 }
 

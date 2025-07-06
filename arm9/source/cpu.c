@@ -78,71 +78,71 @@ extern unsigned int debug[];
 #define     SIG_EXTEND(b)           ((((uint8_t)b) & 0x80) ? (((uint16_t)b) | 0xff00):((uint16_t)b))
 
 /* -----------------------------------------
-   Module static functions
+   Module functions
 ----------------------------------------- */
 
 /* CPU op-code processing.
  * These functions manipulate global variable,
  * CPU registers and CC flags.
  */
-static uint8_t adc(uint8_t acc, uint8_t byte);
-static uint8_t add(uint8_t acc, uint8_t byte);
-static void    addd(uint16_t word);
-static uint8_t and(uint8_t acc, uint8_t byte);
-static void    andcc(uint8_t byte);
-static uint8_t asl(uint8_t byte);
-static uint8_t asr(uint8_t byte);
-static void    bit(uint8_t acc, uint8_t byte);
-static uint8_t clr(void);
-static void    cmp(uint8_t arg, uint8_t byte);
-static void    cmp16(uint16_t arg, uint16_t word);
-static uint8_t com(uint8_t byte);
-static void    cwai(uint8_t byte);
-static void    daa(void);
-static uint8_t dec(uint8_t byte);
-static uint8_t eor(uint8_t acc, uint8_t byte);
-static void    exg(uint8_t regs);
-static uint8_t inc(uint8_t byte);
-static uint8_t lsr(uint8_t byte);
-static uint8_t neg(uint8_t byte);
-static uint8_t or(uint8_t acc, uint8_t byte);
-static void    orcc(uint8_t byte);
-static void    pshs(uint8_t push_list, int *cycles);
-static void    pshu(uint8_t push_list, int *cycles);
-static void    puls(uint8_t pull_list, int *cycles);
-static void    pulu(uint8_t pull_list, int *cycles);
-static uint8_t rol(uint8_t byte);
-static uint8_t ror(uint8_t byte);
-static void    rti(int *cycles);
-static uint8_t sbc(uint8_t acc, uint8_t byte);
-static void    sex(void);
-static uint8_t sub(uint8_t acc, uint8_t byte);
-static void    subd(uint16_t word);
-static void    swi(int swi_id);
-static void    tfr(uint8_t regs);
-static void    tst(uint8_t byte);
+uint8_t adc(uint8_t acc, uint8_t byte);
+uint8_t add(uint8_t acc, uint8_t byte);
+void    addd(uint16_t word);
+uint8_t and(uint8_t acc, uint8_t byte);
+void    andcc(uint8_t byte);
+uint8_t asl(uint8_t byte);
+uint8_t asr(uint8_t byte);
+void    bit(uint8_t acc, uint8_t byte);
+uint8_t clr(void);
+void    cmp(uint8_t arg, uint8_t byte);
+void    cmp16(uint16_t arg, uint16_t word);
+uint8_t com(uint8_t byte);
+void    cwai(uint8_t byte);
+void    daa(void);
+uint8_t dec(uint8_t byte);
+uint8_t eor(uint8_t acc, uint8_t byte);
+void    exg(uint8_t regs);
+uint8_t inc(uint8_t byte);
+uint8_t lsr(uint8_t byte);
+uint8_t neg(uint8_t byte);
+uint8_t or(uint8_t acc, uint8_t byte);
+void    orcc(uint8_t byte);
+void    pshs(uint8_t push_list, int *cycles);
+void    pshu(uint8_t push_list, int *cycles);
+void    puls(uint8_t pull_list, int *cycles);
+void    pulu(uint8_t pull_list, int *cycles);
+uint8_t rol(uint8_t byte);
+uint8_t ror(uint8_t byte);
+void    rti(int *cycles);
+uint8_t sbc(uint8_t acc, uint8_t byte);
+void    sex(void);
+uint8_t sub(uint8_t acc, uint8_t byte);
+void    subd(uint16_t word);
+void    swi(int swi_id);
+void    tfr(uint8_t regs);
+void    tst(uint8_t byte);
 
 /* CPU op-code support functions
  */
-static void     branch(int instruction, int long_short, uint16_t effective_address);
-static int      get_eff_addr(int op_code);
-static uint16_t read_register(int reg);
-static void     write_register(int reg, uint16_t data);
+void     branch(int instruction, int long_short, uint16_t effective_address);
+int      get_eff_addr(int op_code);
+uint16_t read_register(int reg);
+void     write_register(int reg, uint16_t data);
 
 /* Condition code register CC functions
  */
-static void    eval_cc_c(uint16_t value);
-static void    eval_cc_c16(uint32_t value);
-static void    eval_cc_z(uint16_t value);
-static void    eval_cc_z16(uint32_t value);
-static void    eval_cc_n(uint16_t value);
-static void    eval_cc_n16(uint32_t value);
-static void    eval_cc_v(uint8_t val1, uint8_t val2, uint16_t result);
-static void    eval_cc_v16(uint16_t val1, uint16_t val2, uint32_t result);
-static void    eval_cc_h(uint8_t val1, uint8_t val2, uint8_t result);
+void    eval_cc_c(uint16_t value);
+void    eval_cc_c16(uint32_t value);
+void    eval_cc_z(uint16_t value);
+void    eval_cc_z16(uint32_t value);
+void    eval_cc_n(uint16_t value);
+void    eval_cc_n16(uint32_t value);
+void    eval_cc_v(uint8_t val1, uint8_t val2, uint16_t result);
+void    eval_cc_v16(uint16_t val1, uint16_t val2, uint32_t result);
+void    eval_cc_h(uint8_t val1, uint8_t val2, uint8_t result);
 
-static uint8_t get_cc(void);
-static void    set_cc(uint8_t value);
+uint8_t get_cc(void);
+void    set_cc(uint8_t value);
 
 
 /* -----------------------------------------
@@ -153,7 +153,7 @@ static void    set_cc(uint8_t value);
  */
 cpu_state_t cpu  __attribute__((section(".dtcm")));
 
-static struct cc_t
+struct cc_t
 {
     int c;
     int v;
@@ -1456,7 +1456,7 @@ ITCM_CODE void cpu_run(void)
  *
  *  acc+byte+carry
  */
-static uint8_t adc(uint8_t acc, uint8_t byte)
+inline __attribute__((always_inline)) uint8_t adc(uint8_t acc, uint8_t byte)
 {
     uint16_t result;
 
@@ -1478,7 +1478,7 @@ static uint8_t adc(uint8_t acc, uint8_t byte)
  *
  *  acc+byte
  */
-static uint8_t add(uint8_t acc, uint8_t byte)
+inline __attribute__((always_inline)) uint8_t add(uint8_t acc, uint8_t byte)
 {
     uint16_t result;
 
@@ -1500,7 +1500,7 @@ static uint8_t add(uint8_t acc, uint8_t byte)
  *
  *  acc+word
  */
-static void addd(uint16_t word)
+void addd(uint16_t word)
 {
     uint16_t acc;
     uint32_t result;
@@ -1523,7 +1523,7 @@ static void addd(uint16_t word)
  *  Logical AND accumulator with byte operand.
  *
  */
-static uint8_t and(uint8_t acc, uint8_t byte)
+inline __attribute__((always_inline)) uint8_t and(uint8_t acc, uint8_t byte)
 {
     uint8_t result;
 
@@ -1542,7 +1542,7 @@ static uint8_t and(uint8_t acc, uint8_t byte)
  *  Logical AND condition-code register with operand.
  *
  */
-static void andcc(uint8_t byte)
+void andcc(uint8_t byte)
 {
     uint8_t temp_cc;
 
@@ -1558,7 +1558,7 @@ static void andcc(uint8_t byte)
  *
  *  'byte' shift left, MSB into carry flag.
  */
-static uint8_t asl(uint8_t byte)
+inline __attribute__((always_inline)) uint8_t asl(uint8_t byte)
 {
     uint16_t result;
 
@@ -1579,7 +1579,7 @@ static uint8_t asl(uint8_t byte)
  *
  *  'byte' shift right, MSB replicated b7, LSB into carry flag.
  */
-static uint8_t asr(uint8_t byte)
+inline __attribute__((always_inline)) uint8_t asr(uint8_t byte)
 {
     uint8_t result;
 
@@ -1601,7 +1601,7 @@ static uint8_t asr(uint8_t byte)
  *
  *  acc AND byte
  */
-static void bit(uint8_t acc, uint8_t byte)
+inline __attribute__((always_inline))  void bit(uint8_t acc, uint8_t byte)
 {
     uint8_t result;
 
@@ -1619,7 +1619,7 @@ static void bit(uint8_t acc, uint8_t byte)
  *  Change flag bit appropriately.
  *
  */
-static uint8_t clr(void)
+uint8_t clr(void)
 {
     cc.c = CC_FLAG_CLR;
     cc.v = CC_FLAG_CLR;
@@ -1637,7 +1637,7 @@ static uint8_t clr(void)
  *  flags.
  *
  */
-static void cmp(uint8_t arg, uint8_t byte)
+inline __attribute__((always_inline))  void cmp(uint8_t arg, uint8_t byte)
 {
     uint16_t result;
 
@@ -1657,7 +1657,7 @@ static void cmp(uint8_t arg, uint8_t byte)
  *  flags.
  *
  */
-static void cmp16(uint16_t arg, uint16_t word)
+inline __attribute__((always_inline)) void cmp16(uint16_t arg, uint16_t word)
 {
     uint32_t result;
 
@@ -1676,7 +1676,7 @@ static void cmp16(uint16_t arg, uint16_t word)
  *
  *  ~byte
  */
-static uint8_t com(uint8_t byte)
+uint8_t com(uint8_t byte)
 {
     uint8_t result;
 
@@ -1701,7 +1701,7 @@ static uint8_t com(uint8_t byte)
  *  execution at the address obtained from the corresponding interrupt vector.
  *
  */
-static void cwai(uint8_t byte)
+void cwai(uint8_t byte)
 {
     uint8_t temp_cc;
 
@@ -1744,7 +1744,7 @@ static void cwai(uint8_t byte)
  *  Decimal adjust accumulator A
  *
  */
-static void daa(void)
+void daa(void)
 {
     uint16_t    temp;
     uint16_t    high_nibble;
@@ -1776,7 +1776,7 @@ static void daa(void)
  *
  *  byte = byte - 1
  */
-static uint8_t dec(uint8_t byte)
+inline __attribute__((always_inline)) uint8_t dec(uint8_t byte)
 {
     uint16_t result;
 
@@ -1796,7 +1796,7 @@ static uint8_t dec(uint8_t byte)
  *
  *  acc ^ byte
  */
-static uint8_t eor(uint8_t acc, uint8_t byte)
+inline __attribute__((always_inline)) uint8_t eor(uint8_t acc, uint8_t byte)
 {
     uint8_t result;
 
@@ -1820,7 +1820,7 @@ static uint8_t eor(uint8_t acc, uint8_t byte)
  *  Check: if (((regs ^ (regs << 4)) & 0x80) == 0) {...}
  *
  */
-static void exg(uint8_t regs)
+void exg(uint8_t regs)
 {
     int         src, dst;
     uint16_t    temp1, temp2;
@@ -1842,7 +1842,7 @@ static void exg(uint8_t regs)
  *
  *  byte = byte + 1
  */
-static uint8_t inc(uint8_t byte)
+inline __attribute__((always_inline)) uint8_t inc(uint8_t byte)
 {
     uint16_t result;
 
@@ -1862,7 +1862,7 @@ static uint8_t inc(uint8_t byte)
  *
  *  'byte' shift right, MSB replicated with zero, LSB into carry flag.
  */
-static uint8_t lsr(uint8_t byte)
+inline __attribute__((always_inline)) uint8_t lsr(uint8_t byte)
 {
     uint8_t result;
 
@@ -1882,7 +1882,7 @@ static uint8_t lsr(uint8_t byte)
  *  Two's complement: ~byte+1
  *
  */
-static uint8_t neg(uint8_t byte)
+inline __attribute__((always_inline)) uint8_t neg(uint8_t byte)
 {
     uint16_t result;
 
@@ -1902,7 +1902,7 @@ static uint8_t neg(uint8_t byte)
  *  Bit-wise logical OR between 'acc' and 'byte'
  *
  */
-static uint8_t or(uint8_t acc, uint8_t byte)
+inline __attribute__((always_inline)) uint8_t or(uint8_t acc, uint8_t byte)
 {
     uint8_t result;
 
@@ -1921,7 +1921,7 @@ static uint8_t or(uint8_t acc, uint8_t byte)
  *  Logical OR condition-code register with operand.
  *
  */
-static void orcc(uint8_t byte)
+void orcc(uint8_t byte)
 {
     uint8_t temp_cc;
 
@@ -1939,7 +1939,7 @@ static void orcc(uint8_t byte)
  *  param:  Push-list operand, and command cycles to update if needed.
  *  return: Nothing
  */
-static void pshs(uint8_t push_list, int *cycles)
+void pshs(uint8_t push_list, int *cycles)
 {
     (*cycles)++;
 
@@ -2013,7 +2013,7 @@ static void pshs(uint8_t push_list, int *cycles)
  *  param:  Push-list operand, and command cycles to update if needed.
  *  return: Nothing
  */
-static void pshu(uint8_t push_list, int *cycles)
+void pshu(uint8_t push_list, int *cycles)
 {
     (*cycles)++;
 
@@ -2087,7 +2087,7 @@ static void pshu(uint8_t push_list, int *cycles)
  *  param:  Pull-list operand, and command cycles to update if needed.
  *  return: Nothing
  */
-static void puls(uint8_t pull_list, int *cycles)
+void puls(uint8_t pull_list, int *cycles)
 {
     uint16_t    val;
 
@@ -2171,7 +2171,7 @@ static void puls(uint8_t pull_list, int *cycles)
  *  param:  Pull-list operand, and command cycles to update if needed.
  *  return: Nothing
  */
-static void pulu(uint8_t pull_list, int *cycles)
+void pulu(uint8_t pull_list, int *cycles)
 {
     uint16_t    val;
 
@@ -2252,7 +2252,7 @@ static void pulu(uint8_t pull_list, int *cycles)
  *  Rotate left through Carry
  *
  */
-static uint8_t rol(uint8_t byte)
+inline __attribute__((always_inline)) uint8_t rol(uint8_t byte)
 {
     uint16_t    result;
 
@@ -2277,7 +2277,7 @@ static uint8_t rol(uint8_t byte)
  *  Rotate right through Carry
  *
  */
-static uint8_t ror(uint8_t byte)
+inline __attribute__((always_inline)) uint8_t ror(uint8_t byte)
 {
     uint16_t    result;
 
@@ -2308,7 +2308,7 @@ static uint8_t ror(uint8_t byte)
  *  Return from interrupt
  *
  */
-static void rti(int *cycles)
+void rti(int *cycles)
 {
     uint8_t byte;
 
@@ -2363,7 +2363,7 @@ static void rti(int *cycles)
  *
  *  acc-byte-carry
  */
-static uint8_t sbc(uint8_t acc, uint8_t byte)
+inline __attribute__((always_inline)) uint8_t sbc(uint8_t acc, uint8_t byte)
 {
     uint16_t result;
 
@@ -2383,7 +2383,7 @@ static uint8_t sbc(uint8_t acc, uint8_t byte)
  *  Sign extend Acc-B to Acc-A
  *
  */
-static void sex(void)
+inline __attribute__((always_inline)) void sex(void)
 {
     if ( cpu.b & 0x80 )
         cpu.a = 0xff;
@@ -2401,7 +2401,7 @@ static void sex(void)
  *  Subtract byte from Acc and set flags
  *
  */
-static uint8_t sub(uint8_t acc, uint8_t byte)
+inline __attribute__((always_inline)) uint8_t sub(uint8_t acc, uint8_t byte)
 {
     uint16_t result;
 
@@ -2422,7 +2422,7 @@ static uint8_t sub(uint8_t acc, uint8_t byte)
  *  Using 2's complement addition.
  *
  */
-static void subd(uint16_t word)
+void subd(uint16_t word)
 {
     uint16_t acc;
     uint32_t result;
@@ -2447,7 +2447,7 @@ static void subd(uint16_t word)
  *  SWI=1, SWI2=2, SWI3=3
  *
  */
-static void swi(int swi_id)
+void swi(int swi_id)
 {
     cc.e = CC_FLAG_SET;
 
@@ -2510,7 +2510,7 @@ static void swi(int swi_id)
  *  Check: if (((regs ^ (regs << 4)) & 0x80) == 0) {...}
  *
  */
-static void tfr(uint8_t regs)
+void tfr(uint8_t regs)
 {
     int         src, dst;
     uint16_t    temp1;
@@ -2528,7 +2528,7 @@ static void tfr(uint8_t regs)
  *  Test 8 bit operand and set V,Z,N flags.
  *
  */
-static void inline __attribute__((always_inline)) tst(uint8_t byte)
+void inline __attribute__((always_inline)) tst(uint8_t byte)
 {
     eval_cc_z((uint16_t) byte);
     eval_cc_n((uint16_t) byte);
@@ -2545,7 +2545,7 @@ static void inline __attribute__((always_inline)) tst(uint8_t byte)
  *          pointer to opcode cycles.
  *  return: Nothing
  */
-static void inline __attribute__((always_inline)) do_branch(int long_short, uint16_t effective_address)
+void inline __attribute__((always_inline)) do_branch(int long_short, uint16_t effective_address)
 {
     cpu.pc = effective_address;
     cycles_this_scanline += long_short;
@@ -2567,7 +2567,7 @@ static void inline __attribute__((always_inline)) do_branch(int long_short, uint
  *          pointer to opcode cycles.
  *  return: Nothing
  */
-static void inline __attribute__((always_inline)) branch(int instruction, int long_short, uint16_t effective_address)
+void inline __attribute__((always_inline)) branch(int instruction, int long_short, uint16_t effective_address)
 {
     /* Parse the branch condition and apply
        offset if branch is taken.
@@ -2692,7 +2692,7 @@ static void inline __attribute__((always_inline)) branch(int instruction, int lo
  *  param:  Command op code and command cycles and bytes count to update if needed.
  *  return: Effective Address, '0' if error
  */
-static inline __attribute__((always_inline)) int get_eff_addr(int mode)
+inline __attribute__((always_inline)) int get_eff_addr(int mode)
 {
     uint16_t    operand;
     uint16_t    effective_addr = 0;
@@ -2895,7 +2895,7 @@ static inline __attribute__((always_inline)) int get_eff_addr(int mode)
  *  param:  Register number
  *  return: Register content as uint16_t for all registers
  */
-static uint16_t read_register(int reg)
+inline __attribute__((always_inline)) uint16_t read_register(int reg)
 {
     uint16_t    temp;
 
@@ -2960,7 +2960,7 @@ static uint16_t read_register(int reg)
  *  param:  Register number and data to write into it.
  *  return: Nothing
  */
-static void write_register(int reg, uint16_t data)
+void write_register(int reg, uint16_t data)
 {
     switch ( reg )
     {
@@ -3021,7 +3021,7 @@ static void write_register(int reg, uint16_t data)
  *  param:  Input value
  *  return: Nothing
  */
-static inline void eval_cc_c(uint16_t value)
+inline void eval_cc_c(uint16_t value)
 {
     cc.c = (value & 0x100) ? CC_FLAG_SET : CC_FLAG_CLR;
 }
@@ -3034,7 +3034,7 @@ static inline void eval_cc_c(uint16_t value)
  *  param:  Input value
  *  return: Nothing
  */
-static void eval_cc_c16(uint32_t value)
+void eval_cc_c16(uint32_t value)
 {
     cc.c = (value & 0x00010000) ? CC_FLAG_SET : CC_FLAG_CLR;
 }
@@ -3047,7 +3047,7 @@ static void eval_cc_c16(uint32_t value)
  *  param:  Input value
  *  return: Nothing
  */
-static inline void eval_cc_z(uint16_t value)
+inline void eval_cc_z(uint16_t value)
 {
     cc.z = !(value & 0x00ff) ? CC_FLAG_SET : CC_FLAG_CLR;
 }
@@ -3060,7 +3060,7 @@ static inline void eval_cc_z(uint16_t value)
  *  param:  Input value
  *  return: Nothing
  */
-static inline void eval_cc_z16(uint32_t value)
+inline void eval_cc_z16(uint32_t value)
 {
     cc.z = !(value & 0x0000ffff) ? CC_FLAG_SET : CC_FLAG_CLR;
 }
@@ -3073,7 +3073,7 @@ static inline void eval_cc_z16(uint32_t value)
  *  param:  Input value
  *  return: Nothing
  */
-static inline void eval_cc_n(uint16_t value)
+inline void eval_cc_n(uint16_t value)
 {
     cc.n = (value & 0x0080) ? CC_FLAG_SET : CC_FLAG_CLR;
 }
@@ -3086,7 +3086,7 @@ static inline void eval_cc_n(uint16_t value)
  *  param:  Input value
  *  return: Nothing
  */
-static inline void eval_cc_n16(uint32_t value)
+inline void eval_cc_n16(uint32_t value)
 {
     cc.n = (value & 0x00008000) ? CC_FLAG_SET : CC_FLAG_CLR;
 }
@@ -3103,7 +3103,7 @@ static inline void eval_cc_n16(uint32_t value)
  *  param:  Input operands and result
  *  return: Nothing
  */
-static inline void eval_cc_v(uint8_t val1, uint8_t val2, uint16_t result)
+inline void eval_cc_v(uint8_t val1, uint8_t val2, uint16_t result)
 {
     cc.v = ((val1 ^ result) & (val2 ^ result) & 0x0080) ? CC_FLAG_SET : CC_FLAG_CLR;
 }
@@ -3120,7 +3120,7 @@ static inline void eval_cc_v(uint8_t val1, uint8_t val2, uint16_t result)
  *  param:  Input operands and result
  *  return: Nothing
  */
-static inline void eval_cc_v16(uint16_t val1, uint16_t val2, uint32_t result)
+inline void eval_cc_v16(uint16_t val1, uint16_t val2, uint32_t result)
 {
     cc.v = ((val1 ^ result) & (val2 ^ result) & 0x00008000) ? CC_FLAG_SET : CC_FLAG_CLR;
 }
@@ -3134,7 +3134,7 @@ static inline void eval_cc_v16(uint16_t val1, uint16_t val2, uint32_t result)
  *  param:  Input operands and result
  *  return: Nothing
  */
-static inline void eval_cc_h(uint8_t val1, uint8_t val2, uint8_t result)
+inline void eval_cc_h(uint8_t val1, uint8_t val2, uint8_t result)
 {
     /* Half carry in 6809 is only relevant/valid for additions ADD and ADC
      */
@@ -3149,7 +3149,7 @@ static inline void eval_cc_h(uint8_t val1, uint8_t val2, uint8_t result)
  *  param:  Nothing
  *  return: 8-bit value of CC register
  */
-static inline uint8_t get_cc(void)
+inline uint8_t get_cc(void)
 {
     return (uint8_t) ((cc.e << 7) + (cc.f << 6) + (cc.h << 5) + (cc.i << 4) + \
                       (cc.n << 3) + (cc.z << 2) + (cc.v << 1) + cc.c );
@@ -3163,7 +3163,7 @@ static inline uint8_t get_cc(void)
  *  param:  8-bit value of CC register
  *  return: Nothing
  */
-static inline  void set_cc(uint8_t value)
+inline  void set_cc(uint8_t value)
 {
     cc.c = (value & 0x01) ? CC_FLAG_SET : CC_FLAG_CLR;
     cc.v = (value & 0x02) ? CC_FLAG_SET : CC_FLAG_CLR;

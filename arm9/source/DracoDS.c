@@ -1288,7 +1288,7 @@ void DracoDSInitCPU(void)
 // -------------------------------------------------------------
 // Only used for basic timing of splash screen fade-out
 // -------------------------------------------------------------
-void irqVBlank(void)
+ITCM_CODE void irqVBlank(void)
 {
     // Manage time
     vusCptVBL++;
