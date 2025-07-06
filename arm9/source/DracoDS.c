@@ -261,6 +261,7 @@ void setupStream(void)
   mmLoadEffect(SFX_CLICKNOQUIT);
   mmLoadEffect(SFX_KEYCLICK);
   mmLoadEffect(SFX_MUS_INTRO);
+  mmLoadEffect(SFX_FLOPPY);
 
   //----------------------------------------------------------------
   //  open stream
@@ -366,30 +367,42 @@ void DisplayStatusLine(void)
     
     DSPrint(29,0,2, (sam_registers.memory_map_type ? "32K": "64K"));
 
-    if (tape_motor || io_show_status)
+    if (draco_mode == MODE_DSK)
     {
-        if (io_show_status) --io_show_status;
-        char tmp[5];
-        // Show cassette in green (playing)
-        DSPrint(27, 21, 2, "$%&");
-        DSPrint(27, 22, 2, "DEF");
-        
+        if (io_show_status)
+        {
+            if (io_show_status) --io_show_status;
+            // Show disk in green (read/write)
+            DSPrint(27, 21, 2, ",-.");
+            DSPrint(27, 22, 2, "LMN");
+            if (io_show_status >= 3) mmEffect(SFX_FLOPPY);
+        }
+        else
+        {
+            // Show disk in white (no activity)
+            DSPrint(27, 21, 2, "'()");
+            DSPrint(27, 22, 2, "GHI");
+        }
+    }
+    else
+    {
         if (tape_motor)
         {
+            char tmp[5];
+            // Show cassette in green (playing)
+            DSPrint(27, 21, 2, "$%&");
+            DSPrint(27, 22, 2, "DEF");
+            
             sprintf(tmp, "%03d", tape_pos/1024); // Tape Counter in 1K increments
             DSPrint(27, 23, 6, tmp);
         }
         else
         {
-            DSPrint(27, 23, 6, "DSK");
+            // Show cassette in white (stopped)
+            DSPrint(27, 21, 2, "!\"#");
+            DSPrint(27, 22, 2, "ABC");
+            DSPrint(27, 23, 6, "   ");
         }
-    }
-    else
-    {
-        // Show cassette in white (stopped)
-        DSPrint(27, 21, 2, "!\"#");
-        DSPrint(27, 22, 2, "ABC");
-        DSPrint(27, 23, 6, "   ");
     }
     
     if (shift_key)
@@ -968,6 +981,27 @@ void DracoDS_main(void)
                           if (myConfig.keymap[i] < 5)   // Joystick key map
                           {
                               ucDEUX  |= keyCoresp[myConfig.keymap[i]];
+                          }
+                          if (myConfig.keymap[i] >= 60)   // Macro mapping
+                          {
+                              switch (myConfig.keymap[i])
+                              {
+                                  case 60:
+                                    BufferKey(5); BufferKey(49); BufferKey(16); BufferKey(48);  // ATTACK LEFT
+                                    break;
+                                  case 61:
+                                    BufferKey(5); BufferKey(49); BufferKey(22); BufferKey(48);  // ATTACK RIGHT
+                                    break;
+                                  case 62:
+                                    BufferKey(17); BufferKey(48);  // MOVE
+                                    break;
+                                  case 63:
+                                    BufferKey(24); BufferKey(49); BufferKey(16); BufferKey(48);  // TURN LEFT
+                                    break;
+                                  case 64:
+                                    BufferKey(24); BufferKey(49); BufferKey(22); BufferKey(48);  // TURN LEFT
+                                    break;
+                              }
                           }
                           else // This is a keyboard maping... handle that here... just set the appopriate kbd_key
                           {

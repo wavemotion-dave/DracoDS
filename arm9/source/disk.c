@@ -69,7 +69,7 @@ void disk_init(void)
         
         fdc_reset(true);
         
-        fdc_init(WD2793, 1, 1, 35, 18, 256, 1, TapeCartDiskBuffer, NULL);
+        fdc_init(WD2793, 1, 1, (last_file_size >= (180*1024) ? 40:35), 18, 256, 1, TapeCartDiskBuffer, NULL);
     }
 }
 

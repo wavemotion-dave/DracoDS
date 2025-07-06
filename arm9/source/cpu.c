@@ -195,20 +195,16 @@ int cpu_init(int address)
 
     /* CPU state
      */
-    cpu.nmi_armed = 0;
-    cpu.nmi_latched = 0;
-    cpu.halt_asserted = 0;
-    cpu.reset_asserted = 0;
-    cpu.irq_asserted = 0;
-    cpu.firq_asserted = 0;
-    cpu.int_latch = 0;
-    cpu.cpu_state = CPU_HALTED;
+    cpu.nmi_armed       = 0;
+    cpu.nmi_latched     = 0;
+    cpu.halt_asserted   = 0;
+    cpu.reset_asserted  = 0;
+    cpu.irq_asserted    = 0;
+    cpu.firq_asserted   = 0;
+    cpu.int_latch       = 0;
+    cpu.cpu_state       = CPU_HALTED;
 
-    /* Check start address and update PC
-     */
-    if ( address < 0 || address > (MEMORY-1) )
-        return 1;
-
+    // And set the PC to where we want to start
     cpu.pc = address;
 
     return 0;

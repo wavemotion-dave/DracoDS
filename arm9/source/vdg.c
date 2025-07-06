@@ -434,7 +434,7 @@ ITCM_CODE void vdg_render_semi6(int vdg_mem_base)
  * return: none
  *
  */
-void vdg_render_semi_ext(video_mode_t mode, int vdg_mem_base)
+ITCM_CODE void vdg_render_semi_ext(video_mode_t mode, int vdg_mem_base)
 {
     int         row, seg_row, scan_line, col, font_col, font_row;
     int         segments, seg_scan_lines;

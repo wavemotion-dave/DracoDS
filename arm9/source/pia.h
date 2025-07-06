@@ -35,6 +35,10 @@ extern uint8_t   cas_eof;
 extern uint32_t  tape_pos;
 extern uint16_t  tape_motor;
 extern uint8_t   keyboard_rows[KBD_ROWS];
+extern uint8_t   pia0_ddr_a;
+extern uint8_t   pia0_ddr_b;
+extern uint8_t   pia1_ddr_a;
+extern uint8_t   pia1_ddr_b;
 
 void pia_init(void);
 

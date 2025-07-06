@@ -114,7 +114,16 @@ const char szKeyName[MAX_KEY_OPTIONS][16] = {
 
   "CLEAR",
   "SHIFT",          // 55
-  "BREAK"
+  "BREAK",
+  "RESERVED",
+  "RESERVED",
+  "RESERVED",       // 59
+  
+  "ATTACK LEFT",    // 60
+  "ATTACK RIGHT",
+  "MOVE",
+  "TURN LEFT",
+  "TURN RIGHT"
 };
 
 

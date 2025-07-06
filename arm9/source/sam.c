@@ -44,7 +44,6 @@ static uint8_t io_page_one(uint16_t address, uint8_t data, mem_operation_t op);
 /* -----------------------------------------
    Module vars
 ----------------------------------------- */
-uint16_t map_upper_to_lower     __attribute__((section(".dtcm"))) = 0x0000;
 struct sam_reg_t sam_registers  __attribute__((section(".dtcm")));
 
 /*------------------------------------------------
@@ -60,21 +59,19 @@ void sam_init(void)
     mem_define_io(0xfff2, 0xffff, io_handler_vector_redirect);
     mem_define_io(0xffc0, 0xffdf, io_handler_sam_write);
     
-    mem_define_io(0xffde, 0xffde, io_rom_mode); // RAM/ROM (type 0 map)
-    mem_define_io(0xffdf, 0xffdf, io_ram_mode); // ALL-RAM (type 1 map)
-
-    //TODO: these don't work yet... mapping upper RAM into lower 32K
-    mem_define_io(0xffd4, 0xffd4, io_page_zero);
-    mem_define_io(0xffd5, 0xffd5, io_page_one);
+    mem_define_io(0xffde, 0xffde, io_rom_mode);     // RAM/ROM (type 0 map)
+    mem_define_io(0xffdf, 0xffdf, io_ram_mode);     // ALL-RAM (type 1 map)
     
-    sam_registers.vdg_mode = 0;             // Alphanumeric mode
-    sam_registers.vdg_display_offset = 2;   // Dragon computer text page 0x0400
-    sam_registers.page = 0;                 // 0=Normal, 1=Map upper 32K RAM to lower
-    sam_registers.mpu_rate = 0;             // For compatibility, not used. Fixed to 0.89MHz
-    sam_registers.memory_size = 2;          // For compatibility, not used. Fixed to 64K
-    sam_registers.memory_map_type = 1;      // 1=ROMs in place, 0=ALL RAM mode 64K
+    mem_define_io(0xffd4, 0xffd4, io_page_zero);    // Normal mapping
+    mem_define_io(0xffd5, 0xffd5, io_page_one);     // Mapping upper RAM into lower 32K
     
-    map_upper_to_lower = 0x0000;            // Normal memory map
+    sam_registers.vdg_mode = 0;                     // Alphanumeric mode
+    sam_registers.vdg_display_offset = 2;           // Dragon computer text page 0x0400
+    sam_registers.page = 0;                         // 0=Normal, 1=Map upper 32K RAM to lower address space
+    sam_registers.mpu_rate = 0;                     // For compatibility, not used. Fixed to 0.89MHz
+    sam_registers.memory_size = 2;                  // For compatibility, not used. Fixed to 64K
+    sam_registers.memory_map_type = 0x8000;         // 1=ROMs in place, 0=ALL RAM mode 64K
+    sam_registers.map_upper_to_lower = 0x0000;      // No SAM offset to memory
 }
 
 /*------------------------------------------------
@@ -210,7 +207,6 @@ ITCM_CODE uint8_t io_handler_sam_write(uint16_t address, uint8_t data, mem_opera
     return 0;
 }
 
-
 // ----------------------------------------------------------------------
 // 64K Emulation - mainly to allow swap of RAM/ROM mode for ALL-RAM mode
 // ----------------------------------------------------------------------
@@ -219,9 +215,11 @@ static uint8_t io_rom_mode(uint16_t address, uint8_t data, mem_operation_t op)
 {
     if ( op == MEM_WRITE )
     {
-        sam_registers.memory_map_type = 1;
+        sam_registers.memory_map_type = 0x8000;
+        sam_registers.map_upper_to_lower = (sam_registers.page ? 0x8000:0x0000);
     }
-    return data;
+    
+    return 0;
 }
 
 static uint8_t io_ram_mode(uint16_t address, uint8_t data, mem_operation_t op)
@@ -229,26 +227,30 @@ static uint8_t io_ram_mode(uint16_t address, uint8_t data, mem_operation_t op)
     if ( op == MEM_WRITE )
     {
         sam_registers.memory_map_type = 0;
-    }   
-    return data;
+        sam_registers.map_upper_to_lower = 0x0000;
+    }
+    
+    return 0;
 }
 
 static uint8_t io_page_zero(uint16_t address, uint8_t data, mem_operation_t op)
 {
     if ( op == MEM_WRITE )
     {
-        map_upper_to_lower = 0x0000;
+        sam_registers.map_upper_to_lower = 0x0000;
         sam_registers.page = 0;
     }
-    return data;
+    
+    return 0;
 }
 
 static uint8_t io_page_one(uint16_t address, uint8_t data, mem_operation_t op)
 {
     if ( op == MEM_WRITE )
     {
-        map_upper_to_lower = 0x8000;
+        sam_registers.map_upper_to_lower = (sam_registers.memory_map_type ? 0x8000 : 0x0000);
         sam_registers.page = 1;
     }
-    return data;
+    
+    return 0;
 }

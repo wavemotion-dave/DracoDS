@@ -87,7 +87,7 @@ extern u32 DX, DY;
 #define META_KBD_SPACE      0xF029
 #define META_KBD_RETURN     0xF02A
 
-#define MAX_KEY_OPTIONS     57
+#define MAX_KEY_OPTIONS     65
 
 // -----------------------------
 // For the Full Keyboard...

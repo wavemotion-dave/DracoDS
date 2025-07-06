@@ -81,10 +81,10 @@ void DracoSaveState()
     if (retVal) retVal = fwrite(&nmi_enable, sizeof(nmi_enable), 1, handle);
     
     // Write FDC vars
-    if (retVal) retVal = fwrite(&FDC,               sizeof(FDC),                1, handle);
-    if (retVal) retVal = fwrite(&Geom,              sizeof(Geom),               1, handle);
-    if (retVal) retVal = fwrite(&io_show_status,    sizeof(io_show_status),     1, handle);
-    if (retVal) retVal = fwrite(disk_unsaved_data,  sizeof(disk_unsaved_data),  1, handle);
+    if (retVal) retVal = fwrite(&FDC,                   sizeof(FDC),                1, handle);
+    if (retVal) retVal = fwrite(&Geom,                  sizeof(Geom),               1, handle);
+    if (retVal) retVal = fwrite(&io_show_status,        sizeof(io_show_status),     1, handle);
+    if (retVal) retVal = fwrite(disk_unsaved_data,      sizeof(disk_unsaved_data),  1, handle);
     
     // Write PIA vars
     if (retVal) retVal = fwrite(&pia0_ca1_int_enabled,  sizeof(pia0_ca1_int_enabled),   1, handle);
@@ -97,7 +97,11 @@ void DracoSaveState()
     if (retVal) retVal = fwrite(&tape_pos,              sizeof(tape_pos),               1, handle);
     if (retVal) retVal = fwrite(&tape_motor,            sizeof(tape_motor),             1, handle);
     if (retVal) retVal = fwrite(keyboard_rows,          sizeof(keyboard_rows),          1, handle);    
-
+    if (retVal) retVal = fwrite(&pia0_ddr_a,            sizeof(pia0_ddr_a),             1, handle);
+    if (retVal) retVal = fwrite(&pia0_ddr_b,            sizeof(pia0_ddr_b),             1, handle);
+    if (retVal) retVal = fwrite(&pia1_ddr_a,            sizeof(pia1_ddr_a),             1, handle);
+    if (retVal) retVal = fwrite(&pia1_ddr_b,            sizeof(pia1_ddr_b),             1, handle);
+    
     // Write VDG vars
     if (retVal) retVal = fwrite(&video_ram_offset,      sizeof(video_ram_offset),       1, handle);
     if (retVal) retVal = fwrite(&sam_video_mode,        sizeof(sam_video_mode),         1, handle);
@@ -133,8 +137,10 @@ void DracoSaveState()
     WAITVBL;WAITVBL;WAITVBL;WAITVBL;WAITVBL;WAITVBL;
     DSPrint(3,0,0,"             ");
   }
-  else {
-    strcpy(tmpStr,"Error opening SAV file ...");
+  else
+  {
+      strcpy(tmpStr,"Error opening SAV file ...");
+      DSPrint(2,0,0,tmpStr);
   }
   fclose(handle);
 }
@@ -205,6 +211,10 @@ void DracoLoadState()
         if (retVal) retVal = fread(&tape_pos,              sizeof(tape_pos),               1, handle);
         if (retVal) retVal = fread(&tape_motor,            sizeof(tape_motor),             1, handle);
         if (retVal) retVal = fread(keyboard_rows,          sizeof(keyboard_rows),          1, handle);    
+        if (retVal) retVal = fread(&pia0_ddr_a,            sizeof(pia0_ddr_a),             1, handle);
+        if (retVal) retVal = fread(&pia0_ddr_b,            sizeof(pia0_ddr_b),             1, handle);
+        if (retVal) retVal = fread(&pia1_ddr_a,            sizeof(pia1_ddr_a),             1, handle);
+        if (retVal) retVal = fread(&pia1_ddr_b,            sizeof(pia1_ddr_b),             1, handle);
 
         // Restore VDG vars
         if (retVal) retVal = fread(&video_ram_offset,      sizeof(video_ram_offset),       1, handle);
@@ -246,9 +256,9 @@ void DracoLoadState()
   }
   else
   {
-    DSPrint(4,0,0,"NO SAVED GAME");
-    WAITVBL;WAITVBL;WAITVBL;WAITVBL;WAITVBL;WAITVBL;
-    DSPrint(4,0,0,"             ");
+      DSPrint(4,0,0,"NO SAVED GAME");
+      WAITVBL;WAITVBL;WAITVBL;WAITVBL;WAITVBL;WAITVBL;
+      DSPrint(4,0,0,"             ");
   }
 
     fclose(handle);

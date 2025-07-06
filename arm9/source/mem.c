@@ -34,9 +34,9 @@ static uint8_t do_nothing_io_handler(uint16_t address, uint8_t data, mem_operati
 /* -----------------------------------------
    Module globals
 ----------------------------------------- */
-io_handler_callback memory_io[MEMORY];  // IO Handler 
-uint8_t  memory_RAM[MEMORY];            // 64K of RAM 
-uint8_t  memory_ROM[MEMORY];            // 64K of ROM but only the upper 32K is ever mapped/used
+io_handler_callback memory_io[MEMORY_SIZE];  // IO Handler 
+uint8_t  memory_RAM[MEMORY_SIZE];            // 64K of RAM 
+uint8_t  memory_ROM[MEMORY_SIZE];            // 64K of ROM but only the upper 32K is ever mapped/used
 
 /*------------------------------------------------
  * mem_init()
@@ -50,7 +50,7 @@ void mem_init(void)
 {
     int i;
 
-    for ( i = 0; i < MEMORY; i++ )
+    for ( i = 0; i < MEMORY_SIZE; i++ )
     {
         memory_RAM[i] = 0;
         memory_ROM[i] = 0xFF;
@@ -69,19 +69,16 @@ void mem_init(void)
  */
 ITCM_CODE void mem_write(int address, int data)
 {
-    if (address & 0x8000)
+    if ((address & 0xFF00) == 0xFF00)
     {
-        if ((address & 0xFF00) == 0xFF00)
-        {
-            memory_io[address]((uint16_t) address, (uint8_t)data, MEM_WRITE);
-        }
-        else
-        {
-            if ( sam_registers.memory_map_type ) return; // Else fall through and write below ... 64K mode
-        }        
+        memory_io[address]((uint16_t) address, (uint8_t)data, MEM_WRITE);
     }
+    else
+    {
+        if ( sam_registers.memory_map_type & address ) return; // Else fall through and write below ... 64K mode
+    }        
     
-    memory_RAM[address] = (uint8_t) data;
+    memory_RAM[sam_registers.map_upper_to_lower | address] = (uint8_t) data;
 }
 
 
@@ -93,21 +90,16 @@ ITCM_CODE void mem_write(int address, int data)
  *
  *  param:  Memory address range start to end, inclusive
  *          IO handler callback for the range or NULL
- *  return: ' 0' - write ok,
  */
-int mem_define_io(int addr_start, int addr_end, io_handler_callback io_handler)
+void mem_define_io(int addr_start, int addr_end, io_handler_callback io_handler)
 {
-    int i;
-
-    for (i = addr_start; i <= addr_end; i++)
+    for (int i = addr_start; i <= addr_end; i++)
     {
         if ( io_handler != 0L )
         {
             memory_io[i] = io_handler;
         }
     }
-
-    return MEM_OK;
 }
 
 /*------------------------------------------------
@@ -117,16 +109,13 @@ int mem_define_io(int addr_start, int addr_end, io_handler_callback io_handler)
  *
  *  param:  Memory address start, source data buffer and
  *          number of data elements to load
- *  return: ' 0' - write ok,
  */
-int mem_load_rom(int addr_start, const uint8_t *buffer, int length)
+void mem_load_rom(int addr_start, const uint8_t *buffer, int length)
 {
     for (int i = 0; i < length; i++)
     {
         memory_ROM[(i+addr_start)] = buffer[i];
     }
-
-    return MEM_OK;
 }
 
 /*------------------------------------------------

@@ -19,7 +19,7 @@ Features :
 * Dragon 32/64 support with 32K or 64K of RAM running at the 50Hz PAL speed.
 * Cassette (.cas) support for both the Dragon and Tandy emulated machines.
 * Cartridge (.ccc) support for the Tandy emulated machine.
-* Disk (.dsk) support for the Tandy emulated machine. Standard single-sided 160K disks only.
+* Disk (.dsk) support for the Tandy emulated machine. Standard single-sided 160K (35 track) or 180K (40 track) disks only.
 * Save/Load Game State (one slot).
 * Artifacting support to 4-color high-rez mode.
 * LCD Screen Swap (press and hold L+R+X during gameplay).
@@ -82,7 +82,8 @@ CLOAD
 RUN
 ```
 
-You can press the START button to automatically issue the 'CLOADM' command.
+You can press the START button to automatically issue the 'CLOADM' command. Note that you must wait for the Cassette to load after the CLOAD/CLOADM commands - the tape icon 
+should go from green (reading) to white and the OK prompt should appear on BASIC again before you type the EXEC/RUN command.
 
 Disks are the most complicated.  After loading you should do a DIR to see the contents of the disk. Then you issue a pair of commands as follows:
 
@@ -128,6 +129,12 @@ Keyboards :
 Both the Tandy and Dragon keyboards behave the same - there is only the cosmetic difference of the company banner/logo at the top.  Note that due to the limitations
 of the DS touch-screen where only one key can be pressed at a time, the SHIFT key works like a temporary toggle. Press it and then the next key you press will be SHIFT-ed.
 
+Dungeons of Daggorath :
+-----------------------
+My favorite CoCo game! To that end, I've added 5 special 'MACRO' keys to the possible keyboard map to allow you to map a key to "ATTACK LEFT", "ATTACK RIGHT", "MOVE", "TURN LEFT", "TURN RIGHT". 
+Map these to the d-pad or any buttons you wish and playing DoD will be a joy.
+
+
 Compile Instructions :
 -----------------------
 gcc (Ubuntu 11.3.0-1ubuntu1~22.04) 11.3.0
@@ -153,5 +160,14 @@ And then move the soundbank.h file to the arm9/sources directory
 
 Versions :
 -----------------------
+V0.6: 06-July-2025 by wavemotion-dave
+* Disk sizes supported now includes 160K (35 track) and 180K (40 track).
+* Improved disk read/write handling (still not backed to SD)
+* Proper disk icon when a .dsk is loaded and floppy loading sounds added.
+* Improved PIA handling to eliminate small sound glitches on some games.
+* Mirrors for PIA now handled.
+* Macros for Dungeons of Daggorath added!
+* Added first pass at Save/Load State
+
 V0.5: 05-July-2025 by wavemotion-dave
-* Soon...
+* First public beta!
