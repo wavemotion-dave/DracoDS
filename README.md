@@ -15,7 +15,7 @@ support but it also works for the Dragon 32/64 and can be configured as such.
 
 Features :
 -----------------------
-* Tandy CoCo 2 support with 32K of RAM (64K of RAM partially implemented... the ALL-RAM mode works but the paging does not). Running at 60Hz NTSC.
+* Tandy CoCo 2 support with 32K of RAM and 64K of RAM. Running at 60Hz NTSC.
 * Dragon 32/64 support with 32K or 64K of RAM running at the 50Hz PAL speed.
 * Cassette (.cas) support for both the Dragon and Tandy emulated machines.
 * Cartridge (.ccc) support for the Tandy emulated machine.
