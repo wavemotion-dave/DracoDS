@@ -164,6 +164,13 @@ And then move the soundbank.h file to the arm9/sources directory
 
 Versions :
 -----------------------
+V0.7: 07-July-2025 by wavemotion-dave
+* Numerous small fixes for joystick/keyboard handling.
+* Fix for the SemiGraphics Modes not showing anything (blank screen).
+* Improved Disk Icon.
+* Improved 64K memory handling - we now pass the known 64K mem tests (still... Sailor Man won't run).
+* Other small tweaks and improvements across the board.
+
 V0.6: 06-July-2025 by wavemotion-dave
 * Disk sizes supported now includes 160K (35 track) and 180K (40 track).
 * Improved disk read/write handling (still not backed to SD)

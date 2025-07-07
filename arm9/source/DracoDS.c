@@ -50,7 +50,7 @@ u32 DY = 0;
 
 u8 DragonBASIC[0x4000]        = {0};  // We keep the 16k Dragon 32 BASIC/BIOS here
 u8 CoCoBASIC[0x4000]          = {0};  // We keep the 16k Tandy CoCo BASIC/BIOS here (two 8K roms)
-u8 DiskROM[0x4000]            = {0};  // We keep the 16k Disk ROM here
+u8 DiskROM[0x4000]            = {0};  // We keep the 8/16k Disk ROM here
 
 u8 TapeCartDiskBuffer[MAX_FILE_SIZE];     // This is where we keep the raw untouched file as read from the SD card
 
@@ -375,6 +375,7 @@ void DisplayStatusLine(void)
             // Show disk in green (read/write)
             DSPrint(27, 21, 2, ",-.");
             DSPrint(27, 22, 2, "LMN");
+            DSPrint(27, 23, 2, "OPQ");
             if (io_show_status >= 3) mmEffect(SFX_FLOPPY);
         }
         else
@@ -382,6 +383,7 @@ void DisplayStatusLine(void)
             // Show disk in white (no activity)
             DSPrint(27, 21, 2, "'()");
             DSPrint(27, 22, 2, "GHI");
+            DSPrint(27, 23, 2, "OPQ");
         }
     }
     else
@@ -806,6 +808,13 @@ void DracoDS_main(void)
                     {
                         BufferKey(17);    // M
                     }
+                    BufferKey(44);    // :
+                    
+                    BufferKey(9);     // E
+                    BufferKey(28);    // X
+                    BufferKey(9);     // E
+                    BufferKey(7);     // C
+                    
                     BufferKey(48);    // ENTER
                     BufferKey(255);   // END
                 }

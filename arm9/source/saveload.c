@@ -123,7 +123,7 @@ void DracoSaveState()
     if (retVal) retVal = fwrite(&timingFrames,            sizeof(timingFrames),             1, handle);
     
     // IO Memory Space
-    if (retVal) retVal = fwrite(memory_IO,                sizeof(memory_IO),                1, handle);
+    if (retVal) retVal = fwrite(memory_IO+0xFF00,         0x100,                            1, handle);
     
     // -----------------------------------------------------------------------
     // Compress the 64K RAM data using 'high' compression ratio... it's
@@ -240,7 +240,7 @@ void DracoLoadState()
         if (retVal) retVal = fread(&timingFrames,            sizeof(timingFrames),             1, handle);
 
         // IO Memory Space
-        if (retVal) retVal = fread(memory_IO,                sizeof(memory_IO),                1, handle);
+        if (retVal) retVal = fread(memory_IO+0xFF00,         0x100,                            1, handle);
 
         // Restore Main RAM memory
         int comp_len = 0;

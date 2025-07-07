@@ -251,6 +251,6 @@ static uint8_t io_page_one(uint16_t address, uint8_t data, mem_operation_t op)
         sam_registers.map_upper_to_lower = (sam_registers.memory_map_type ? 0x8000 : 0x0000);
         sam_registers.page = 1;
     }
-    
+
     return 0;
 }
