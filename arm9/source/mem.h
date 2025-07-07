@@ -37,9 +37,9 @@ typedef uint8_t (*io_handler_callback)(uint16_t, uint8_t, mem_operation_t);
 
 extern io_handler_callback callback_io[MEMORY_SIZE];
 
-extern uint8_t  memory_RAM[MEMORY_SIZE];
-extern uint8_t  memory_ROM[MEMORY_SIZE];
-extern uint8_t  memory_IO[0x100];
+extern uint8_t  memory_RAM[MEMORY_SIZE];    // 64K RAM 
+extern uint8_t  memory_ROM[MEMORY_SIZE];    // 64K ROM space... we only use the upper 32K (but saves AND)
+extern uint8_t  memory_IO[MEMORY_SIZE];     // 64K IO space... but we only use the upper 256 bytes (FF00-FFFF)
 
 /********************************************************************
  *  Memory module API
@@ -67,7 +67,8 @@ inline __attribute__((always_inline)) uint8_t mem_read(int address)
         /* An attempt to read an IO address will trigger
          * the callback that may return an alternative value.
          */
-        memory_RAM[address] = callback_io[address]((uint16_t) address, memory_RAM[address], MEM_READ);
+        memory_IO[address] = callback_io[address]((uint16_t) address, memory_IO[address], MEM_READ);
+        return memory_IO[address];
     }
     else if (sam_registers.memory_map_type & address)
     {

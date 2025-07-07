@@ -22,7 +22,7 @@
 #ifndef __PIA_H__
 #define __PIA_H__
 
-#define     KBD_ROWS            7
+#define KBD_ROWS 7
 
 extern uint8_t   pia0_ca1_int_enabled;
 extern uint8_t   pia0_cb1_int_enabled;
@@ -41,11 +41,11 @@ extern uint8_t   pia1_ddr_a;
 extern uint8_t   pia1_ddr_b;
 
 void pia_init(void);
-
 void pia_vsync_irq(void);
 void pia_cart_firq(void);
 void pia_hsync_firq(void);
 int  pia_function_key(void);
-uint8_t pia_is_audio_dac_enabled(void);
+
+#define pia_is_audio_dac_enabled() ((sound_enable && !mux_select) ? 1:0)
 
 #endif  /* __PIA_H__ */

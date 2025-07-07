@@ -1619,7 +1619,7 @@ inline __attribute__((always_inline))  void bit(uint8_t acc, uint8_t byte)
  *  Change flag bit appropriately.
  *
  */
-uint8_t clr(void)
+inline __attribute__((always_inline)) uint8_t clr(void)
 {
     cc.c = CC_FLAG_CLR;
     cc.v = CC_FLAG_CLR;
@@ -1676,7 +1676,7 @@ inline __attribute__((always_inline)) void cmp16(uint16_t arg, uint16_t word)
  *
  *  ~byte
  */
-uint8_t com(uint8_t byte)
+inline __attribute__((always_inline)) uint8_t com(uint8_t byte)
 {
     uint8_t result;
 
@@ -1820,7 +1820,7 @@ inline __attribute__((always_inline)) uint8_t eor(uint8_t acc, uint8_t byte)
  *  Check: if (((regs ^ (regs << 4)) & 0x80) == 0) {...}
  *
  */
-void exg(uint8_t regs)
+inline __attribute__((always_inline)) void exg(uint8_t regs)
 {
     int         src, dst;
     uint16_t    temp1, temp2;
@@ -1921,7 +1921,7 @@ inline __attribute__((always_inline)) uint8_t or(uint8_t acc, uint8_t byte)
  *  Logical OR condition-code register with operand.
  *
  */
-void orcc(uint8_t byte)
+inline __attribute__((always_inline)) void orcc(uint8_t byte)
 {
     uint8_t temp_cc;
 
@@ -2960,7 +2960,7 @@ inline __attribute__((always_inline)) uint16_t read_register(int reg)
  *  param:  Register number and data to write into it.
  *  return: Nothing
  */
-void write_register(int reg, uint16_t data)
+inline __attribute__((always_inline)) void write_register(int reg, uint16_t data)
 {
     switch ( reg )
     {
@@ -3021,7 +3021,7 @@ void write_register(int reg, uint16_t data)
  *  param:  Input value
  *  return: Nothing
  */
-inline void eval_cc_c(uint16_t value)
+inline __attribute__((always_inline)) void eval_cc_c(uint16_t value)
 {
     cc.c = (value & 0x100) ? CC_FLAG_SET : CC_FLAG_CLR;
 }
@@ -3034,7 +3034,7 @@ inline void eval_cc_c(uint16_t value)
  *  param:  Input value
  *  return: Nothing
  */
-void eval_cc_c16(uint32_t value)
+inline __attribute__((always_inline)) void eval_cc_c16(uint32_t value)
 {
     cc.c = (value & 0x00010000) ? CC_FLAG_SET : CC_FLAG_CLR;
 }
@@ -3047,7 +3047,7 @@ void eval_cc_c16(uint32_t value)
  *  param:  Input value
  *  return: Nothing
  */
-inline void eval_cc_z(uint16_t value)
+inline __attribute__((always_inline)) void eval_cc_z(uint16_t value)
 {
     cc.z = !(value & 0x00ff) ? CC_FLAG_SET : CC_FLAG_CLR;
 }
@@ -3060,7 +3060,7 @@ inline void eval_cc_z(uint16_t value)
  *  param:  Input value
  *  return: Nothing
  */
-inline void eval_cc_z16(uint32_t value)
+inline __attribute__((always_inline)) void eval_cc_z16(uint32_t value)
 {
     cc.z = !(value & 0x0000ffff) ? CC_FLAG_SET : CC_FLAG_CLR;
 }
@@ -3073,7 +3073,7 @@ inline void eval_cc_z16(uint32_t value)
  *  param:  Input value
  *  return: Nothing
  */
-inline void eval_cc_n(uint16_t value)
+inline __attribute__((always_inline)) void eval_cc_n(uint16_t value)
 {
     cc.n = (value & 0x0080) ? CC_FLAG_SET : CC_FLAG_CLR;
 }
@@ -3086,7 +3086,7 @@ inline void eval_cc_n(uint16_t value)
  *  param:  Input value
  *  return: Nothing
  */
-inline void eval_cc_n16(uint32_t value)
+inline __attribute__((always_inline)) void eval_cc_n16(uint32_t value)
 {
     cc.n = (value & 0x00008000) ? CC_FLAG_SET : CC_FLAG_CLR;
 }
@@ -3103,7 +3103,7 @@ inline void eval_cc_n16(uint32_t value)
  *  param:  Input operands and result
  *  return: Nothing
  */
-inline void eval_cc_v(uint8_t val1, uint8_t val2, uint16_t result)
+inline __attribute__((always_inline)) void eval_cc_v(uint8_t val1, uint8_t val2, uint16_t result)
 {
     cc.v = ((val1 ^ result) & (val2 ^ result) & 0x0080) ? CC_FLAG_SET : CC_FLAG_CLR;
 }
@@ -3120,7 +3120,7 @@ inline void eval_cc_v(uint8_t val1, uint8_t val2, uint16_t result)
  *  param:  Input operands and result
  *  return: Nothing
  */
-inline void eval_cc_v16(uint16_t val1, uint16_t val2, uint32_t result)
+inline __attribute__((always_inline)) void eval_cc_v16(uint16_t val1, uint16_t val2, uint32_t result)
 {
     cc.v = ((val1 ^ result) & (val2 ^ result) & 0x00008000) ? CC_FLAG_SET : CC_FLAG_CLR;
 }
@@ -3134,7 +3134,7 @@ inline void eval_cc_v16(uint16_t val1, uint16_t val2, uint32_t result)
  *  param:  Input operands and result
  *  return: Nothing
  */
-inline void eval_cc_h(uint8_t val1, uint8_t val2, uint8_t result)
+inline __attribute__((always_inline)) void eval_cc_h(uint8_t val1, uint8_t val2, uint8_t result)
 {
     /* Half carry in 6809 is only relevant/valid for additions ADD and ADC
      */
@@ -3149,7 +3149,7 @@ inline void eval_cc_h(uint8_t val1, uint8_t val2, uint8_t result)
  *  param:  Nothing
  *  return: 8-bit value of CC register
  */
-inline uint8_t get_cc(void)
+inline __attribute__((always_inline)) uint8_t get_cc(void)
 {
     return (uint8_t) ((cc.e << 7) + (cc.f << 6) + (cc.h << 5) + (cc.i << 4) + \
                       (cc.n << 3) + (cc.z << 2) + (cc.v << 1) + cc.c );
@@ -3163,7 +3163,7 @@ inline uint8_t get_cc(void)
  *  param:  8-bit value of CC register
  *  return: Nothing
  */
-inline  void set_cc(uint8_t value)
+inline void set_cc(uint8_t value)
 {
     cc.c = (value & 0x01) ? CC_FLAG_SET : CC_FLAG_CLR;
     cc.v = (value & 0x02) ? CC_FLAG_SET : CC_FLAG_CLR;

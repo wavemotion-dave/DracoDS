@@ -516,7 +516,7 @@ ITCM_CODE void vdg_render_semi_ext(video_mode_t mode, int vdg_mem_base)
                         }
                     }
 
-                    if (!bit_pattern)
+                    if (!bit_pattern) // Background - always black
                     {
                         *screen_buffer++ = 0x00000000;
                         *screen_buffer++ = 0x00000000;
