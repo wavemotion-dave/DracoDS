@@ -132,6 +132,12 @@ example, play fine with the 'SLOW ANALOG' setting.  Experiment and figure out wh
 The default joystick is the RIGHT port joystick but every game seems to be different... if the game isn't responding to the RIGHT joystick port, switch it in the 
 game options to the LEFT port (you don't have to exit the game to make this change - the DS MINI menu has the Game Options available from the little Cassette Icon)
 
+There is also a very useful mode of the d-pad called "SLIDE-N-GLIDE" which was originally designed by me to play and enjoy Chuckie Egg on my ZX Spectrum Emulator. 
+If you've ever played a ladder climbing game or maze game where getting on/off the ladder or turning a corner was difficult, then SLIDE-N-GLIDE might be just the
+ticket. It causes the movement of the player to continue to move in the horizontal or vertical direction while you change direction on the d-pad. This makes for 
+much smoother transitions onto/off laders and makes for very easy cornering in maze games. Turn this on in configuration - you may just find it the most enjoyable 
+option in the emulator!
+
 Keyboards :
 -----------------------
 Both the Tandy and Dragon keyboards behave the same - there is only the cosmetic difference of the company banner/logo at the top.  Note that due to the limitations
