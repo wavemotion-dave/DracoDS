@@ -151,6 +151,7 @@ Map these to the d-pad or any buttons you wish and playing DoD will be a joy.
 Known Issues:
 -----------------------
 * Sailor Man (both .cas and .dsk) loads but soon crashes with screen garbage. Cause unknown.
+* Manic Miner (both Dragon and the CoCo port) will load but Willy just jumps constantly. Cause unknown.
 
 Compile Instructions :
 -----------------------
