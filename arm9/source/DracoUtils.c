@@ -12,7 +12,6 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <fat.h>
 #include <dirent.h>
 #include <unistd.h>
 #include <maxmod9.h>
@@ -735,6 +734,7 @@ void SetDefaultGlobalConfig(void)
     myGlobalConfig.lastDir        = 0;    // Default is to start in /roms/dragon
     myGlobalConfig.debugger       = 0;    // Debugger is not shown by default
     myGlobalConfig.defMachine     = 1;    // Set to Tandy by default (0=Dragon)
+    myGlobalConfig.defDiskSave    = 1;    // Default is to auto-save disk files
 }
 
 void SetDefaultGameConfig(void)
@@ -752,12 +752,13 @@ void SetDefaultGameConfig(void)
     myConfig.gameSpeed   = 0;                           // Default is 100% game speed
     myConfig.forceCSS    = 0;                           // Normal - not forced Color Select
     myConfig.graphicsMode= 0;                           // Normal - auto detect graphics mode
-    myConfig.reserved4   = 0;
+    myConfig.diskSave    = myGlobalConfig.defDiskSave;  // Default is to auto-save disk files
     myConfig.reserved5   = 0;
     myConfig.reserved6   = 0;
     myConfig.reserved7   = 0;
     myConfig.reserved8   = 0;
-    myConfig.reserved9   = 0xA5;    // So it's easy to spot on an "upgrade" and we can re-default it
+    myConfig.reserved9   = 0;
+    myConfig.reserved10  = 0xA5;    // So it's easy to spot on an "upgrade" and we can re-default it
     
     
     // We only support TANDY in disk mode
@@ -844,6 +845,7 @@ const struct options_t Option_Table[2][20] =
         {"AUTO LOAD",      {"NO", "CLOADM [EXEC]", "CLOAD [RUN]"},                     &myConfig.autoLoad,          3},
         {"AUTO FIRE",      {"OFF", "ON"},                                              &myConfig.autoFire,          2},
         {"GAME SPEED",     {"100%", "110%", "120%", "90%", "80%"},                     &myConfig.gameSpeed,         5},
+        {"DISK WRITE",     {"OFF", "ON"},                                              &myConfig.diskSave,          2},        
         {"FORCE CSS",      {"NORMAL", "COLOR SET 0", "COLOR SET 1"},                   &myConfig.forceCSS,          3},
         {"FORCE VDG",      {"NORMAL", "GRAPHICS 1C", "GRAPHICS 1R", "GRAPHICS 2C",
                             "GRAPHICS 2R", "GRAPHICS 3C", "GRAPHICS 3R",
@@ -858,6 +860,7 @@ const struct options_t Option_Table[2][20] =
     // Global Options
     {
         {"DEF MACHINE",    {"DRAGON 32", "TANDY COCO"},                                &myGlobalConfig.defMachine,  2},
+        {"DEF DISK WR",    {"OFF", "ON"},                                              &myGlobalConfig.defDiskSave, 2},
         {"FPS",            {"OFF", "ON", "ON FULLSPEED"},                              &myGlobalConfig.showFPS,     3},
         {"START DIR",      {"/ROMS/DRAGON",  "/ROMS/COCO", "LAST USED DIR"},           &myGlobalConfig.lastDir,     3},
         {"DEBUGGER",       {"OFF", "ON"},                                              &myGlobalConfig.debugger,    2},
@@ -1252,9 +1255,7 @@ void ReadFileCRCAndConfig(void)
     // ----------------------------------------------------------------------------------
     memset(TapeCartDiskBuffer, 0xFF, MAX_FILE_SIZE);
 
-    // Grab the all-important file CRC - this also loads the file into TapeCartDiskBuffer[]
-    getfile_crc(gpFic[ucGameChoice].szName);
-
+    // Determine the file type based on the filename extension
     if (strstr(gpFic[ucGameChoice].szName, ".ccc") != 0) draco_mode = MODE_CART;
     if (strstr(gpFic[ucGameChoice].szName, ".CCC") != 0) draco_mode = MODE_CART;
     if (strstr(gpFic[ucGameChoice].szName, ".cas") != 0) draco_mode = MODE_CAS;
@@ -1263,6 +1264,13 @@ void ReadFileCRCAndConfig(void)
     if (strstr(gpFic[ucGameChoice].szName, ".DSK") != 0) draco_mode = MODE_DSK;
     if (strstr(gpFic[ucGameChoice].szName, ".vdk") != 0) draco_mode = MODE_VDK;
     if (strstr(gpFic[ucGameChoice].szName, ".VDK") != 0) draco_mode = MODE_VDK;
+
+    // Save the initial filename and file - we need it for save/restore of state
+    strcpy(initial_file, gpFic[ucGameChoice].szName);
+    getcwd(initial_path, MAX_FILENAME_LEN);
+
+    // Grab the all-important file CRC - this also loads the file into TapeCartDiskBuffer[]
+    getfile_crc(gpFic[ucGameChoice].szName);
 
     FindConfig();    // Try to find keymap and config for this file...
 }
@@ -1671,8 +1679,16 @@ void DragonTandySetPalette(void)
 void getfile_crc(const char *filename)
 {
     DSPrint(11,13,6, "LOADING...");
+    WAITVBL;WAITVBL;WAITVBL;WAITVBL;WAITVBL;WAITVBL;
 
-    file_crc = getFileCrc(filename);        // The CRC is used as a unique ID to save out High Scores and Configuration...
+    file_crc = getFileCrc(filename);        // The CRC is used as a unique ID to save out High Scores and Configuration...    
+    
+    // For .DSK based games, since the disk can be written, we have to base the CRC32 on 
+    // the filename instead. We use the initial file here in case we swapped disks...
+    if (draco_mode >= MODE_DSK)
+    {
+        file_crc = getCRC32((u8 *)initial_file, strlen(initial_file));
+    }
 
     DSPrint(11,13,6, "          ");
 }
@@ -1689,10 +1705,6 @@ u8 loadgame(const char *filename)
   FILE* handle = fopen(filename, "rb");
   if (handle != NULL)
   {
-    // Save the initial filename and file - we need it for save/restore of state
-    strcpy(initial_file, filename);
-    getcwd(initial_path, MAX_FILENAME_LEN);
-
     // -----------------------------------------------------------------------
     // See if we are loading a file from a directory different than our
     // last saved directory... if so, we save this new directory as default.

@@ -739,6 +739,8 @@ ITCM_CODE void vdg_render_artifacting(video_mode_t mode, int vdg_mem_base)
                 memcpy(screen_buffer, pixel_row, SCREEN_WIDTH_PIX);
                 screen_buffer += SCREEN_WIDTH_PIX;
             }
+            
+            last_pixel = FB_BLACK;  // Assume we're coming into the screen from a black border
 
             buffer_index = 0;
         }

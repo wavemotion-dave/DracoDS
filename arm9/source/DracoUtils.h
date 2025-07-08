@@ -20,7 +20,7 @@
 #define MAX_FILE_SIZE               (256*1024) // 256K is big enough for any .CAS or .CCC file or standard (160K) .DSK file
 
 #define MAX_CONFIGS                 1000
-#define CONFIG_VERSION              0x0002
+#define CONFIG_VERSION              0x0003
 
 #define DRACO_FILE                  0x01
 #define DIRECTORY                   0x02
@@ -72,7 +72,7 @@ struct __attribute__((__packed__)) GlobalConfig_t
     u8  showFPS;
     u8  lastDir;
     u8  defMachine;
-    u8  global_02;
+    u8  defDiskSave;
     u8  global_03;
     u8  global_04;
     u8  global_05;
@@ -100,7 +100,7 @@ struct __attribute__((__packed__)) Config_t
     u8  dpad;
     u8  forceCSS;
     u8  graphicsMode;
-    u8  reserved4;
+    u8  diskSave;
     u8  reserved5;
     u8  reserved6;
     u8  reserved7;

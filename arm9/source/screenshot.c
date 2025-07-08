@@ -14,7 +14,6 @@
 
 #include <nds.h>
 #include <stdio.h>
-#include <fat.h>
 #include <dirent.h>
 #include <unistd.h>
 

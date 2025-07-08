@@ -15,7 +15,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <fat.h>
 #include <dirent.h>
 
 #include "DracoDS.h"
@@ -84,7 +83,6 @@ void DracoSaveState()
     if (retVal) retVal = fwrite(&FDC,                   sizeof(FDC),                1, handle);
     if (retVal) retVal = fwrite(&Geom,                  sizeof(Geom),               1, handle);
     if (retVal) retVal = fwrite(&io_show_status,        sizeof(io_show_status),     1, handle);
-    if (retVal) retVal = fwrite(disk_unsaved_data,      sizeof(disk_unsaved_data),  1, handle);
     
     // Write PIA vars
     if (retVal) retVal = fwrite(&pia0_ca1_int_enabled,  sizeof(pia0_ca1_int_enabled),   1, handle);
@@ -199,7 +197,6 @@ void DracoLoadState()
         if (retVal) retVal = fread(&FDC,                    sizeof(FDC),                1, handle);
         if (retVal) retVal = fread(&Geom,                   sizeof(Geom),               1, handle);
         if (retVal) retVal = fread(&io_show_status,         sizeof(io_show_status),     1, handle);
-        if (retVal) retVal = fread(disk_unsaved_data,       sizeof(disk_unsaved_data),  1, handle);
         
         Geom.disk0 = TapeCartDiskBuffer;    // Always... in case memory shifted
         

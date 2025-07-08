@@ -2960,7 +2960,7 @@ inline __attribute__((always_inline)) uint16_t read_register(int reg)
  *  param:  Register number and data to write into it.
  *  return: Nothing
  */
-inline __attribute__((always_inline)) void write_register(int reg, uint16_t data)
+void write_register(int reg, uint16_t data)
 {
     switch ( reg )
     {

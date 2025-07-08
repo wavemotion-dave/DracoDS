@@ -15,7 +15,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <fat.h>
 #include <fcntl.h>
 
 #include "DracoDS.h"
@@ -67,7 +66,7 @@ void fdc_buffer_track(void)
     {
         memcpy(FDC.track_buffer, Geom.disk1 + (((Geom.sides * FDC.track) + FDC.side) * track_len), track_len+512); // Get the entire track into our buffer
     }
-    FDC.track_dirty[FDC.drive] = 0;
+    FDC.track_dirty = 0;
 }
 
 // ---------------------------------------------------------------------------------------------------
@@ -75,14 +74,14 @@ void fdc_buffer_track(void)
 // ---------------------------------------------------------------------------------------------------
 void fdc_flush_track(void)
 {
-    if (FDC.track_dirty[FDC.drive])
+    if (FDC.track_dirty)
     {
         u16 track_len = Geom.sectorSize*Geom.sectors;
         if (FDC.drive == 0)
             memcpy(Geom.disk0 + (((Geom.sides * FDC.track) + FDC.side) * track_len), FDC.track_buffer, track_len); // Write the track back to main memory in case it changed
         else
             memcpy(Geom.disk1 + (((Geom.sides * FDC.track) + FDC.side) * track_len), FDC.track_buffer, track_len); // Write the track back to main memory in case it changed
-        FDC.track_dirty[FDC.drive] = 0;
+        FDC.track_dirty = 0;
     }
 }
 
@@ -203,8 +202,9 @@ void fdc_state_machine(void)
             case 0xB0: // Write Sector (multiple)
                 if (FDC.wait_for_write == 0)
                 {
-                    FDC.track_dirty[FDC.drive] = 1;
-                    disk_unsaved_data[FDC.drive] = 1;
+                    FDC.track_dirty = 1;
+                    FDC.write_tracks[FDC.track] = 1;
+                    FDC.disk_write = 1;
                     FDC.track_buffer[FDC.track_buffer_idx++] = FDC.data; // Store CPU byte into our FDC buffer
                     if (FDC.track_buffer_idx >= FDC.track_buffer_end)
                     {

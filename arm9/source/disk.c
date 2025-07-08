@@ -43,7 +43,6 @@
 ----------------------------------------- */
 static uint8_t  io_handler_wd2797(uint16_t address, uint8_t data, mem_operation_t op);
 static uint8_t  io_handler_drive_ctrl(uint16_t address, uint8_t data, mem_operation_t op);
-uint8_t disk_unsaved_data[2];
 
 /* -----------------------------------------
    Module globals

@@ -115,6 +115,13 @@ Many such 64K work this way. But if the game utilizes the Paging Register to map
 with the current emulation. For some reason, a small number of games that seem to utilize this don't work correctly despite my best efforts to produce the right
 RAM addressing. Unfortunately Sailor Man falls into this latter category.
 
+Disk Support :
+-----------------------
+For the Tandy CoCo emulation, .dsk files are supported in the somewhat popular 160K 35-track and 180K 40-track varieties. The disks are auto-written back to the
+SD card if the contents change. To that end, this is hobby-software and the FAT implementation in libnds is not bullet-proof... so there is always a non-zero chance
+that the .dsk file could be corrupted. This is highly unlikely but if you're concerned, keep a backup and you can also turn off disk writes in the per-game or 
+global configuration (it will still 'write' the disk into memory but will not try to write it back and persist it on the SD card).
+
 Joystick Options :
 -----------------------
 The Tandy CoCo and Dragon machines used an analog joystick that is difficult to emulate properly on the DS/DSi. To that end, the default 'Joystick' is digital - that 

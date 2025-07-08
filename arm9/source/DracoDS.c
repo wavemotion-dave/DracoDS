@@ -35,7 +35,7 @@
 #include "cpu.h"
 #include "pia.h"
 #include "sam.h"
-
+#include "fdc.h"
 #include "printf.h"
 
 // -----------------------------------------------------------------
@@ -372,11 +372,40 @@ void DisplayStatusLine(void)
         if (io_show_status)
         {
             if (io_show_status) --io_show_status;
-            // Show disk in green (read/write)
-            DSPrint(27, 21, 2, ",-.");
+            // Show disk in green (read) or blue (write)
+            if (FDC.disk_write)
+                DSPrint(27, 21, 2, "/01");
+            else
+                DSPrint(27, 21, 2, ",-.");
             DSPrint(27, 22, 2, "LMN");
             DSPrint(27, 23, 2, "OPQ");
             if (io_show_status >= 3) mmEffect(SFX_FLOPPY);
+            if ((io_show_status == 0) && FDC.disk_write)
+            {
+                if (myConfig.diskSave)
+                {
+                    // Flush the disk back out to the SD card
+                    FDC.disk_write = 0;
+                    chdir(initial_path);
+                    FILE *fp = fopen(initial_file, "rb+");
+                    if (fp)
+                    {
+                        for (int track=0; track<40; track++)
+                        {
+                            if (FDC.write_tracks[track])
+                            {
+                                fwrite(TapeCartDiskBuffer + (track * sizeof(FDC.track_buffer)), sizeof(FDC.track_buffer), 1, fp);
+                                FDC.write_tracks[track] = 0;
+                            }
+                            else
+                            {
+                                fseek(fp, sizeof(FDC.track_buffer), SEEK_CUR);
+                            }
+                        }
+                    }
+                    fclose(fp);
+                }
+            }
         }
         else
         {
@@ -1090,10 +1119,10 @@ void DracoDS_main(void)
                         }
                     }
                 }
-                if (JoyState & JST_UP )    {joy_dampen = 10; if (joy_y > 1)  joy_y -= 1; else joy_y = 0;}
-                if (JoyState & JST_DOWN)   {joy_dampen = 10; if (joy_y < 64) joy_y += 1; else joy_y = 64;}
-                if (JoyState & JST_LEFT)   {joy_dampen = 10; if (joy_x > 1)  joy_x -= 1; else joy_x = 0;}
-                if (JoyState & JST_RIGHT)  {joy_dampen = 10; if (joy_x < 64) joy_x += 1; else joy_x = 64;}
+                if (JoyState & JST_UP )    {joy_dampen = 3; if (joy_y > 1)  joy_y -= 1; else joy_y = 0;}
+                if (JoyState & JST_DOWN)   {joy_dampen = 3; if (joy_y < 64) joy_y += 1; else joy_y = 64;}
+                if (JoyState & JST_LEFT)   {joy_dampen = 3; if (joy_x > 1)  joy_x -= 1; else joy_x = 0;}
+                if (JoyState & JST_RIGHT)  {joy_dampen = 3; if (joy_x < 64) joy_x += 1; else joy_x = 64;}
             }
             break;
 
@@ -1108,10 +1137,10 @@ void DracoDS_main(void)
                     }
                 }
             }
-            if (JoyState & JST_UP )    {joy_dampen = 20; if (joy_y > 1)  joy_y -= 1; else joy_y = 0;}
-            if (JoyState & JST_DOWN)   {joy_dampen = 20; if (joy_y < 64) joy_y += 1; else joy_y = 64;}
-            if (JoyState & JST_LEFT)   {joy_dampen = 20; if (joy_x > 1)  joy_x -= 1; else joy_x = 0;}
-            if (JoyState & JST_RIGHT)  {joy_dampen = 20; if (joy_x < 64) joy_x += 1; else joy_x = 64;}
+            if (JoyState & JST_UP )    {joy_dampen = 6; if (joy_y > 1)  joy_y -= 1; else joy_y = 0;}
+            if (JoyState & JST_DOWN)   {joy_dampen = 6; if (joy_y < 64) joy_y += 1; else joy_y = 64;}
+            if (JoyState & JST_LEFT)   {joy_dampen = 6; if (joy_x > 1)  joy_x -= 1; else joy_x = 0;}
+            if (JoyState & JST_RIGHT)  {joy_dampen = 6; if (joy_x < 64) joy_x += 1; else joy_x = 64;}
             break;
 
           case 6:  // Analog Fast - Self Center
@@ -1125,10 +1154,10 @@ void DracoDS_main(void)
                     }
                 }
             }
-            if ( JoyState & JST_UP )    {joy_dampen = 20; if (joy_y > 2)  joy_y -= 2; else joy_y = 0;}
-            if ( JoyState & JST_DOWN)   {joy_dampen = 20; if (joy_y < 63) joy_y += 2; else joy_y = 64;}
-            if ( JoyState & JST_LEFT )  {joy_dampen = 20; if (joy_x > 2)  joy_x -= 2; else joy_x = 0;}
-            if ( JoyState & JST_RIGHT ) {joy_dampen = 20; if (joy_x < 63) joy_x += 2; else joy_x = 64;}
+            if ( JoyState & JST_UP )    {joy_dampen = 6; if (joy_y > 2)  joy_y -= 2; else joy_y = 0;}
+            if ( JoyState & JST_DOWN)   {joy_dampen = 6; if (joy_y < 63) joy_y += 2; else joy_y = 64;}
+            if ( JoyState & JST_LEFT )  {joy_dampen = 6; if (joy_x > 2)  joy_x -= 2; else joy_x = 0;}
+            if ( JoyState & JST_RIGHT ) {joy_dampen = 6; if (joy_x < 63) joy_x += 2; else joy_x = 64;}
             break;
       }
 

@@ -71,8 +71,7 @@ ITCM_CODE void mem_write(int address, int data)
 {
     if ((address & 0xFF00) == 0xFF00)
     {
-        memory_IO[address] = data;
-        callback_io[address]((uint16_t) address, (uint8_t)data, MEM_WRITE);
+        memory_IO[address] = callback_io[address]((uint16_t) address, (uint8_t)data, MEM_WRITE);
         return;
     }
     else
@@ -128,8 +127,14 @@ void mem_load_rom(int addr_start, const uint8_t *buffer, int length)
  *  param:  Nothing
  *  return: Nothing
  */
+extern unsigned int debug[];
 static uint8_t do_nothing_io_handler(uint16_t address, uint8_t data, mem_operation_t op)
 {
+    static int zzz=0;
+    if (op == MEM_READ)
+    {
+        debug[zzz++ & 7] = 1+address;
+    }
     return data;
 }
 

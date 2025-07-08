@@ -32,7 +32,9 @@ struct FDC_t
     u8  write_track_allowed;
     u8  stepDirection;
     u8  spare;
-    u8  track_dirty[2];
+    u8  track_dirty;         // True if the track must be written back to the main buffer
+    u8  disk_write;          // True if the disk has been written and not saved
+    u8  write_tracks[40];    // Up to 40 tracks can be marked as needing writing
     u8  track_buffer[4608];  // Enough for 18 sectors of 256 bytes
     u16 track_buffer_idx;
     u16 track_buffer_end;
@@ -57,7 +59,6 @@ struct FDC_GEOMETRY_t
 extern struct FDC_t             FDC;
 extern struct FDC_GEOMETRY_t    Geom;
 
-extern u8 disk_unsaved_data[2];
 extern u8 io_show_status;
 
 extern u8   fdc_read(u8 addr);

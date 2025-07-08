@@ -397,7 +397,7 @@ void pia_cart_firq(void)
  *
  *  Bit 0..6 keyboard row input
  *  Bit 0    Right joystick button input
- *  Bit 1    Left joystick button input (not used)
+ *  Bit 1    Left joystick button input
  *  Bit 7    Joystick comparator input
  *
  *  This call-back will only deal with joystick comparator input read.
@@ -545,6 +545,7 @@ ITCM_CODE static uint8_t io_handler_pia0_pb(uint16_t address, uint8_t data, mem_
     if ( op == MEM_WRITE )
     {
         // The ROM is setting up to read the keyboard...
+        // memory_IO[PIA0_PB] will light up a column and we can read the rows
     }
 
     /* A read to the port address has the effect of resetting
@@ -578,6 +579,8 @@ ITCM_CODE static uint8_t io_handler_pia0_cra(uint16_t address, uint8_t data, mem
             mux_select &= ~0x01;
 
         pia0_ca1_int_enabled = (data & PIA_CR_INTR);
+        
+        pia0_ddr_a = (data & PIA_DDR);
     }
     else
     {
@@ -606,6 +609,8 @@ ITCM_CODE static uint8_t io_handler_pia0_crb(uint16_t address, uint8_t data, mem
             mux_select &= ~0x02;
             
         pia0_cb1_int_enabled = (data & PIA_CR_INTR);
+        
+        pia0_ddr_b = (data & PIA_DDR);
     }
     else
     {
@@ -756,7 +761,7 @@ ITCM_CODE static uint8_t io_handler_pia1_pb(uint16_t address, uint8_t data, mem_
      */
     else
     {
-        data = (pia_video_mode << 3); // Also reports 32K
+        data = (pia_video_mode << 3); // Also reports 32K (0 for bit 2)
         data |= 1;  // RS232 In/Printer Busy
         memory_IO[PIA1_CRB] &= ~PIA_CR_IRQ_STAT; // Cart IRQ
         cpu_firq(0);

@@ -196,13 +196,15 @@ ITCM_CODE uint8_t io_handler_sam_write(uint16_t address, uint8_t data, mem_opera
                 sam_registers.vdg_display_offset |= 0x40;
                 break;
         }
+        
+        /* Send VDG mode to VDG emulation module
+         * and display offset address to VDG emulation module
+         */
+        vdg_set_mode_sam((int) sam_registers.vdg_mode);
+        vdg_set_video_offset(sam_registers.vdg_display_offset);
+        
+        return data;
     }
-
-    /* Send VDG mode to VDG emulation module
-     * and display offset address to VDG emulation module
-     */
-    vdg_set_mode_sam((int) sam_registers.vdg_mode);
-    vdg_set_video_offset(sam_registers.vdg_display_offset);
 
     return 0;
 }
