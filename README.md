@@ -148,6 +148,12 @@ Dungeons of Daggorath :
 My favorite CoCo game! To that end, I've added 5 special 'MACRO' keys to the possible keyboard map to allow you to map a key to "ATTACK LEFT", "ATTACK RIGHT", "MOVE", "TURN LEFT", "TURN RIGHT". 
 Map these to the d-pad or any buttons you wish and playing DoD will be a joy.
 
+The Colors Aren't What I Remember :
+-----------------------
+Probably true. First of all, the colors are an approximation with emulation but the bigger issue is that this emulator (in order to gain the emulation speed needed) has scanline granularity. 
+Some games will change the color set as the beam races down the screen... and that's super cool! It's also not something that DracoDS supports (at least not yet). So yeah... it's possible
+your light red fire will render as a light blue flame - but it's a small price to pay to get all this stuff playable no the tiny DS handheld.
+
 Known Issues:
 -----------------------
 * Sailor Man (both .cas and .dsk) loads but soon crashes with screen garbage. Cause unknown.
