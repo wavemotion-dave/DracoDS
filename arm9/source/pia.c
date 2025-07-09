@@ -450,7 +450,7 @@ ITCM_CODE static uint8_t io_handler_pia0_pa(uint16_t address, uint8_t data, mem_
 
         if (myConfig.joystick == 0) // Right Joystick
         {
-            uint16_t input = 32;
+            uint16_t input = 31+myConfig.analogCenter;
             if (mux_select == MUX_RIGHT_Y) // Up-Down axis
             {
                 input = joy_y;

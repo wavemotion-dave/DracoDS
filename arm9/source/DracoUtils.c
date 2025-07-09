@@ -753,7 +753,7 @@ void SetDefaultGameConfig(void)
     myConfig.forceCSS    = 0;                           // Normal - not forced Color Select
     myConfig.graphicsMode= 0;                           // Normal - auto detect graphics mode
     myConfig.diskSave    = myGlobalConfig.defDiskSave;  // Default is to auto-save disk files
-    myConfig.reserved5   = 0;
+    myConfig.analogCenter= 1;                           // Default is center=32
     myConfig.reserved6   = 0;
     myConfig.reserved7   = 0;
     myConfig.reserved8   = 0;
@@ -860,8 +860,8 @@ const struct options_t Option_Table[2][20] =
         {"NDS D-PAD",      {"NORMAL", "SLIDE-N-GLIDE"},                                &myConfig.dpad,              2},
         {"JOYSTICK",       {"RIGHT", "LEFT"},                                          &myConfig.joystick,          2},
         {"JOY TYPE",       {"DIGITAL", "ANALOG SLOW", "ANALOG MEDIUM", "ANALOG FAST",
-                            "SLOW CENTER", "MEDIUM CENTER", "FAST CENTER"},            &myConfig.joyType,           7},
-
+                         "SLOW CENTER", "MEDIUM CENTER", "FAST CENTER", "DIG OFFSET"}, &myConfig.joyType,           8},
+        {"ANALG CENTER",   {"31", "32", "33"},                                         &myConfig.analogCenter,      3},
         {NULL,             {"",      ""},                                              NULL,                        1},
     },
     // Global Options
