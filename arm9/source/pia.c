@@ -86,11 +86,11 @@ uint8_t   pia0_ca1_int_enabled __attribute__((section(".dtcm"))) = 0;    // HSYN
 uint8_t   pia0_cb1_int_enabled __attribute__((section(".dtcm"))) = 0;    // VSYNC IRQ
 uint8_t   pia1_cb1_int_enabled __attribute__((section(".dtcm"))) = 0;    // CART  FIRQ
 
-uint8_t   mux_select        __attribute__((section(".dtcm"))) = 0x00;
-uint16_t  dac_output        __attribute__((section(".dtcm"))) = 0;
-uint8_t   sound_enable      __attribute__((section(".dtcm"))) = 1;
-uint8_t   last_comparator   __attribute__((section(".dtcm"))) = 0;
-uint8_t   cas_eof           __attribute__((section(".dtcm"))) = 0;
+uint8_t   mux_select           __attribute__((section(".dtcm"))) = 0x00;
+uint16_t  dac_output           __attribute__((section(".dtcm"))) = 0;
+uint8_t   sound_enable         __attribute__((section(".dtcm"))) = 1;
+uint8_t   last_comparator      __attribute__((section(".dtcm"))) = 0;
+uint8_t   cas_eof              __attribute__((section(".dtcm"))) = 0;
 
 
 /*
@@ -546,9 +546,12 @@ ITCM_CODE static uint8_t io_handler_pia0_pb(uint16_t address, uint8_t data, mem_
     {
         // The ROM is setting up to read the keyboard...
         // memory_IO[PIA0_PB] will light up a column and we can read the rows
+        if (!pia0_ddr_b)
+        {
+            //data = memory_IO[PIA0_PB];  // If we are not in write mode, return the old value
+        }
     }
-
-    /* A read to the port address has the effect of resetting
+    /* A read from the port address has the effect of resetting
      * the IRQ status line
      */
     else
@@ -755,8 +758,7 @@ ITCM_CODE static uint8_t io_handler_pia1_pb(uint16_t address, uint8_t data, mem_
             }
         }
     }
-
-    /* A read to the port address has the effect of resetting
+    /* A read from the port address has the effect of resetting
      * the IRQ status line
      */
     else

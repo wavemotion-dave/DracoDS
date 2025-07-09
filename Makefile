@@ -15,7 +15,7 @@ include $(DEVKITARM)/ds_rules
 
 export TARGET		:=	DracoDS
 export TOPDIR		:=	$(CURDIR)
-export VERSION		:=  0.7a
+export VERSION		:=  0.8
 
 ICON 		:= -b $(CURDIR)/logo.bmp "DracoDS $(VERSION);wavemotion-dave;https://github.com/wavemotion-dave/DracoDS" 
 

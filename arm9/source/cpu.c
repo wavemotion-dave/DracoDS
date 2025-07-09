@@ -523,7 +523,6 @@ ITCM_CODE void cpu_run(void)
                         default:
                             /* Exception: Illegal 0x11 op-code cpu_run()
                              */
-                            if (debug[7] == 0) {debug[7] = 8888; debug[6] = op_code;}
                             cpu.cpu_state = CPU_EXCEPTION;
                     }
                 }
@@ -637,7 +636,6 @@ ITCM_CODE void cpu_run(void)
                         default:
                             /* Exception: Illegal 0x10 op-code cpu_run()
                              */
-                            if (debug[7] == 0) {debug[7] = 7777; debug[6] = op_code;}
                             cpu.cpu_state = CPU_EXCEPTION;
                     }
                 }
@@ -2960,7 +2958,7 @@ inline __attribute__((always_inline)) uint16_t read_register(int reg)
  *  param:  Register number and data to write into it.
  *  return: Nothing
  */
-void write_register(int reg, uint16_t data)
+void inline __attribute__((always_inline)) write_register(int reg, uint16_t data)
 {
     switch ( reg )
     {

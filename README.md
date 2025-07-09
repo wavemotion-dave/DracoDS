@@ -184,6 +184,12 @@ And then move the soundbank.h file to the arm9/sources directory
 
 Versions :
 -----------------------
+V0.8: 09-July-2025 by wavemotion-dave
+* Added disk write-back to SD support. 
+* Improved artifact color handling.
+* Better 'Auto-Center' of analog joysticks.
+* Other minor improvements as time permitted.
+
 V0.7: 07-July-2025 by wavemotion-dave
 * Numerous small fixes for joystick/keyboard handling.
 * Fix for the SemiGraphics Modes not showing anything (blank screen).

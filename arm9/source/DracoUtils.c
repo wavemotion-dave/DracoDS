@@ -766,6 +766,13 @@ void SetDefaultGameConfig(void)
     {
         myConfig.machine = 1; // CoCo only
     }
+    
+    // Now some special overrides for known games that need it
+    if ((file_crc == 0x6f1e913a) || (file_crc == 0x3ee6ed00))  // Dragonfire (cart and cassette)
+    {
+        myConfig.forceCSS = 2;   // Needs fixed Color Select
+        myConfig.joystick = 1;   // Uses Left Joystick
+    }
 }
 
 // ----------------------------------------------------------
@@ -860,9 +867,9 @@ const struct options_t Option_Table[2][20] =
     // Global Options
     {
         {"DEF MACHINE",    {"DRAGON 32", "TANDY COCO"},                                &myGlobalConfig.defMachine,  2},
-        {"DEF DISK WR",    {"OFF", "ON"},                                              &myGlobalConfig.defDiskSave, 2},
-        {"FPS",            {"OFF", "ON", "ON FULLSPEED"},                              &myGlobalConfig.showFPS,     3},
+        {"DISK WRITE",     {"OFF", "ON"},                                              &myGlobalConfig.defDiskSave, 2},
         {"START DIR",      {"/ROMS/DRAGON",  "/ROMS/COCO", "LAST USED DIR"},           &myGlobalConfig.lastDir,     3},
+        {"FPS",            {"OFF", "ON", "ON FULLSPEED"},                              &myGlobalConfig.showFPS,     3},
         {"DEBUGGER",       {"OFF", "ON"},                                              &myGlobalConfig.debugger,    2},
         {NULL,             {"",      ""},                                              NULL,                        1},
     }
