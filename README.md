@@ -8,7 +8,7 @@ really look under the hood, it's pretty clear that the Dragon reverse-engineered
 hardware such that it was virtually identical in some spots (e.g. Cartridge pinouts). There are some
 differences - mainly in the keyboard matrix handling and in some of the disk controller handling. 
 
-To that end, this emulator is primarily a Tandy CoCo 2 emulator with 32K standard and partial 64K 
+To that end, this emulator is primarily a Tandy CoCo 2 emulator with 32K standard 64K expanded
 support but it also works for the Dragon 32/64 and can be configured as such.
 
 ![image](./png/splash.png)
@@ -108,13 +108,6 @@ Because the artifacting on an NTSC CoCo was a bit hit-or miss (that is, from one
 putting up an artifacting wall of color on the opening screen to allow the user to press RESET so that the color might change... if you see this in any 
 game, just press ENTER (some games might use SPACE) to bypass it.  DracoDS should always present the standard artifacting color set and always be 'right'.
 
-64K Support :
------------------------
-The emulators does emulate a full 64K machine but there are some caveats. If the game utilizes just the RAM/ROM and ALL-RAM memory maps, the game should work fine.
-Many such 64K work this way. But if the game utilizes the Paging Register to map the upper RAM into the lower half of the address space - then it _might_ work 
-with the current emulation. For some reason, a small number of games that seem to utilize this don't work correctly despite my best efforts to produce the right
-RAM addressing. Unfortunately Sailor Man falls into this latter category.
-
 Disk Support :
 -----------------------
 For the Tandy CoCo emulation, .dsk files are supported in the somewhat popular 160K 35-track and 180K 40-track varieties. The disks are auto-written back to the
@@ -184,6 +177,13 @@ And then move the soundbank.h file to the arm9/sources directory
 
 Versions :
 -----------------------
+V0.9: 11-July-2025 by wavemotion-dave
+* Full 64K support working - Sailor Man plays!
+* Ability to swap a disk in the mini-menu.
+* Improved joystick handling options.
+* Improved artifact handling - new options to swap the Blue/Orange artifacts or turn them off.
+* Other minor improvements as time permitted.
+
 V0.8: 09-July-2025 by wavemotion-dave
 * Added disk write-back to SD support. 
 * Improved artifact color handling.
