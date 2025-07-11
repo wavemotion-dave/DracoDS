@@ -471,6 +471,7 @@ void MiniMenuShow(bool bClearScreen, u8 sel)
     DSPrint(8,9+mini_menu_items,(sel==mini_menu_items)?2:0,  " LOAD   STATE  ");  mini_menu_items++;
     DSPrint(8,9+mini_menu_items,(sel==mini_menu_items)?2:0,  " GAME   OPTIONS");  mini_menu_items++;
     DSPrint(8,9+mini_menu_items,(sel==mini_menu_items)?2:0,  " DEFINE KEYS   ");  mini_menu_items++;
+    DSPrint(8,9+mini_menu_items,(sel==mini_menu_items)?2:0,  " SWAP   DISK   ");  mini_menu_items++;
     DSPrint(8,9+mini_menu_items,(sel==mini_menu_items)?2:0,  " EXIT   MENU   ");  mini_menu_items++;
 }
 
@@ -510,7 +511,8 @@ u8 MiniMenu(void)
             else if (menuSelection == 3) retVal = MENU_CHOICE_LOAD_GAME;
             else if (menuSelection == 4) retVal = MENU_CHOICE_GAME_OPTION;
             else if (menuSelection == 5) retVal = MENU_CHOICE_DEFINE_KEYS;
-            else if (menuSelection == 6) retVal = MENU_CHOICE_NONE;
+            else if (menuSelection == 6) retVal = MENU_CHOICE_SWAP_DISK;
+            else if (menuSelection == 7) retVal = MENU_CHOICE_NONE;
             else retVal = MENU_CHOICE_NONE;
             break;
         }
@@ -688,6 +690,17 @@ u8 __attribute__((noinline)) handle_meta_key(u8 meta_key)
             BottomScreenKeyboard();
             SoundUnPause();
             break;
+            
+        case MENU_CHOICE_SWAP_DISK:
+            SoundPause();
+            DracoDSLoadFile(TRUE);
+            if (ucGameChoice >= 0)
+            {
+                ReadFileCarefully(gpFic[ucGameChoice].szName, TapeCartDiskBuffer, sizeof(TapeCartDiskBuffer), 0);
+                fdc_reset(0);
+            }            
+            BottomScreenKeyboard();
+            SoundUnPause();
             break;
     }
 
@@ -839,13 +852,21 @@ void DracoDS_main(void)
                     if (myConfig.autoLoad == 1)
                     {
                         BufferKey(17);    // M
+                        BufferKey(44);    // :
+                        
+                        BufferKey(9);     // E
+                        BufferKey(28);    // X
+                        BufferKey(9);     // E
+                        BufferKey(7);     // C
                     }
-                    BufferKey(44);    // :
-                    
-                    BufferKey(9);     // E
-                    BufferKey(28);    // X
-                    BufferKey(9);     // E
-                    BufferKey(7);     // C
+                    else if (myConfig.autoLoad == 2)
+                    {
+                        BufferKey(44);    // :
+                        
+                        BufferKey(22);    // R
+                        BufferKey(25);    // U
+                        BufferKey(18);    // N
+                    }
                     
                     BufferKey(48);    // ENTER
                     BufferKey(255);   // END

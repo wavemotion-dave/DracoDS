@@ -78,21 +78,11 @@ void sam_init(void)
  * io_handler_vector_redirect()
  *
  *  IO call-back handler that will redirect CPU memory access from
- *  the normal vector area 0xfff2 through 0xffff to 0xbff2 through 0xbffff
- *
- *  param:  Call address, data byte for write operation, and operation type
- *  return: Status or data byte
+ *  the normal vector area 0xfff2 through 0xffff to ROM 0xbff2 through 0xbffff
  */
 static uint8_t io_handler_vector_redirect(uint16_t address, uint8_t data, mem_operation_t op)
 {
-    uint8_t response = 0;
-
-    if ( op == MEM_READ )
-    {
-        response = (uint8_t) mem_read((int)(address & 0xbfff));
-    }
-
-    return response;
+    return memory_ROM[address & 0xbfff];
 }
 
 /*------------------------------------------------

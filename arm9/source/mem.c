@@ -72,14 +72,12 @@ ITCM_CODE void mem_write(int address, int data)
     if ((address & 0xFF00) == 0xFF00)
     {
         memory_IO[address] = callback_io[address]((uint16_t) address, (uint8_t)data, MEM_WRITE);
-        return;
     }
     else
     {
         if ( sam_registers.memory_map_type & address ) return; // Check for ROMs... else fall through and write below (in 64K mode)
-    }        
-    
-    memory_RAM[sam_registers.map_upper_to_lower | address] = (uint8_t) data;
+        memory_RAM[sam_registers.map_upper_to_lower | address] = (uint8_t) data;
+    }    
 }
 
 

@@ -300,7 +300,7 @@ int Filescmp (const void *c1, const void *c2)
 /*********************************************************************************
  * Find game/program files available - sort them for display.
  ********************************************************************************/
-void DracoDSFindFiles(u8 bTapeOnly)
+void DracoDSFindFiles(u8 bDiskOnly)
 {
   u32 uNbFile;
   DIR *dir;
@@ -331,38 +331,26 @@ void DracoDSFindFiles(u8 bTapeOnly)
     else {
       if ((strlen(szFile)>4) && (strlen(szFile)<(MAX_FILENAME_LEN-4)) && (szFile[0] != '.') && (szFile[0] != '_'))  // For MAC don't allow files starting with an underscore
       {
-          if (bTapeOnly == 2) // Load P files only
-          {
-            if ( (strcasecmp(strrchr(szFile, '.'), ".p") == 0) )  {
+        if ( (strcasecmp(strrchr(szFile, '.'), ".ccc") == 0) )  {
+          strcpy(gpFic[uNbFile].szName,szFile);
+          gpFic[uNbFile].uType = DRACO_FILE;
+          uNbFile++;
+          fileCount++;
+        }
+        if ( (strcasecmp(strrchr(szFile, '.'), ".cas") == 0) )  {
+          strcpy(gpFic[uNbFile].szName,szFile);
+          gpFic[uNbFile].uType = DRACO_FILE;
+          uNbFile++;
+          fileCount++;
+        }
+        
+        if (bDISKBIOS_found)
+        {
+            if ( (strcasecmp(strrchr(szFile, '.'), ".dsk") == 0) )  {
               strcpy(gpFic[uNbFile].szName,szFile);
               gpFic[uNbFile].uType = DRACO_FILE;
               uNbFile++;
               fileCount++;
-            }
-          }
-          else
-          {
-            if ( (strcasecmp(strrchr(szFile, '.'), ".ccc") == 0) )  {
-              strcpy(gpFic[uNbFile].szName,szFile);
-              gpFic[uNbFile].uType = DRACO_FILE;
-              uNbFile++;
-              fileCount++;
-            }
-            if ( (strcasecmp(strrchr(szFile, '.'), ".cas") == 0) )  {
-              strcpy(gpFic[uNbFile].szName,szFile);
-              gpFic[uNbFile].uType = DRACO_FILE;
-              uNbFile++;
-              fileCount++;
-            }
-            
-            if (bDISKBIOS_found)
-            {
-                if ( (strcasecmp(strrchr(szFile, '.'), ".dsk") == 0) )  {
-                  strcpy(gpFic[uNbFile].szName,szFile);
-                  gpFic[uNbFile].uType = DRACO_FILE;
-                  uNbFile++;
-                  fileCount++;
-                }
             }
         }
       }
@@ -382,7 +370,7 @@ void DracoDSFindFiles(u8 bTapeOnly)
 // ----------------------------------------------------------------
 // Let the user select a new game (rom) file and load it up!
 // ----------------------------------------------------------------
-u8 DracoDSLoadFile(u8 bTapeOnly)
+u8 DracoDSLoadFile(u8 bDiskOnly)
 {
   bool bDone=false;
   u16 ucHaut=0x00, ucBas=0x00,ucSHaut=0x00, ucSBas=0x00, romSelected= 0, firstRomDisplay=0,nbRomPerPage, uNbRSPage;
@@ -393,7 +381,7 @@ u8 DracoDSLoadFile(u8 bTapeOnly)
 
   BottomScreenOptions();
 
-  DracoDSFindFiles(bTapeOnly);
+  DracoDSFindFiles(bDiskOnly);
 
   ucGameChoice = -1;
 
@@ -546,14 +534,17 @@ u8 DracoDSLoadFile(u8 bTapeOnly)
     {
       if (gpFic[ucGameAct].uType != DIRECTORY)
       {
-        bDone=true;
-        ucGameChoice = ucGameAct;
-        WAITVBL;
+        if (!bDiskOnly || (strcasecmp(strrchr(gpFic[ucGameAct].szName, '.'), ".dsk") == 0))
+        {
+            bDone=true;
+            ucGameChoice = ucGameAct;
+            WAITVBL;
+        }
       }
       else
       {
         chdir(gpFic[ucGameAct].szName);
-        DracoDSFindFiles(bTapeOnly);
+        DracoDSFindFiles(bDiskOnly);
         ucGameAct = 0;
         nbRomPerPage = (fileCount>=17 ? 17 : fileCount);
         uNbRSPage = (fileCount>=5 ? 5 : fileCount);
@@ -754,7 +745,7 @@ void SetDefaultGameConfig(void)
     myConfig.graphicsMode= 0;                           // Normal - auto detect graphics mode
     myConfig.diskSave    = myGlobalConfig.defDiskSave;  // Default is to auto-save disk files
     myConfig.analogCenter= 1;                           // Default is center=32
-    myConfig.reserved6   = 0;
+    myConfig.artifacts   = 0;                           // Default is BLUE/ORANGE
     myConfig.reserved7   = 0;
     myConfig.reserved8   = 0;
     myConfig.reserved9   = 0;
@@ -857,6 +848,7 @@ const struct options_t Option_Table[2][20] =
         {"FORCE VDG",      {"NORMAL", "GRAPHICS 1C", "GRAPHICS 1R", "GRAPHICS 2C",
                             "GRAPHICS 2R", "GRAPHICS 3C", "GRAPHICS 3R",
                             "GRAPHICS 6C", "GRAPHICS 6R"},                             &myConfig.graphicsMode,      9},
+        {"ARTIFACTS",      {"BLUE/ORANGE", "ORANGE/BLUE", "OFF"},                      &myConfig.artifacts,         3},
         {"NDS D-PAD",      {"NORMAL", "SLIDE-N-GLIDE"},                                &myConfig.dpad,              2},
         {"JOYSTICK",       {"RIGHT", "LEFT"},                                          &myConfig.joystick,          2},
         {"JOY TYPE",       {"DIGITAL", "ANALOG SLOW", "ANALOG MEDIUM", "ANALOG FAST",
@@ -1399,7 +1391,7 @@ void DracoDSChangeOptions(void)
         ucA = 0x01;
         switch (ucY) {
           case 7 :      // LOAD GAME
-            DracoDSLoadFile(0);
+            DracoDSLoadFile(FALSE);
             dmaFillWords(dmaVal | (dmaVal<<16),(void*) bgGetMapPtr(bg1b)+5*32*2,32*19*2);
             BottomScreenOptions();
             if (ucGameChoice != -1)
