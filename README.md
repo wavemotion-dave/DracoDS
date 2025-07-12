@@ -15,13 +15,13 @@ support but it also works for the Dragon 32/64 and can be configured as such.
 
 Features :
 -----------------------
-* Tandy CoCo 2 support with 32K of RAM and 64K of RAM. Running at 60Hz NTSC.
-* Dragon 32/64 support with 32K or 64K of RAM running at the 50Hz PAL speed.
+* Tandy CoCo 2 support with 32K and 64K of RAM. Running at 60Hz NTSC.
+* Dragon 32/64 support with 32K and 64K of RAM. Running at the 50Hz PAL speed.
 * Cassette (.cas) support for both the Dragon and Tandy emulated machines.
 * Cartridge (.ccc or .rom) support for the Tandy emulated machine.
 * Disk (.dsk) support for the Tandy emulated machine. Standard single-sided 160K (35 track) or 180K (40 track) disks only.
 * Save/Load Game State (one slot).
-* Artifacting support to 4-color high-rez mode.
+* Artifacting support to 4-color high-rez mode (and the ability to swap BLUE/ORANGE on a per-game basis).
 * LCD Screen Swap (press and hold L+R+X during gameplay).
 * LCD Screen snapshot - (press and hold L+R+Y during gameplay and the .png file will be written to the SD card).
 * Virtual keyboard stylized to the machine you've picked (there is a default global machine and you can override on a per-game basis)
@@ -35,7 +35,7 @@ Copyright :
 DracoDS is Copyright (c) 2025 Dave Bernazzani (wavemotion-dave)
 
 This is a derivitive work of Dragon 32 Emu Copyright (c) 2018 Eyal Abraham (eyalabraham)
-and can be found on github here:
+which can be found on github:
 
 https://github.com/eyalabraham/dragon32-emu
 
@@ -77,7 +77,7 @@ Loading Games :
 -----------------------
 There are three kinds of files supported: Cartridges, Cassettes and Disks.
 
-Cartridges are the easiest... simply pick the .ccc filename from the Load Game menu and as soon as you start the emulation, the cartridge should auto-boot.
+Cartridges are the easiest... simply pick the .ccc (or .rom) filename from the Load Game menu and as soon as you start the emulation, the cartridge should auto-boot.
 
 Cassettes work differently... you must load them up from the BASIC intepreter. So picking a .cas filename from the Load Game menu and starting the emulation
 running should place you into the BASIC of your choice (Tandy CoCo BASIC or Dragon BASIC). From there, you type one of the following pairs of commands depending
@@ -103,7 +103,7 @@ LOAD "FILENAME"
 RUN
 ```
 
-Where FILENAME is the desired file as shown in the DIR command.
+Where FILENAME is the desired file as shown in the DIR command. You can press the START button right after starting the game to automatically list the contents of the disk via DIR.
 
 Dragon vs Tandy Mode :
 -----------------------
@@ -113,11 +113,12 @@ Blue or Orange Screen? :
 -----------------------
 Because the artifacting on an NTSC CoCo was a bit hit-or miss (that is, from one setup to another it might reverse the Orange/Blue colors), some games took to 
 putting up an artifacting wall of color on the opening screen to allow the user to press RESET so that the color might change... if you see this in any 
-game, just press ENTER (some games might use SPACE) to bypass it.  DracoDS should always present the standard artifacting color set and always be 'right'.
+game, just press ENTER (some games might use SPACE) to bypass it.  DracoDS should present the standard artifacting color set by default but you can swap it 
+on a per-game basis in the Game Settings.
 
 Disk Support :
 -----------------------
-For the Tandy CoCo emulation, .dsk files are supported in the somewhat popular 160K 35-track and 180K 40-track varieties. The disks are auto-written back to the
+For the Tandy CoCo emulation, .dsk files are supported in the popular 160K 35-track and 180K 40-track varieties. The disks are auto-written back to the
 SD card if the contents change. To that end, this is hobby-software and the FAT implementation in libnds is not bullet-proof... so there is always a non-zero chance
 that the .dsk file could be corrupted. This is highly unlikely but if you're concerned, keep a backup and you can also turn off disk writes in the per-game or 
 global configuration (it will still 'write' the disk into memory but will not try to write it back and persist it on the SD card).
