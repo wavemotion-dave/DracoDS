@@ -125,7 +125,7 @@ void vdg_init(void)
     /* Default startup mode of Dragon 32
      */
     current_mode = ALPHA_INTERNAL;
-    
+
     sam_2x_rez = 1;
 
     // --------------------------------------------------------------------------
@@ -169,11 +169,11 @@ void vdg_init(void)
  *  param:  Nothing
  *  return: Nothing
  */
-int reduce_framerate_for_tape = 0; 
+int reduce_framerate_for_tape = 0;
 ITCM_CODE void vdg_render(void)
 {
     int     vdg_mem_base;
-    
+
     if (tape_motor)
     {
         if (++reduce_framerate_for_tape < 10) return;
@@ -212,15 +212,15 @@ ITCM_CODE void vdg_render(void)
         case GRAPHICS_3R:
             vdg_render_resl_graph(current_mode, vdg_mem_base);
             break;
-            
+
         case GRAPHICS_6R:
             if (myConfig.artifacts)
             {
-                if (myConfig.artifacts == 1) 
+                if (myConfig.artifacts == 1)
                     vdg_render_artifacting_reverse(current_mode, vdg_mem_base);
                 else
                     vdg_render_artifacting_bw(current_mode, vdg_mem_base);
-                    
+
             }
             else
                 vdg_render_artifacting(current_mode, vdg_mem_base);
@@ -430,7 +430,7 @@ ITCM_CODE void vdg_render_semi6(int vdg_mem_base)
                     */
                     pix_pos = pix_pos >> 1;
                 }
-                
+
                 uint32_t *ptr32 = (uint32_t *)&buf;
                 *screen_buffer++ = *ptr32++;
                 *screen_buffer++ = *ptr32++;
@@ -458,7 +458,7 @@ ITCM_CODE void vdg_render_semi_ext(video_mode_t mode, int vdg_mem_base)
     uint8_t     bit_pattern, pix_pos;
     uint8_t     color_set, fg_color, bg_color;
     uint32_t   *screen_buffer;
-    
+
     screen_buffer = (uint32_t *)fbp;
     font_row = 0;
 
@@ -558,7 +558,7 @@ ITCM_CODE void vdg_render_semi_ext(video_mode_t mode, int vdg_mem_base)
                             */
                             pix_pos = pix_pos >> 1;
                         }
-                        
+
                         uint32_t *ptr32 = (uint32_t *)&buf;
                         *screen_buffer++ = *ptr32++;
                         *screen_buffer++ = *ptr32++;
@@ -668,11 +668,11 @@ ITCM_CODE void vdg_render_artifacting(video_mode_t mode, int vdg_mem_base)
     // For the DS-Lite/Phat, we need a bit of frameskip to help render the more complex
     // artifacting high-rez mode. So we show 3 out of 4 frames - which is still quite fine.
     // -------------------------------------------------------------------------------------
-    if (!isDSiMode()) 
+    if (!isDSiMode())
     {
         if ((++ds_lite_frameskip & 3) == 0) return;
     }
-    
+
     screen_buffer = fbp;
 
     video_mem = resolution[mode][RES_MEM];
@@ -737,7 +737,7 @@ ITCM_CODE void vdg_render_artifacting(video_mode_t mode, int vdg_mem_base)
                     pixel = (buffer_index & 1) ? ARTIFACT_ORANGE : ARTIFACT_BLUE;
                 }
             }
-            
+
             pixel_row[buffer_index++] = pixel;
         }
 
@@ -751,7 +751,7 @@ ITCM_CODE void vdg_render_artifacting(video_mode_t mode, int vdg_mem_base)
                 memcpy(screen_buffer, pixel_row, SCREEN_WIDTH_PIX);
                 screen_buffer += SCREEN_WIDTH_PIX;
             }
-            
+
             last_pixel = FB_BLACK;  // Assume we're coming into the screen from a black border
 
             buffer_index = 0;
@@ -772,11 +772,11 @@ void vdg_render_artifacting_reverse(video_mode_t mode, int vdg_mem_base)
     // For the DS-Lite/Phat, we need a bit of frameskip to help render the more complex
     // artifacting high-rez mode. So we show 3 out of 4 frames - which is still quite fine.
     // -------------------------------------------------------------------------------------
-    if (!isDSiMode()) 
+    if (!isDSiMode())
     {
         if ((++ds_lite_frameskip & 3) == 0) return;
     }
-    
+
     screen_buffer = fbp;
 
     video_mem = resolution[mode][RES_MEM];
@@ -838,10 +838,10 @@ void vdg_render_artifacting_reverse(video_mode_t mode, int vdg_mem_base)
                 if (pixel != last_pixel)
                 {
                     last_pixel = pixel;
-                    pixel = (buffer_index & 1) ? ARTIFACT_BLUE : ARTIFACT_ORANGE;                    
+                    pixel = (buffer_index & 1) ? ARTIFACT_BLUE : ARTIFACT_ORANGE;
                 }
             }
-            
+
             pixel_row[buffer_index++] = pixel;
         }
 
@@ -855,7 +855,7 @@ void vdg_render_artifacting_reverse(video_mode_t mode, int vdg_mem_base)
                 memcpy(screen_buffer, pixel_row, SCREEN_WIDTH_PIX);
                 screen_buffer += SCREEN_WIDTH_PIX;
             }
-            
+
             last_pixel = FB_BLACK;  // Assume we're coming into the screen from a black border
 
             buffer_index = 0;
@@ -875,11 +875,11 @@ void vdg_render_artifacting_bw(video_mode_t mode, int vdg_mem_base)
     // For the DS-Lite/Phat, we need a bit of frameskip to help render the more complex
     // artifacting high-rez mode. So we show 3 out of 4 frames - which is still quite fine.
     // -------------------------------------------------------------------------------------
-    if (!isDSiMode()) 
+    if (!isDSiMode())
     {
         if ((++ds_lite_frameskip & 3) == 0) return;
     }
-    
+
     screen_buffer = fbp;
 
     video_mem = resolution[mode][RES_MEM];
@@ -920,7 +920,7 @@ void vdg_render_artifacting_bw(video_mode_t mode, int vdg_mem_base)
             {
                 pixel = FB_BLACK;
             }
-            
+
             pixel_row[buffer_index++] = pixel;
         }
 
@@ -934,7 +934,7 @@ void vdg_render_artifacting_bw(video_mode_t mode, int vdg_mem_base)
                 memcpy(screen_buffer, pixel_row, SCREEN_WIDTH_PIX);
                 screen_buffer += SCREEN_WIDTH_PIX;
             }
-            
+
             buffer_index = 0;
         }
     }
@@ -1025,9 +1025,9 @@ ITCM_CODE video_mode_t vdg_get_mode(void)
         // we end up with games like Micro Chess that draws too tall or Monster Maze
         // that only draws half a screen.
         // ------------------------------------------------------------------------------
-        
+
         sam_2x_rez = 1;
-        
+
         // See if the configuration has a specific graphics mode override...
         if (myConfig.graphicsMode)
         {
@@ -1044,7 +1044,7 @@ ITCM_CODE video_mode_t vdg_get_mode(void)
             }
         }
         else
-        {        
+        {
             switch ( pia_video_mode & 0x0e  )
             {
                 case 0x00:

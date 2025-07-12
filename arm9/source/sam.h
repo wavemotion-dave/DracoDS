@@ -11,6 +11,7 @@
 #ifndef __SAM_H__
 #define __SAM_H__
 
+// The SAM registers mainly control Video Modes and Memory Handling
 struct sam_reg_t
 {
     uint8_t  vdg_mode;

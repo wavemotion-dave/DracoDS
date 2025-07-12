@@ -15,7 +15,7 @@
  *
  *  This module defines disk cartridge function including
  *  controller IC WD2797, drive and motor control register, and interrupts
- * 
+ *
  *  resources:
  *  WD2797 floppy disk controller data sheet
  *  Dragon DOS programmer's guide, Grosvenor Software 1985
@@ -65,9 +65,9 @@ void disk_init(void)
         mem_define_io(0xff40, 0xff40, io_handler_drive_ctrl);
 
         nmi_enable = 0;
-        
+
         fdc_reset(true);
-        
+
         fdc_init(WD2793, 1, 1, (last_file_size >= (180*1024) ? 40:35), 18, 256, 1, TapeCartDiskBuffer, NULL);
     }
 }
@@ -106,7 +106,7 @@ static uint8_t io_handler_wd2797(uint16_t address, uint8_t data, mem_operation_t
 static uint8_t io_handler_drive_ctrl(uint16_t address, uint8_t data, mem_operation_t op)
 {
     int drive_num;
-    
+
     if (op == MEM_WRITE)
     {
         drive_num = (int) (data & 0x07);
@@ -118,7 +118,7 @@ static uint8_t io_handler_drive_ctrl(uint16_t address, uint8_t data, mem_operati
             fdc_setSide(0);                         // Tandy support is single sided only
         }
     }
-    
+
     return data;
 }
 

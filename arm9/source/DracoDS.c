@@ -94,7 +94,7 @@ u8 soundEmuPause     __attribute__((section(".dtcm"))) = 1;       // Set to 1 to
 // -----------------------------------------------------------------------------------------------
 // This set of critical vars is what determines the machine type -
 // -----------------------------------------------------------------------------------------------
-u8 draco_mode       __attribute__((section(".dtcm"))) = 0;       // See defines for the various modes...
+u8 draco_mode        __attribute__((section(".dtcm"))) = 0;       // See defines for the various modes...
 u8 kbd_key           __attribute__((section(".dtcm"))) = 0;       // 0 if no key pressed, othewise the ASCII key (e.g. 'A', 'B', '3', etc)
 u16 nds_key          __attribute__((section(".dtcm"))) = 0;       // 0 if no key pressed, othewise the NDS keys from keysCurrent() or similar
 u8 last_mapped_key   __attribute__((section(".dtcm"))) = 0;       // The last mapped key which has been pressed - used for key click feedback
@@ -364,7 +364,7 @@ void ShowDebugger(void)
 void DisplayStatusLine(void)
 {
     extern u8 io_show_status, shift_key;
-    
+
     DSPrint(29,0,2, (sam_registers.memory_map_type ? "32K": "64K"));
 
     if (draco_mode == MODE_DSK)
@@ -423,7 +423,7 @@ void DisplayStatusLine(void)
             // Show cassette in green (playing)
             DSPrint(27, 21, 2, "$%&");
             DSPrint(27, 22, 2, "DEF");
-            
+
             sprintf(tmp, "%03d", tape_pos/1024); // Tape Counter in 1K increments
             DSPrint(27, 23, 6, tmp);
         }
@@ -435,7 +435,7 @@ void DisplayStatusLine(void)
             DSPrint(27, 23, 6, "   ");
         }
     }
-    
+
     if (shift_key)
     {
         DSPrint(1, 19, 2, "@");
@@ -690,7 +690,7 @@ u8 __attribute__((noinline)) handle_meta_key(u8 meta_key)
             BottomScreenKeyboard();
             SoundUnPause();
             break;
-            
+
         case MENU_CHOICE_SWAP_DISK:
             SoundPause();
             DracoDSLoadFile(TRUE);
@@ -698,7 +698,7 @@ u8 __attribute__((noinline)) handle_meta_key(u8 meta_key)
             {
                 ReadFileCarefully(gpFic[ucGameChoice].szName, TapeCartDiskBuffer, sizeof(TapeCartDiskBuffer), 0);
                 fdc_reset(0);
-            }            
+            }
             BottomScreenKeyboard();
             SoundUnPause();
             break;
@@ -711,13 +711,13 @@ u8 __attribute__((noinline)) handle_meta_key(u8 meta_key)
 // Slide-n-Glide D-pad keeps moving in the last known direction for a few more
 // frames to help make those hairpin turns up and off ladders much easier...
 // ----------------------------------------------------------------------------
-u8 slide_n_glide_key_up = 0;
-u8 slide_n_glide_key_down = 0;
-u8 slide_n_glide_key_left = 0;
-u8 slide_n_glide_key_right = 0;
+u8 slide_n_glide_key_up     __attribute__((section(".dtcm"))) = 0;
+u8 slide_n_glide_key_down   __attribute__((section(".dtcm"))) = 0;
+u8 slide_n_glide_key_left   __attribute__((section(".dtcm"))) = 0;
+u8 slide_n_glide_key_right  __attribute__((section(".dtcm"))) = 0;
 
-s8 digital_offset_x = 0;
-s8 digital_offset_y = 0;
+s8 digital_offset_x         __attribute__((section(".dtcm"))) = 0;
+s8 digital_offset_y         __attribute__((section(".dtcm"))) = 0;
 
 // ------------------------------------------------------------------------
 // The main emulation loop is here... call into the Z80 and render frame
@@ -853,7 +853,7 @@ void DracoDS_main(void)
                     {
                         BufferKey(17);    // M
                         BufferKey(44);    // :
-                        
+
                         BufferKey(9);     // E
                         BufferKey(28);    // X
                         BufferKey(9);     // E
@@ -862,12 +862,12 @@ void DracoDS_main(void)
                     else if (myConfig.autoLoad == 2)
                     {
                         BufferKey(44);    // :
-                        
+
                         BufferKey(22);    // R
                         BufferKey(25);    // U
                         BufferKey(18);    // N
                     }
-                    
+
                     BufferKey(48);    // ENTER
                     BufferKey(255);   // END
                 }
@@ -1186,17 +1186,17 @@ void DracoDS_main(void)
             if ( JoyState & JST_LEFT )  {joy_dampen = 6; if (joy_x > 2)  joy_x -= 2; else joy_x = 0;}
             if ( JoyState & JST_RIGHT ) {joy_dampen = 6; if (joy_x < 63) joy_x += 2; else joy_x = 64;}
             break;
-            
+
           case 7:  // Digital Offset
             joy_x = JOY_CENTER + digital_offset_x; // Self-centering... almost
             joy_y = JOY_CENTER + digital_offset_y; // Self-centering... almost
-            
+
             if ( JoyState & JST_UP )    {joy_y = 0;   digital_offset_y = -1;  digital_offset_x = 0;}
             if ( JoyState & JST_DOWN)   {joy_y = 64;  digital_offset_y = +1;  digital_offset_x = 0;}
-            
+
             if ( JoyState & JST_LEFT )  {joy_x = 0;   digital_offset_x = -1;  digital_offset_y = 0;}
             if ( JoyState & JST_RIGHT ) {joy_x = 64;  digital_offset_x = +1;  digital_offset_y = 0;}
-            break;            
+            break;
       }
 
       // --------------------------------------------------
@@ -1220,8 +1220,8 @@ void useVRAM(void)
   vramSetBankB(VRAM_B_LCD);        // 128K VRAM used for snapshot DCAP buffer - but could be repurposed during emulation ...
   vramSetBankD(VRAM_D_LCD);        // Not using this for video but 128K of faster RAM always useful!  Mapped at 0x06860000 -   Unused - reserved for future use
   vramSetBankE(VRAM_E_LCD);        // Not using this for video but 64K of faster RAM always useful!   Mapped at 0x06880000 -   Unused - reserved for future use
-  vramSetBankF(VRAM_F_LCD);        // Not using this for video but 16K of faster RAM always useful!   Mapped at 0x06890000 -   Save RAM
-  vramSetBankG(VRAM_G_LCD);        // Not using this for video but 16K of faster RAM always useful!   Mapped at 0x06894000 -   Save ROM
+  vramSetBankF(VRAM_F_LCD);        // Not using this for video but 16K of faster RAM always useful!   Mapped at 0x06890000 -   Unused - reserved for future use
+  vramSetBankG(VRAM_G_LCD);        // Not using this for video but 16K of faster RAM always useful!   Mapped at 0x06894000 -   Unused - reserved for future use
   vramSetBankH(VRAM_H_LCD);        // Not using this for video but 32K of faster RAM always useful!   Mapped at 0x06898000 -   Unused - reserved for future use
   vramSetBankI(VRAM_I_LCD);        // Not using this for video but 16K of faster RAM always useful!   Mapped at 0x068A0000 -   Unused - reserved for future use
 }
@@ -1327,29 +1327,6 @@ void BottomScreenKeyboard(void)
 }
 
 
-
-void BottomScreenCassette(void)
-{
-    swiWaitForVBlank();
-
-    // ---------------------------------------------------
-    // Put up the cassette screen background...
-    // ---------------------------------------------------
-    bg0b = bgInitSub(0, BgType_Text8bpp, BgSize_T_256x256, 31,0);
-    bg1b = bgInitSub(1, BgType_Text8bpp, BgSize_T_256x256, 29,0);
-    bgSetPriority(bg0b,1);bgSetPriority(bg1b,0);
-
-    decompress(cassetteTiles, bgGetGfxPtr(bg0b), LZ77Vram);
-    decompress(cassetteMap, (void*) bgGetMapPtr(bg0b), LZ77Vram);
-    dmaCopy((void*) cassettePal,(void*) BG_PALETTE_SUB,256*2);
-
-    unsigned short dmaVal = *(bgGetMapPtr(bg1b)+24*32);
-    dmaFillWords(dmaVal | (dmaVal<<16),(void*) bgGetMapPtr(bg1b),32*24*2);
-
-    bottom_screen = 3;
-}
-
-
 /*********************************************************************************
  * Init CPU for the current game
  ********************************************************************************/
@@ -1426,13 +1403,13 @@ void LoadBIOSFiles(void)
             }
         }
     }
-    
+
     if (size) bBIOS_found = true;
-    
+
     // Optional Disk ROM
                size = ReadFileCarefully("disk11.rom",                 DiskROM, 0x2000, 0);
     if (!size) size = ReadFileCarefully("/roms/bios/disk11.rom",      DiskROM, 0x2000, 0);
-    if (!size) size = ReadFileCarefully("/data/bios/disk11.rom",      DiskROM, 0x2000, 0);    
+    if (!size) size = ReadFileCarefully("/data/bios/disk11.rom",      DiskROM, 0x2000, 0);
     if (size) bDISKBIOS_found = true;
 }
 

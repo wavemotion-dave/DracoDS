@@ -78,7 +78,7 @@ void dragon_reset(void)
         mem_write(EXEC_VECTOR_HI, 0xc0);
         mem_write(EXEC_VECTOR_LO, 0x00);
     }
-    
+
     if (draco_mode >= MODE_DSK)
     {
         mem_load_rom(CARTRIDGE_ROM_BASE, DiskROM, 0x2000);

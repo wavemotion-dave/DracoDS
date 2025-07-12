@@ -58,13 +58,13 @@ void sam_init(void)
 {
     mem_define_io(0xfff2, 0xffff, io_handler_vector_redirect);
     mem_define_io(0xffc0, 0xffdf, io_handler_sam_write);
-    
+
     mem_define_io(0xffde, 0xffde, io_rom_mode);     // RAM/ROM (type 0 map)
     mem_define_io(0xffdf, 0xffdf, io_ram_mode);     // ALL-RAM (type 1 map)
-    
+
     mem_define_io(0xffd4, 0xffd4, io_page_zero);    // Normal mapping
     mem_define_io(0xffd5, 0xffd5, io_page_one);     // Mapping upper RAM into lower 32K
-    
+
     sam_registers.vdg_mode = 0;                     // Alphanumeric mode
     sam_registers.vdg_display_offset = 2;           // Dragon computer text page 0x0400
     sam_registers.page = 0;                         // 0=Normal, 1=Map upper 32K RAM to lower address space
@@ -186,13 +186,13 @@ ITCM_CODE uint8_t io_handler_sam_write(uint16_t address, uint8_t data, mem_opera
                 sam_registers.vdg_display_offset |= 0x40;
                 break;
         }
-        
+
         /* Send VDG mode to VDG emulation module
          * and display offset address to VDG emulation module
          */
         vdg_set_mode_sam((int) sam_registers.vdg_mode);
         vdg_set_video_offset(sam_registers.vdg_display_offset);
-        
+
         return data;
     }
 
@@ -210,7 +210,7 @@ static uint8_t io_rom_mode(uint16_t address, uint8_t data, mem_operation_t op)
         sam_registers.memory_map_type = 0x8000;
         sam_registers.map_upper_to_lower = (sam_registers.page ? 0x8000:0x0000);
     }
-    
+
     return 0;
 }
 
@@ -221,7 +221,7 @@ static uint8_t io_ram_mode(uint16_t address, uint8_t data, mem_operation_t op)
         sam_registers.memory_map_type = 0;
         sam_registers.map_upper_to_lower = 0x0000;
     }
-    
+
     return 0;
 }
 
@@ -232,7 +232,7 @@ static uint8_t io_page_zero(uint16_t address, uint8_t data, mem_operation_t op)
         sam_registers.map_upper_to_lower = 0x0000;
         sam_registers.page = 0;
     }
-    
+
     return 0;
 }
 

@@ -15,7 +15,7 @@
 #define WD1770  0
 #define WD2793  1
 
-// The Tandy CoCo FDC controller
+// The Tandy CoCo FDC controller - we only allow for single sided 40 track max
 struct FDC_t
 {
     u8  status;

@@ -118,7 +118,7 @@ const char szKeyName[MAX_KEY_OPTIONS][16] = {
   "RESERVED",
   "RESERVED",
   "JOYSTICK FIRE 2",// 59
-  
+
   "ATTACK LEFT",    // 60
   "ATTACK RIGHT",
   "MOVE",
@@ -350,7 +350,7 @@ void DracoDSFindFiles(u8 bDiskOnly)
           uNbFile++;
           fileCount++;
         }
-        
+
         if (bDISKBIOS_found)
         {
             if ( (strcasecmp(strrchr(szFile, '.'), ".dsk") == 0) )  {
@@ -757,14 +757,14 @@ void SetDefaultGameConfig(void)
     myConfig.reserved8   = 0;
     myConfig.reserved9   = 0;
     myConfig.reserved10  = 0xA5;    // So it's easy to spot on an "upgrade" and we can re-default it
-    
-    
+
+
     // We only support TANDY in disk mode
     if ((draco_mode == MODE_DSK) || (draco_mode == MODE_CART))
     {
         myConfig.machine = 1; // CoCo only
     }
-    
+
     // Now some special overrides for known games that need it
     if ((file_crc == 0x6f1e913a) || (file_crc == 0x3ee6ed00))  // Dragonfire (cart and cassette)
     {
@@ -776,11 +776,11 @@ void SetDefaultGameConfig(void)
     {
         initial_file[i] = toupper(initial_file[i]);
     }
-    
+
     if (strstr(initial_file, "BANDITO"))
     {
         myConfig.joyType = 7;
-        myConfig.analogCenter = 2; 
+        myConfig.analogCenter = 2;
     }
 
     if (strstr(initial_file, "BUZZARD"))
@@ -874,7 +874,7 @@ const struct options_t Option_Table[2][20] =
         {"AUTO LOAD",      {"NO", "CLOADM [EXEC]", "CLOAD [RUN]"},                     &myConfig.autoLoad,          3},
         {"AUTO FIRE",      {"OFF", "ON"},                                              &myConfig.autoFire,          2},
         {"GAME SPEED",     {"100%", "110%", "120%", "90%", "80%"},                     &myConfig.gameSpeed,         5},
-        {"DISK WRITE",     {"OFF", "ON"},                                              &myConfig.diskSave,          2},        
+        {"DISK WRITE",     {"OFF", "ON"},                                              &myConfig.diskSave,          2},
         {"FORCE CSS",      {"NORMAL", "COLOR SET 0", "COLOR SET 1"},                   &myConfig.forceCSS,          3},
         {"FORCE VDG",      {"NORMAL", "GRAPHICS 1C", "GRAPHICS 1R", "GRAPHICS 2C",
                             "GRAPHICS 2R", "GRAPHICS 3C", "GRAPHICS 3R",
@@ -1294,8 +1294,6 @@ void ReadFileCRCAndConfig(void)
     if (strstr(gpFic[ucGameChoice].szName, ".CAS") != 0) draco_mode = MODE_CAS;
     if (strstr(gpFic[ucGameChoice].szName, ".dsk") != 0) draco_mode = MODE_DSK;
     if (strstr(gpFic[ucGameChoice].szName, ".DSK") != 0) draco_mode = MODE_DSK;
-    if (strstr(gpFic[ucGameChoice].szName, ".vdk") != 0) draco_mode = MODE_VDK;
-    if (strstr(gpFic[ucGameChoice].szName, ".VDK") != 0) draco_mode = MODE_VDK;
 
     // Save the initial filename and file - we need it for save/restore of state
     strcpy(initial_file, gpFic[ucGameChoice].szName);
@@ -1713,9 +1711,9 @@ void getfile_crc(const char *filename)
     DSPrint(11,13,6, "LOADING...");
     WAITVBL;WAITVBL;WAITVBL;WAITVBL;WAITVBL;WAITVBL;
 
-    file_crc = getFileCrc(filename);        // The CRC is used as a unique ID to save out High Scores and Configuration...    
-    
-    // For .DSK based games, since the disk can be written, we have to base the CRC32 on 
+    file_crc = getFileCrc(filename);        // The CRC is used as a unique ID to save out High Scores and Configuration...
+
+    // For .DSK based games, since the disk can be written, we have to base the CRC32 on
     // the filename instead. We use the initial file here in case we swapped disks...
     if (draco_mode >= MODE_DSK)
     {

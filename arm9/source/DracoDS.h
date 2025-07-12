@@ -41,69 +41,12 @@ extern u32 DX, DY;
 #define JST_FIRE            0x0010
 #define JST_FIRE2           0x0020
 
-// -----------------------------------------------------------------------------------
-// And these are meta keys for mapping NDS keys to keyboard keys (many of the computer
-// games don't use joystick inputs and so need to map to keyboard keys...)
-// -----------------------------------------------------------------------------------
-#define META_KBD_A          0xF001
-#define META_KBD_B          0xF002
-#define META_KBD_C          0xF003
-#define META_KBD_D          0xF004
-#define META_KBD_E          0xF005
-#define META_KBD_F          0xF006
-#define META_KBD_G          0xF007
-#define META_KBD_H          0xF008
-#define META_KBD_I          0xF009
-#define META_KBD_J          0xF00A
-#define META_KBD_K          0xF00B
-#define META_KBD_L          0xF00C
-#define META_KBD_M          0xF00D
-#define META_KBD_N          0xF00E
-#define META_KBD_O          0xF00F
-#define META_KBD_P          0xF010
-#define META_KBD_Q          0xF011
-#define META_KBD_R          0xF012
-#define META_KBD_S          0xF013
-#define META_KBD_T          0xF014
-#define META_KBD_U          0xF015
-#define META_KBD_V          0xF016
-#define META_KBD_W          0xF017
-#define META_KBD_X          0xF018
-#define META_KBD_Y          0xF019
-#define META_KBD_Z          0xF01A
-
-#define META_KBD_0          0xF01B
-#define META_KBD_1          0xF01C
-#define META_KBD_2          0xF01D
-#define META_KBD_3          0xF01E
-#define META_KBD_4          0xF01F
-#define META_KBD_5          0xF020
-#define META_KBD_6          0xF021
-#define META_KBD_7          0xF022
-#define META_KBD_8          0xF023
-#define META_KBD_9          0xF024
-
-#define META_KBD_SHIFT      0xF025
-#define META_KBD_SYMBOL     0xF026
-#define META_KBD_SPACE      0xF029
-#define META_KBD_RETURN     0xF02A
-
 #define MAX_KEY_OPTIONS     65
-
-// -----------------------------
-// For the Full Keyboard...
-// -----------------------------
-#define KBD_KEY_SYMBOL      1
-#define KBD_KEY_SHIFT       2
-#define KBD_KEY_SFTDIR      3
-#define KBD_KEY_SYMDIR      4
-#define KBD_KEY_RET         13
 
 // What format is the input file?
 #define MODE_CART           1
 #define MODE_CAS            2
 #define MODE_DSK            3
-#define MODE_VDK            4
 
 #define WAITVBL swiWaitForVBlank(); swiWaitForVBlank(); swiWaitForVBlank(); swiWaitForVBlank(); swiWaitForVBlank();
 
@@ -124,12 +67,9 @@ extern u16 NDS_keyMap[];
 extern u8 soundEmuPause;
 extern int bg0, bg1, bg0b, bg1b;
 extern u32 last_file_size;
-extern u8  draco_special_key;
-extern u32 draco_current_line;
 extern u8 bottom_screen;
 
 extern void BottomScreenOptions(void);
-extern void BottomScreenCassette(void);
 extern void BottomScreenKeyboard(void);
 extern void PauseSound(void);
 extern void UnPauseSound(void);

@@ -9,7 +9,6 @@
 // The Draco-DS emulator is offered as-is, without any warranty. Please see readme.md
 // =====================================================================================
 
-
 /********************************************************************
  * pia.c
  *
@@ -176,7 +175,7 @@ uint8_t kbd_scan_dragon[60][2] __attribute__((section(".dtcm"))) = {
         { 0b11111101,   6 }, // #54  CLEAR
         { 0b01111111,   6 }, // #55  Shift key
         { 0b11111011,   6 }, // #56  Break (ESC key)
-        
+
         { 0b00000000, 255 }, // Reserved 1
         { 0b00000000, 255 }, // Reserved 2
         { 0b00000000, 255 }, // Reserved 3
@@ -296,7 +295,7 @@ void pia_init(void)
     /* Link IO call-backs
      */
     mem_write(PIA0_PA, 0x7f);
-    
+
     // Handle all mirrors of the PIA across the IO range of memory
     for (int mirror = 0; mirror < 32; mirror += 4)
     {
@@ -304,7 +303,7 @@ void pia_init(void)
         mem_define_io(PIA0_PB  + mirror,  PIA0_PB  + mirror, io_handler_pia0_pb);    // Keyboard column output
         mem_define_io(PIA0_CRA + mirror,  PIA0_CRA + mirror, io_handler_pia0_cra);   // Audio multiplexer select bit.0
         mem_define_io(PIA0_CRB + mirror,  PIA0_CRB + mirror, io_handler_pia0_crb);   // Field sync interrupt
-        
+
         mem_define_io(PIA1_PA  + mirror,  PIA1_PA  + mirror, io_handler_pia1_pa);    // 6-bit DAC output, cassette interface input bit
         mem_define_io(PIA1_PB  + mirror,  PIA1_PB  + mirror, io_handler_pia1_pb);    // VDG mode bits output
         mem_define_io(PIA1_CRA + mirror,  PIA1_CRA + mirror, io_handler_pia1_cra);   // Cassette tape motor control
@@ -317,11 +316,11 @@ void pia_init(void)
     dac_output           = 0;    // No DAC output to start
     sound_enable         = 1;    // Sound enable/disable
     last_comparator      = 0;    // Last comparator value
-    tape_pos             = 0;    // Current tape position 
+    tape_pos             = 0;    // Current tape position
     tape_motor           = 0;    // Motor on (1) or off (0)
     mux_select           = 0x00; // The Comparator Mux
     cas_eof              = 0;    // End of Cassette File
-    
+
     pia0_ddr_a = PIA_DDR;        // Normal Data Register Map
     pia0_ddr_b = PIA_DDR;        // Normal Data Register Map
     pia1_ddr_a = PIA_DDR;        // Normal Data Register Map
@@ -591,7 +590,7 @@ ITCM_CODE static uint8_t io_handler_pia0_cra(uint16_t address, uint8_t data, mem
             mux_select &= ~0x01;
 
         pia0_ca1_int_enabled = (data & PIA_CR_INTR);
-        
+
         pia0_ddr_a = (data & PIA_DDR);
     }
     else
@@ -619,9 +618,9 @@ ITCM_CODE static uint8_t io_handler_pia0_crb(uint16_t address, uint8_t data, mem
             mux_select |= 0x02;
         else
             mux_select &= ~0x02;
-            
+
         pia0_cb1_int_enabled = (data & PIA_CR_INTR);
-        
+
         pia0_ddr_b = (data & PIA_DDR);
     }
     else
@@ -805,7 +804,7 @@ static uint8_t io_handler_pia1_cra(uint16_t address, uint8_t data, mem_operation
                 tape_motor = 0;
             }
         }
-        
+
         pia1_ddr_a = (data & PIA_DDR);
     }
     else
@@ -836,7 +835,7 @@ ITCM_CODE static uint8_t io_handler_pia1_crb(uint16_t address, uint8_t data, mem
             pia1_cb1_int_enabled = 0;
 
         sound_enable = (data & 0x08);
-        
+
         pia1_ddr_b = (data & PIA_DDR);
     }
     else

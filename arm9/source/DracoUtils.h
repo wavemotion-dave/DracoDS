@@ -44,20 +44,17 @@ extern u8  draco_special_key;
 extern u32 last_file_size;
 extern u8  tape_play_skip_frame;
 extern u32 draco_scanline_counter;
-
+extern u8  draco_special_key;
+extern u32 file_size;
+extern u32 tape_pos;
+extern u16 tape_motor;
+extern u8  bDISKBIOS_found;
 
 typedef struct {
   char szName[MAX_FILENAME_LEN+1];
   u8 uType;
   u32 uCrc;
 } FIDraco;
-
-
-extern u32 file_size;
-
-extern uint32_t tape_pos;
-extern uint16_t tape_motor;
-extern uint8_t  bDISKBIOS_found;
 
 typedef u16 word;
 
@@ -147,8 +144,6 @@ extern u8   loadgame(const char *path);
 extern u8   DragonTandyInit(char *szGame);
 extern void DragonTandySetPalette(void);
 extern void DragonTandyRun(void);
-extern void tape_search_for_loader(void);
-extern void tape_detect_loading(void);
 extern void dragon_reset(void);
 extern u32  dragon_run(void);
 extern void getfile_crc(const char *path);
