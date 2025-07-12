@@ -115,6 +115,13 @@ SD card if the contents change. To that end, this is hobby-software and the FAT 
 that the .dsk file could be corrupted. This is highly unlikely but if you're concerned, keep a backup and you can also turn off disk writes in the per-game or 
 global configuration (it will still 'write' the disk into memory but will not try to write it back and persist it on the SD card).
 
+Configuration Options :
+-----------------------
+DracoDS includes global options (applied to the emulator as a whole and all games) and game-specific options (applied to just the one game file that was loaded).
+
+![image](./png/config.png)
+![image](./png/global.png)
+
 Joystick Options :
 -----------------------
 The Tandy CoCo and Dragon machines used an analog joystick that is difficult to emulate properly on the DS/DSi. To that end, the default 'Joystick' is digital - that 
