@@ -46,11 +46,19 @@ copying and distribution of this emulator, it's source code and associated readm
 with or without modification, are permitted in any medium without royalty provided this 
 copyright notice is used and wavemotion-dave and eyalabraham are thanked profusely.
 
+Royalty Free Music for the opening jingle provided by Anvish Parker
+
+lzav compression (for save states) is Copyright (c) 2023-2025 Aleksey 
+Vaneev and used by permission of the generous MIT license.
+
 The DracoDS emulator is offered as-is, without any warranty.
 
 Credits :
 -----------------------
 Thanks to eyalabraham who provided the baseline code - without that work, this derivation doesn't happen.
+
+Thanks to Darryl Hirschler for source keyboard graphics (modified for Dragon/Tandy use).
+
 
 BIOS/BASIC Files Needed :
 -----------------------
