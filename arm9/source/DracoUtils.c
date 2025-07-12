@@ -12,6 +12,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <ctype.h>
 #include <dirent.h>
 #include <unistd.h>
 #include <maxmod9.h>
@@ -116,7 +117,7 @@ const char szKeyName[MAX_KEY_OPTIONS][16] = {
   "BREAK",
   "RESERVED",
   "RESERVED",
-  "RESERVED",       // 59
+  "JOYSTICK FIRE 2",// 59
   
   "ATTACK LEFT",    // 60
   "ATTACK RIGHT",
@@ -332,6 +333,12 @@ void DracoDSFindFiles(u8 bDiskOnly)
       if ((strlen(szFile)>4) && (strlen(szFile)<(MAX_FILENAME_LEN-4)) && (szFile[0] != '.') && (szFile[0] != '_'))  // For MAC don't allow files starting with an underscore
       {
         if ( (strcasecmp(strrchr(szFile, '.'), ".ccc") == 0) )  {
+          strcpy(gpFic[uNbFile].szName,szFile);
+          gpFic[uNbFile].uType = DRACO_FILE;
+          uNbFile++;
+          fileCount++;
+        }
+        if ( (strcasecmp(strrchr(szFile, '.'), ".rom") == 0) )  {
           strcpy(gpFic[uNbFile].szName,szFile);
           gpFic[uNbFile].uType = DRACO_FILE;
           uNbFile++;
@@ -764,6 +771,30 @@ void SetDefaultGameConfig(void)
         myConfig.forceCSS = 2;   // Needs fixed Color Select
         myConfig.joystick = 1;   // Uses Left Joystick
     }
+
+    for (int i=0; i<strlen(initial_file); i++)
+    {
+        initial_file[i] = toupper(initial_file[i]);
+    }
+    
+    if (strstr(initial_file, "BANDITO"))
+    {
+        myConfig.joyType = 7;
+        myConfig.analogCenter = 2; 
+    }
+
+    if (strstr(initial_file, "BUZZARD"))
+    {
+        myConfig.keymap[4]   = 59;  // For some reason needs swap on buttons
+    }
+
+    if (strstr(initial_file, "POLARIS"))
+    {
+        myConfig.joyType = 1;
+        myConfig.keymap[7]   = 30;   // NDS Y Button mapped to Z
+        myConfig.keymap[5]   = 28;   // NDS B Button mapped to X
+        myConfig.keymap[4]   = 7;    // NDS A Button mapped to C
+    }
 }
 
 // ----------------------------------------------------------
@@ -852,13 +883,13 @@ const struct options_t Option_Table[2][20] =
         {"NDS D-PAD",      {"NORMAL", "SLIDE-N-GLIDE"},                                &myConfig.dpad,              2},
         {"JOYSTICK",       {"RIGHT", "LEFT"},                                          &myConfig.joystick,          2},
         {"JOY TYPE",       {"DIGITAL", "ANALOG SLOW", "ANALOG MEDIUM", "ANALOG FAST",
-                         "SLOW CENTER", "MEDIUM CENTER", "FAST CENTER", "DIG OFFSET"}, &myConfig.joyType,           8},
+                     "SLOW CENTER", "MEDIUM CENTER", "FAST CENTER", "DIGITAL OFFSET"}, &myConfig.joyType,           8},
         {"ANALG CENTER",   {"31", "32", "33"},                                         &myConfig.analogCenter,      3},
         {NULL,             {"",      ""},                                              NULL,                        1},
     },
     // Global Options
     {
-        {"DEF MACHINE",    {"DRAGON 32", "TANDY COCO"},                                &myGlobalConfig.defMachine,  2},
+        {"MACHINE TYPE",   {"DRAGON 32", "TANDY COCO"},                                &myGlobalConfig.defMachine,  2},
         {"DISK WRITE",     {"OFF", "ON"},                                              &myGlobalConfig.defDiskSave, 2},
         {"START DIR",      {"/ROMS/DRAGON",  "/ROMS/COCO", "LAST USED DIR"},           &myGlobalConfig.lastDir,     3},
         {"FPS",            {"OFF", "ON", "ON FULLSPEED"},                              &myGlobalConfig.showFPS,     3},
@@ -1257,6 +1288,8 @@ void ReadFileCRCAndConfig(void)
     // Determine the file type based on the filename extension
     if (strstr(gpFic[ucGameChoice].szName, ".ccc") != 0) draco_mode = MODE_CART;
     if (strstr(gpFic[ucGameChoice].szName, ".CCC") != 0) draco_mode = MODE_CART;
+    if (strstr(gpFic[ucGameChoice].szName, ".rom") != 0) draco_mode = MODE_CART;
+    if (strstr(gpFic[ucGameChoice].szName, ".ROM") != 0) draco_mode = MODE_CART;
     if (strstr(gpFic[ucGameChoice].szName, ".cas") != 0) draco_mode = MODE_CAS;
     if (strstr(gpFic[ucGameChoice].szName, ".CAS") != 0) draco_mode = MODE_CAS;
     if (strstr(gpFic[ucGameChoice].szName, ".dsk") != 0) draco_mode = MODE_DSK;
@@ -1413,7 +1446,7 @@ void DracoDSChangeOptions(void)
             }
             break;
           case 11 :     // REDEFINE KEYS
-            if (ucGameChoice != -1)
+            if (1==1)
             {
                 DracoDSChangeKeymap();
                 BottomScreenOptions();
@@ -1426,7 +1459,7 @@ void DracoDSChangeOptions(void)
             }
             break;
           case 13 :     // GAME OPTIONS
-            if (ucGameChoice != -1)
+            if (1==1)
             {
                 DracoDSGameOptions(false);
                 BottomScreenOptions();

@@ -128,6 +128,6 @@ void mem_load_rom(int addr_start, const uint8_t *buffer, int length)
 extern unsigned int debug[];
 static uint8_t do_nothing_io_handler(uint16_t address, uint8_t data, mem_operation_t op)
 {
-    return data;
+    return 0xFF;
 }
 

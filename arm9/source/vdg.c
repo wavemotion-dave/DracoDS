@@ -1102,7 +1102,7 @@ ITCM_CODE video_mode_t vdg_get_mode(void)
         {
             mode = SEMI_GRAPHICS_12;
         }
-        else if ( sam_video_mode == 4 &&
+        else if ( sam_video_mode == 6 &&
                 (pia_video_mode & 0x02) == 0 )
         {
             mode = SEMI_GRAPHICS_24;

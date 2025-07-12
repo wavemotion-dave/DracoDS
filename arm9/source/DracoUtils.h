@@ -20,7 +20,7 @@
 #define MAX_FILE_SIZE               (256*1024) // 256K is big enough for any .CAS or .CCC file or standard (160K) .DSK file
 
 #define MAX_CONFIGS                 1000
-#define CONFIG_VERSION              0x0003
+#define CONFIG_VERSION              0x0004
 
 #define DRACO_FILE                  0x01
 #define DIRECTORY                   0x02

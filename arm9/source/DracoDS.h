@@ -39,6 +39,7 @@ extern u32 DX, DY;
 #define JST_DOWN            0x0004
 #define JST_LEFT            0x0008
 #define JST_FIRE            0x0010
+#define JST_FIRE2           0x0020
 
 // -----------------------------------------------------------------------------------
 // And these are meta keys for mapping NDS keys to keyboard keys (many of the computer

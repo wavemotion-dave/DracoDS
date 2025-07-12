@@ -1044,10 +1044,13 @@ void DracoDS_main(void)
                           {
                               ucDEUX  |= keyCoresp[myConfig.keymap[i]];
                           }
-                          else if (myConfig.keymap[i] >= 60)   // Macro mapping
+                          else if (myConfig.keymap[i] >= 59)   // Macro mapping
                           {
                               switch (myConfig.keymap[i])
                               {
+                                  case 59:
+                                    ucDEUX |= JST_FIRE2;
+                                    break;
                                   case 60:
                                     BufferKey(5); BufferKey(49); BufferKey(16); BufferKey(48);  // ATTACK LEFT
                                     break;
@@ -1187,8 +1190,10 @@ void DracoDS_main(void)
           case 7:  // Digital Offset
             joy_x = JOY_CENTER + digital_offset_x; // Self-centering... almost
             joy_y = JOY_CENTER + digital_offset_y; // Self-centering... almost
+            
             if ( JoyState & JST_UP )    {joy_y = 0;   digital_offset_y = -1;  digital_offset_x = 0;}
             if ( JoyState & JST_DOWN)   {joy_y = 64;  digital_offset_y = +1;  digital_offset_x = 0;}
+            
             if ( JoyState & JST_LEFT )  {joy_x = 0;   digital_offset_x = -1;  digital_offset_y = 0;}
             if ( JoyState & JST_RIGHT ) {joy_x = 64;  digital_offset_x = +1;  digital_offset_y = 0;}
             break;            
