@@ -178,6 +178,12 @@ And then move the soundbank.h file to the arm9/sources directory
 
 Versions :
 -----------------------
+V1.0: ??-July-2025 by wavemotion-dave
+* Fixed keyboard graphic (glitch on key 8 and 9)
+* Fixed Semi Graphic 24 mode (fixes Protector, etc)
+* Fixed button issues on Buzzard Bait
+* Improved handling of Digital Offset (El Bandito)
+
 V0.9: 11-July-2025 by wavemotion-dave
 * Full 64K support working - Sailor Man plays!
 * Ability to swap a disk in the mini-menu.
