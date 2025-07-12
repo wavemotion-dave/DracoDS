@@ -101,7 +101,6 @@ Dragon vs Tandy Mode :
 -----------------------
 The default mode is Tandy CoCo. You can change the default in Global Settings. You can also override on a per-game basis. Be sure to run games intended for the Dragon in Dragon mode (you should see the Dragon logo on the keyboard) and be sure to run Tandy CoCo games in Tandy mode (the Tandy Color Computer logo should be shown on the main keyboard graphic).
 
-
 Blue or Orange Screen? :
 -----------------------
 Because the artifacting on an NTSC CoCo was a bit hit-or miss (that is, from one setup to another it might reverse the Orange/Blue colors), some games took to 
@@ -121,6 +120,14 @@ DracoDS includes global options (applied to the emulator as a whole and all game
 
 ![image](./png/config.png)
 ![image](./png/global.png)
+
+Key Mapping Options :
+-----------------------
+Each game can individually configure any of the 12 DS buttons (D-PAD, ABXY, L/R, START/SELECT) to a single CoCo/Dragon joystick or keyboard button. The default is for the D-PAD 
+and Button A to replicate the joystick but you can configure as you like. Pressing the X button on this screen will toggle between some preset defaults for common joystick 
+maps - such as using the D-PAD as the keyboard cursor keys (up, down, left, right arrows).
+
+![image](./png/keymap.png)
 
 Joystick Options :
 -----------------------
