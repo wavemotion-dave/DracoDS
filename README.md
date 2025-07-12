@@ -18,7 +18,7 @@ Features :
 * Tandy CoCo 2 support with 32K of RAM and 64K of RAM. Running at 60Hz NTSC.
 * Dragon 32/64 support with 32K or 64K of RAM running at the 50Hz PAL speed.
 * Cassette (.cas) support for both the Dragon and Tandy emulated machines.
-* Cartridge (.ccc) support for the Tandy emulated machine.
+* Cartridge (.ccc or .rom) support for the Tandy emulated machine.
 * Disk (.dsk) support for the Tandy emulated machine. Standard single-sided 160K (35 track) or 180K (40 track) disks only.
 * Save/Load Game State (one slot).
 * Artifacting support to 4-color high-rez mode.
@@ -197,6 +197,7 @@ V1.0: ??-July-2025 by wavemotion-dave
 * Fixed Semi Graphic 24 mode (fixes Protector, etc)
 * Fixed button issues on Buzzard Bait
 * Improved handling of Digital Offset (El Bandito)
+* Allow .ROM files to be loaded (same as .CCC files)
 
 V0.9: 11-July-2025 by wavemotion-dave
 * Full 64K support working - Sailor Man plays!
