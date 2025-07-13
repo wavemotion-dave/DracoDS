@@ -145,6 +145,17 @@ is, pressing the D-Pad will emualte extreme analog positions of a real joystick.
 multi-position of a real analog stick. So you can change the default 'DIGITAL' controller to 3 speeds of Analog - both self-centering and none. Games like POLARIS, for
 example, play fine with the 'SLOW ANALOG' setting.  Experiment and figure out what works best for any given game. Your joystick settings are saved on a per-game basis.
 
+Here is a short breakdown of the various joystick handling modes:
+
+* DIGITAL - Pressing any direction instantly brings the analog axis value to the min/max. Releasing keys brings it back to the center position (32,32).
+* ANALOG SLOW - Pressing any direction moves the analog values towards either min or max (depending on direction pressed) and does not auto-center.
+* ANALOG MEDIUM - Pressing any direction moves the analog values towards either min or max (depending on direction pressed) and does not auto-center.
+* ANALOG FAST - Pressing any direction moves the analog values towards either min or max (depending on direction pressed) and does not auto-center.
+* SLOW CENTER - Pressing any direction moves the analog values towards either min or max (depending on direction pressed) and when released, brings it back to center.
+* MEDIUM CENTER - Pressing any direction moves the analog values towards either min or max (depending on direction pressed) and when released, brings it back to center.
+* FAST CENTER - Pressing any direction moves the analog values towards either min or max (depending on direction pressed) and when released, brings it back to center.
+* DIGITAL OFFSET - Pressing any direction moves the analog values towards either min or max (depending on direction pressed) and when released, brings it _almost_ to center but leaves it slightly towards the last value pressed. Useful for some maze games.
+
 The default joystick is the RIGHT port joystick but every game seems to be different... if the game isn't responding to the RIGHT joystick port, switch it in the 
 game options to the LEFT port (you don't have to exit the game to make this change - the DS MINI menu has the Game Options available from the little Cassette Icon)
 
@@ -169,6 +180,13 @@ The Colors Aren't What I Remember :
 Probably true. First of all, the colors are an approximation with emulation but the bigger issue is that this emulator (in order to gain the emulation speed needed) has scanline granularity. 
 Some games will change the color set as the beam races down the screen... and that's super cool! It's also not something that DracoDS supports (at least not yet). So yeah... it's possible
 your light red fire will render as a light blue flame - but it's a small price to pay to get all this stuff playable no the tiny DS handheld.
+
+Artifact Colors
+-----------------------
+One of the hallmarks of NTSC high-resolution on the CoCo is the artifact colors which turn white-black-white pixels into a light blue and orange (often referred to as 'red') colors depending
+on the position of the bright and dark pixels. This emulator will do a "poor-man-artifacting"... it's not perfect and there will be some areas that are a bit more jagged than a real system
+but it's blazing fast and runs well on the DS and looks good enough for playing most things.
+
 
 Known Issues:
 -----------------------

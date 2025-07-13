@@ -447,9 +447,9 @@ ITCM_CODE static uint8_t io_handler_pia0_pa(uint16_t address, uint8_t data, mem_
 
         data = row_switch_bits;
 
+        uint16_t input = 31+myConfig.analogCenter;
         if (myConfig.joystick == 0) // Right Joystick
-        {
-            uint16_t input = 31+myConfig.analogCenter;
+        {            
             if (mux_select == MUX_RIGHT_Y) // Up-Down axis
             {
                 input = joy_y;
@@ -459,7 +459,7 @@ ITCM_CODE static uint8_t io_handler_pia0_pa(uint16_t address, uint8_t data, mem_
                 input = joy_x;
             }
 
-            if (input > dac_output)
+            if (input >= dac_output)
             {
                 data |= 0x80;
                 last_comparator = 0x80;
@@ -493,7 +493,6 @@ ITCM_CODE static uint8_t io_handler_pia0_pa(uint16_t address, uint8_t data, mem_
         }
         else // Left Joystick
         {
-            uint16_t input = 32;
             if (mux_select == MUX_LEFT_Y) // Up-Down axis
             {
                 input = joy_y;
@@ -503,7 +502,7 @@ ITCM_CODE static uint8_t io_handler_pia0_pa(uint16_t address, uint8_t data, mem_
                 input = joy_x;
             }
 
-            if (input > dac_output)
+            if (input >= dac_output)
             {
                 data |= 0x80;
                 last_comparator = 0x80;

@@ -41,7 +41,7 @@ extern u32 DX, DY;
 #define JST_FIRE            0x0010
 #define JST_FIRE2           0x0020
 
-#define MAX_KEY_OPTIONS     65
+#define MAX_KEY_OPTIONS     68
 
 // What format is the input file?
 #define MODE_CART           1

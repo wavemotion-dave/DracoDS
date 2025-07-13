@@ -523,6 +523,7 @@ ITCM_CODE void cpu_run(void)
                         default:
                             /* Exception: Illegal 0x11 op-code cpu_run()
                              */
+                            debug[7] = op_code;
                             cpu.cpu_state = CPU_EXCEPTION;
                     }
                 }
@@ -636,6 +637,7 @@ ITCM_CODE void cpu_run(void)
                         default:
                             /* Exception: Illegal 0x10 op-code cpu_run()
                              */
+                             debug[7] = op_code;
                             cpu.cpu_state = CPU_EXCEPTION;
                     }
                 }
@@ -1409,31 +1411,10 @@ ITCM_CODE void cpu_run(void)
                     }
                     break;
                     
-                case 0x18:
-                    cc.z = cc.v;
-                    cc.h = cc.i;
-                    cc.v = 0;
-                    cc.i = 0;
-                    cc.n = 0;
-                    cc.f = 0;
-                    cc.c = 0;
-                    break;
-
-                case 0x52:
-                    if (cc.c)
-                    {
-                        cpu.b = com(cpu.b);
-                    }
-                    else
-                    {
-                        cpu.b = neg(cpu.b);
-                    }
-                    break;
-
                 default:
                     /* Exception: Illegal op-code cpu_run()
                      */
-                    if (debug[7] == 0) {debug[7] = 9999; debug[6] = op_code;}
+                    if (debug[7] == 0) {debug[7] = op_code;}
                     cpu.cpu_state = CPU_EXCEPTION;
                 
             }

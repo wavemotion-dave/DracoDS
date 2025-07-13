@@ -56,7 +56,7 @@ struct sam_reg_t sam_registers  __attribute__((section(".dtcm")));
  */
 void sam_init(void)
 {
-    mem_define_io(0xfff2, 0xffff, io_handler_vector_redirect);
+    mem_define_io(0xfff0, 0xffff, io_handler_vector_redirect);
     mem_define_io(0xffc0, 0xffdf, io_handler_sam_write);
 
     mem_define_io(0xffde, 0xffde, io_rom_mode);     // RAM/ROM (type 0 map)

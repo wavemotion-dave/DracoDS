@@ -123,7 +123,10 @@ const char szKeyName[MAX_KEY_OPTIONS][16] = {
   "ATTACK RIGHT",
   "MOVE",
   "TURN LEFT",
-  "TURN RIGHT"
+  "TURN RIGHT",
+  "TURN AROUND",    // 65
+  "PULL LEFT ...",
+  "PULL RIGHT ..."
 };
 
 
@@ -771,6 +774,23 @@ void SetDefaultGameConfig(void)
         myConfig.forceCSS = 2;   // Needs fixed Color Select
         myConfig.joystick = 1;   // Uses Left Joystick
     }
+    
+    if ((file_crc == 0xd45e59e3) || (file_crc == 0xc985282a))  // Dungeons of Daggorath
+    {
+        myConfig.keymap[0]   = 62;   // NDS D-Pad mapped to MOVE (FORWARD)
+        myConfig.keymap[1]   = 65;   // NDS D-Pad mapped to TURN AROUND
+        myConfig.keymap[2]   = 63;   // NDS D-Pad mapped to TURN LEFT
+        myConfig.keymap[3]   = 64;   // NDS D-Pad mapped to TURN RIGHT
+        myConfig.keymap[4]   = 60;   // NDS A Button mapped ATTACK LEFT
+
+        myConfig.keymap[5]   = 48;   // NDS B Button mapped RETURN
+        myConfig.keymap[6]   = 49;   // NDS X Button mapped to SPACE
+        myConfig.keymap[7]   = 48;   // NDS Y Button mapped to RETURN
+        myConfig.keymap[8]   = 66;   // NDS R Button mapped to PULL LEFT ...
+        myConfig.keymap[9]   = 67;   // NDS L Button mapped to PULL RIGHT ...
+        myConfig.keymap[10]  = 40;   // NDS START mapped to '0'
+        myConfig.keymap[11]  = 31;   // NDS SELECT mapped to '1'
+    }
 
     for (int i=0; i<strlen(initial_file); i++)
     {
@@ -780,7 +800,6 @@ void SetDefaultGameConfig(void)
     if (strstr(initial_file, "BANDITO"))
     {
         myConfig.joyType = 7;
-        myConfig.analogCenter = 2;
     }
 
     if (strstr(initial_file, "BUZZARD"))
@@ -1596,7 +1615,11 @@ void ProcessBufferedKeys(void)
                 BufferedKeysReadIdx = (BufferedKeysReadIdx+1) % 32;
                 next_dampen_time = 8;
                 if (buf_held == 255) {buf_held = 0; kbd_key = 0;}
-            } else buf_held = 0;
+            }
+            else
+            {
+                buf_held = 0x00;
+            }
             dampen = 0;
         }
     }

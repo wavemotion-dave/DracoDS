@@ -1052,19 +1052,28 @@ void DracoDS_main(void)
                                     ucDEUX |= JST_FIRE2;
                                     break;
                                   case 60:
-                                    BufferKey(5); BufferKey(49); BufferKey(16); BufferKey(48);  // ATTACK LEFT
+                                    BufferKey(5); BufferKey(49); BufferKey(16); BufferKey(48); BufferKey(255);   // ATTACK LEFT
                                     break;
                                   case 61:
-                                    BufferKey(5); BufferKey(49); BufferKey(22); BufferKey(48);  // ATTACK RIGHT
+                                    BufferKey(5); BufferKey(49); BufferKey(22); BufferKey(48); BufferKey(255);  // ATTACK RIGHT
                                     break;
                                   case 62:
-                                    BufferKey(17); BufferKey(48);  // MOVE
+                                    BufferKey(17); BufferKey(48); BufferKey(255);  // MOVE
                                     break;
                                   case 63:
-                                    BufferKey(24); BufferKey(49); BufferKey(16); BufferKey(48);  // TURN LEFT
+                                    BufferKey(24); BufferKey(49); BufferKey(16); BufferKey(48); BufferKey(255);  // TURN LEFT
                                     break;
                                   case 64:
-                                    BufferKey(24); BufferKey(49); BufferKey(22); BufferKey(48);  // TURN LEFT
+                                    BufferKey(24); BufferKey(49); BufferKey(22); BufferKey(48); BufferKey(255);  // TURN LEFT
+                                    break;
+                                  case 65:
+                                    BufferKey(24); BufferKey(49); BufferKey(5); BufferKey(48); BufferKey(255);  // TURN AROUND
+                                    break;
+                                  case 66:
+                                    BufferKey(20); BufferKey(49); BufferKey(16); BufferKey(49); BufferKey(255); // PULL LEFT ...
+                                    break;
+                                  case 67:
+                                    BufferKey(20); BufferKey(49); BufferKey(22); BufferKey(49); BufferKey(255); // PULL RIGHT ...
                                     break;
                               }
                           }

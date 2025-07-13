@@ -127,6 +127,9 @@ void mem_load_rom(int addr_start, const uint8_t *buffer, int length)
 extern unsigned int debug[];
 static uint8_t do_nothing_io_handler(uint16_t address, uint8_t data, mem_operation_t op)
 {
+    static int zzz=0;
+    if (op == MEM_WRITE) debug[zzz++ & 7] = address;
+    else debug[zzz++ & 7] = address & 0xFFF;
     return 0xFF;
 }
 
