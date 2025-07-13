@@ -230,6 +230,7 @@ V1.0: 14-July-2025 by wavemotion-dave
 * Fixed Semi Graphic 24 mode (fixes Protector, etc)
 * Fixed button issues on Buzzard Bait
 * Improved handling of Digital Offset (El Bandito)
+* Improved Dungeons of Daggorath macros
 * Allow .ROM files to be loaded (same as .CCC files)
 * More cleanups and a bit of polish for the first big release.
 
