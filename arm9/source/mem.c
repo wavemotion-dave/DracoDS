@@ -23,9 +23,6 @@
 #include    "sam.h"
 
 /* -----------------------------------------
-   Local definitions
------------------------------------------ */
-/* -----------------------------------------
    Module static functions
 ----------------------------------------- */
 static uint8_t do_nothing_io_handler(uint16_t address, uint8_t data, mem_operation_t op);
@@ -34,9 +31,9 @@ static uint8_t do_nothing_io_handler(uint16_t address, uint8_t data, mem_operati
    Module globals
 ----------------------------------------- */
 io_handler_callback callback_io[MEMORY_SIZE];  // IO Handler 
-uint8_t  memory_RAM[MEMORY_SIZE];            // 64K of RAM 
-uint8_t  memory_ROM[MEMORY_SIZE];            // 64K of ROM but only the upper 32K is ever mapped/used
-uint8_t  memory_IO[MEMORY_SIZE];             // 256 bytes of IO Space
+uint8_t  memory_RAM[MEMORY_SIZE];              // 64K of RAM
+uint8_t  memory_ROM[MEMORY_SIZE];              // 64K of ROM but only the upper 32K is ever mapped/used
+uint8_t  memory_IO[MEMORY_SIZE];               // 256 bytes of IO Space (but we allocate the full map so we don't have to mask)
 
 /*------------------------------------------------
  * mem_init()
@@ -124,12 +121,8 @@ void mem_load_rom(int addr_start, const uint8_t *buffer, int length)
  *  param:  Nothing
  *  return: Nothing
  */
-extern unsigned int debug[];
 static uint8_t do_nothing_io_handler(uint16_t address, uint8_t data, mem_operation_t op)
 {
-    static int zzz=0;
-    if (op == MEM_WRITE) debug[zzz++ & 7] = address;
-    else debug[zzz++ & 7] = address & 0xFFF;
     return 0xFF;
 }
 

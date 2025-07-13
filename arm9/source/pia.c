@@ -91,6 +91,11 @@ uint8_t   sound_enable         __attribute__((section(".dtcm"))) = 1;
 uint8_t   last_comparator      __attribute__((section(".dtcm"))) = 0;
 uint8_t   cas_eof              __attribute__((section(".dtcm"))) = 0;
 
+uint8_t tape_byte              __attribute__((section(".dtcm"))) = 0;
+int     bit_index              __attribute__((section(".dtcm"))) = 0;
+int     bit_timing_threshold   __attribute__((section(".dtcm"))) = 0;
+int     bit_timing_count       __attribute__((section(".dtcm"))) = 0;
+
 
 /*
     Dragon keyboard map
@@ -294,7 +299,7 @@ void pia_init(void)
 {
     /* Link IO call-backs
      */
-    mem_write(PIA0_PA, 0x7f);
+    memory_IO[PIA0_PA] = 0x7f;
 
     // Handle all mirrors of the PIA across the IO range of memory
     for (int mirror = 0; mirror < 32; mirror += 4)
@@ -331,7 +336,7 @@ void pia_init(void)
  * pia_vsync_irq()
  *
  *  Assert an external interrupt from the VDG Field Sync line (V-Sync)
- *  through PIA0-CB1 that geterates an IRQ interrupt.
+ *  through PIA0-CB1 that generates an IRQ interrupt.
  *
  *  param:  Nothing
  *  return: Nothing
@@ -350,6 +355,16 @@ void pia_vsync_irq(void)
     }
 }
 
+
+/*------------------------------------------------
+ * pia_hsync_firq()
+ *
+ *  Assert an external interrupt from the VDG fast Sync line (H-Sync)
+ *  through PIA0-CA1 that generates a FIRQ interrupt.
+ *
+ *  param:  Nothing
+ *  return: Nothing
+ */
 void pia_hsync_firq(void)
 {
     /* Set the HSYNC 'on' bit - turns off on next port read
@@ -651,12 +666,6 @@ inline uint8_t loader_tape_fread(void)
  *  param:  Call address, data byte for write operation, and operation type
  *  return: Status or data byte
  */
-
-uint8_t tape_byte               __attribute__((section(".dtcm"))) = 0;
-int     bit_index               __attribute__((section(".dtcm"))) = 0;
-int     bit_timing_threshold    __attribute__((section(".dtcm"))) = 0;
-int     bit_timing_count        __attribute__((section(".dtcm"))) = 0;
-
 ITCM_CODE static uint8_t io_handler_pia1_pa(uint16_t address, uint8_t data, mem_operation_t op)
 {
     if ( op == MEM_WRITE )

@@ -19,6 +19,7 @@ struct sam_reg_t
     uint8_t  page;
     uint8_t  mpu_rate;
     uint8_t  memory_size;
+    uint8_t  reserved;
     uint16_t memory_map_type;
     uint16_t map_upper_to_lower;
 };

@@ -78,6 +78,10 @@ inline __attribute__((always_inline)) uint8_t mem_read(int address)
     return memory_RAM[sam_registers.map_upper_to_lower | address];
 }
 
+// ----------------------------------------------------------------------------------
+// This is used when we know we're fetching the PC memory and don't have to worry
+// about IO and it improves the emulation speed nicely for the older DS handhelds...
+// ----------------------------------------------------------------------------------
 inline __attribute__((always_inline)) uint8_t mem_read_pc(int address)
 {
     // See if this is a ROM address

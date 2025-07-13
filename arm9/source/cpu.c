@@ -523,7 +523,7 @@ ITCM_CODE void cpu_run(void)
                         default:
                             /* Exception: Illegal 0x11 op-code cpu_run()
                              */
-                            debug[7] = op_code;
+                            if (debug[6] == 0) {debug[6] = op_code;} debug[6] = op_code;
                             cpu.cpu_state = CPU_EXCEPTION;
                     }
                 }
@@ -637,7 +637,7 @@ ITCM_CODE void cpu_run(void)
                         default:
                             /* Exception: Illegal 0x10 op-code cpu_run()
                              */
-                             debug[7] = op_code;
+                             if (debug[6] == 0) {debug[6] = op_code;} debug[6] = op_code;
                             cpu.cpu_state = CPU_EXCEPTION;
                     }
                 }

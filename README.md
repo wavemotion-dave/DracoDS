@@ -172,8 +172,9 @@ of the DS touch-screen where only one key can be pressed at a time, the SHIFT ke
 
 Dungeons of Daggorath :
 -----------------------
-My favorite CoCo game! To that end, I've added 5 special 'MACRO' keys to the possible keyboard map to allow you to map a key to "ATTACK LEFT", "ATTACK RIGHT", "MOVE", "TURN LEFT", "TURN RIGHT". 
-Map these to the d-pad or any buttons you wish and playing DoD will be a joy.
+My favorite CoCo game! To that end, I've added 8 special 'MACRO' keys to the possible keyboard map to allow you to map a key to "ATTACK LEFT", "ATTACK RIGHT", "MOVE", "MOVE BACK", 
+"TURN LEFT", "TURN RIGHT", "PULL LEFT" and "PULL RIGHT". If you're using one of the standard cart ROMs, these should map in automatigally but you can map these to the d-pad or any
+buttons you wish and playing DoD will be a joy.
 
 The Colors Aren't What I Remember :
 -----------------------
@@ -187,6 +188,11 @@ One of the hallmarks of NTSC high-resolution on the CoCo is the artifact colors 
 on the position of the bright and dark pixels. This emulator will do a "poor-man-artifacting"... it's not perfect and there will be some areas that are a bit more jagged than a real system
 but it's blazing fast and runs well on the DS and looks good enough for playing most things.
 
+Screenshot and Screen Swap:
+-----------------------
+Pressing and holding the L/R shoulder buttons plus X will exchange the top and bottom screens. However, only the bottom screen is touch-sensitive so you would still need to press on the bottom screen to make the touch screen work.
+
+Pressing and holding the L/R shoulder buttons plus Y will create a screen snapshot of the game screen. It will be time/date stamped and written to the SD card in the same directory as the game file.
 
 Known Issues:
 -----------------------
@@ -219,12 +225,13 @@ And then move the soundbank.h file to the arm9/sources directory
 
 Versions :
 -----------------------
-V1.0: ??-July-2025 by wavemotion-dave
+V1.0: 14-July-2025 by wavemotion-dave
 * Fixed keyboard graphic (glitch on key 8 and 9)
 * Fixed Semi Graphic 24 mode (fixes Protector, etc)
 * Fixed button issues on Buzzard Bait
 * Improved handling of Digital Offset (El Bandito)
 * Allow .ROM files to be loaded (same as .CCC files)
+* More cleanups and a bit of polish for the first big release.
 
 V0.9: 11-July-2025 by wavemotion-dave
 * Full 64K support working - Sailor Man plays!

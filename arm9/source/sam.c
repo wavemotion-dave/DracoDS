@@ -185,6 +185,22 @@ ITCM_CODE uint8_t io_handler_sam_write(uint16_t address, uint8_t data, mem_opera
             case 0x13:
                 sam_registers.vdg_display_offset |= 0x40;
                 break;
+                
+            case 0x16:
+                sam_registers.mpu_rate &= ~0x01;
+                break;
+            case 0x17:
+                sam_registers.mpu_rate |= 0x01;
+                break;
+            case 0x18:
+                sam_registers.mpu_rate &= ~0x02;
+                break;
+            case 0x19:
+                sam_registers.mpu_rate |= 0x02;
+                break;
+
+            default:
+                break;
         }
 
         /* Send VDG mode to VDG emulation module
@@ -199,9 +215,11 @@ ITCM_CODE uint8_t io_handler_sam_write(uint16_t address, uint8_t data, mem_opera
     return 0;
 }
 
-// ----------------------------------------------------------------------
+// -----------------------------------------------------------------------
 // 64K Emulation - mainly to allow swap of RAM/ROM mode for ALL-RAM mode
-// ----------------------------------------------------------------------
+// as I'm unaware of any games that use the 'Page 1' mapping of upper
+// RAM to the lower address space... but in theory that's handled as well.
+// -----------------------------------------------------------------------
 
 static uint8_t io_rom_mode(uint16_t address, uint8_t data, mem_operation_t op)
 {

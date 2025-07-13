@@ -54,9 +54,8 @@ int          video_ram_offset   __attribute__((section(".dtcm")));
 int          sam_video_mode     __attribute__((section(".dtcm")));
 int          sam_2x_rez         __attribute__((section(".dtcm"))) = 1;
 
-uint8_t      pia_video_mode;
-video_mode_t current_mode;
-uint8_t     *fbp;
+uint8_t      pia_video_mode     __attribute__((section(".dtcm")));
+video_mode_t current_mode       __attribute__((section(".dtcm")));
 
 /* The following table lists the pixel ratio of columns and rows
  * relative to a 768x384 frame buffer resolution.
@@ -118,9 +117,6 @@ void vdg_init(void)
 {
     video_ram_offset = 0x02;    // For offset 0x400 text screen
     sam_video_mode = 0;         // Alphanumeric
-
-    // This is our framebuffer - the DS/DSi LCD
-    fbp = (uint8_t *) (0x06000000);
 
     /* Default startup mode of Dragon 32
      */
@@ -318,7 +314,7 @@ ITCM_CODE void vdg_render_alpha_semi4(int vdg_mem_base)
     uint8_t     bit_pattern;
     uint8_t     color_set, fg_color;
 
-    uint32_t    *screen_buffer = (uint32_t *)fbp;
+    uint32_t    *screen_buffer = (uint32_t *)0x06000000;
 
     if ( pia_video_mode & PIA_COLOR_SET )
         color_set = DEF_COLOR_CSS_1;
@@ -387,7 +383,7 @@ ITCM_CODE void vdg_render_semi6(int vdg_mem_base)
 
     uint32_t    *screen_buffer;
 
-    screen_buffer = (uint32_t *)fbp;
+    screen_buffer = (uint32_t *)0x06000000;
     color_set = (int)(4 * (pia_video_mode & PIA_COLOR_SET));
 
     for ( row = 0; row < SCREEN_HEIGHT_CHAR; row++ )
@@ -459,7 +455,7 @@ ITCM_CODE void vdg_render_semi_ext(video_mode_t mode, int vdg_mem_base)
     uint8_t     color_set, fg_color, bg_color;
     uint32_t   *screen_buffer;
 
-    screen_buffer = (uint32_t *)fbp;
+    screen_buffer = (uint32_t *)0x06000000;
     font_row = 0;
 
     if ( pia_video_mode & PIA_COLOR_SET )
@@ -591,7 +587,7 @@ ITCM_CODE void vdg_render_resl_graph(video_mode_t mode, int vdg_mem_base)
     uint8_t    *screen_buffer;
     uint8_t     pixel_row[SCREEN_WIDTH_PIX+16];
 
-    screen_buffer = fbp;
+    screen_buffer = (uint8_t *) (0x06000000);
 
     video_mem = resolution[mode][RES_MEM];
     row_rep = resolution[mode][RES_ROW_REP];
@@ -673,7 +669,7 @@ ITCM_CODE void vdg_render_artifacting(video_mode_t mode, int vdg_mem_base)
         if ((++ds_lite_frameskip & 3) == 0) return;
     }
 
-    screen_buffer = fbp;
+    screen_buffer = (uint8_t *) (0x06000000);
 
     video_mem = resolution[mode][RES_MEM];
     row_rep = resolution[mode][RES_ROW_REP];
@@ -777,7 +773,7 @@ void vdg_render_artifacting_reverse(video_mode_t mode, int vdg_mem_base)
         if ((++ds_lite_frameskip & 3) == 0) return;
     }
 
-    screen_buffer = fbp;
+    screen_buffer = (uint8_t *) (0x06000000);
 
     video_mem = resolution[mode][RES_MEM];
     row_rep = resolution[mode][RES_ROW_REP];
@@ -880,7 +876,7 @@ void vdg_render_artifacting_bw(video_mode_t mode, int vdg_mem_base)
         if ((++ds_lite_frameskip & 3) == 0) return;
     }
 
-    screen_buffer = fbp;
+    screen_buffer = (uint8_t *) (0x06000000);
 
     video_mem = resolution[mode][RES_MEM];
     row_rep = resolution[mode][RES_ROW_REP];
@@ -958,7 +954,7 @@ ITCM_CODE void vdg_render_color_graph(video_mode_t mode, int vdg_mem_base)
     uint8_t    *screen_buffer;
     uint8_t     pixel_row[SCREEN_WIDTH_PIX+16];
 
-    screen_buffer = fbp;
+    screen_buffer = (uint8_t *) (0x06000000);
 
     video_mem = resolution[mode][RES_MEM];
     row_rep = resolution[mode][RES_ROW_REP];

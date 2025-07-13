@@ -31,7 +31,7 @@
 
 #include "lzav.h"
 
-#define DRACO_SAVE_VER   0x0002       // Change this if the basic format of the .SAV file changes. Invalidates older .sav files.
+#define DRACO_SAVE_VER   0x0003       // Change this if the basic format of the .SAV file changes. Invalidates older .sav files.
 
 u8 CompressBuffer[128*1024];
 

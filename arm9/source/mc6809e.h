@@ -873,7 +873,6 @@ machine_code_t machine_code_11[] __attribute__((section(".dtcm"))) =
     {0xfd, ILLEGAL_OP     , 0 , 1},
     {0xfe, ILLEGAL_OP     , 0 , 1},
     {0xff, ILLEGAL_OP     , 0 , 1}
-};
-    
+};    
 
 #endif  /* __MC6809E_H__ */
