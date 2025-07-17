@@ -753,10 +753,10 @@ void SetDefaultGameConfig(void)
     myConfig.autoLoad    = 1;                           // Default is to to auto-load games
     myConfig.gameSpeed   = 0;                           // Default is 100% game speed
     myConfig.forceCSS    = 0;                           // Normal - not forced Color Select
-    myConfig.graphicsMode= 0;                           // Normal - auto detect graphics mode
     myConfig.diskSave    = myGlobalConfig.defDiskSave;  // Default is to auto-save disk files
     myConfig.analogCenter= 1;                           // Default is center=32
     myConfig.artifacts   = 0;                           // Default is BLUE/ORANGE
+    myConfig.reserved1   = 0;
     myConfig.reserved7   = 0;
     myConfig.reserved8   = 0;
     myConfig.reserved9   = 0;
@@ -896,9 +896,6 @@ const struct options_t Option_Table[2][20] =
         {"GAME SPEED",     {"100%", "110%", "120%", "90%", "80%"},                     &myConfig.gameSpeed,         5},
         {"DISK WRITE",     {"OFF", "ON"},                                              &myConfig.diskSave,          2},
         {"FORCE CSS",      {"NORMAL", "COLOR SET 0", "COLOR SET 1"},                   &myConfig.forceCSS,          3},
-        {"FORCE VDG",      {"NORMAL", "GRAPHICS 1C", "GRAPHICS 1R", "GRAPHICS 2C",
-                            "GRAPHICS 2R", "GRAPHICS 3C", "GRAPHICS 3R",
-                            "GRAPHICS 6C", "GRAPHICS 6R"},                             &myConfig.graphicsMode,      9},
         {"ARTIFACTS",      {"BLUE/ORANGE", "ORANGE/BLUE", "OFF"},                      &myConfig.artifacts,         3},
         {"NDS D-PAD",      {"NORMAL", "SLIDE-N-GLIDE"},                                &myConfig.dpad,              2},
         {"JOYSTICK",       {"RIGHT", "LEFT"},                                          &myConfig.joystick,          2},

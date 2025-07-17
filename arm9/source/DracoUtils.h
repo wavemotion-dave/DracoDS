@@ -96,7 +96,7 @@ struct __attribute__((__packed__)) Config_t
     u8  joyType;
     u8  dpad;
     u8  forceCSS;
-    u8  graphicsMode;
+    u8  reserved1;
     u8  diskSave;
     u8  analogCenter;
     u8  artifacts;

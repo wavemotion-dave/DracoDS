@@ -1013,56 +1013,36 @@ ITCM_CODE video_mode_t vdg_get_mode(void)
         // we end up with games like Micro Chess that draws too tall or Monster Maze
         // that only draws half a screen.
         // ------------------------------------------------------------------------------
-
         sam_2x_rez = 1;
-
-        // See if the configuration has a specific graphics mode override...
-        if (myConfig.graphicsMode)
+        switch ( pia_video_mode & 0x0e  )
         {
-            switch (myConfig.graphicsMode)
-            {
-                case 1: mode = GRAPHICS_1C;  break;
-                case 2: mode = GRAPHICS_1R;  break;
-                case 3: mode = GRAPHICS_2C;  break;
-                case 4: mode = GRAPHICS_2R;  break;
-                case 5: mode = GRAPHICS_3C;  break;
-                case 6: mode = GRAPHICS_3R;  break;
-                case 7: mode = GRAPHICS_6C;  break;
-                case 8: mode = GRAPHICS_6R;  break;
-            }
-        }
-        else
-        {
-            switch ( pia_video_mode & 0x0e  )
-            {
-                case 0x00:
-                    mode = GRAPHICS_1C;
-                    break;
-                case 0x02:
-                    mode = GRAPHICS_1R;
-                    break;
-                case 0x04:
-                    mode = GRAPHICS_2C;
-                    if (sam_video_mode == 0x04) mode = GRAPHICS_3C; // Bump up to 3K higher-rez mode
-                    break;
-                case 0x06:
-                    mode = GRAPHICS_2R;
-                    break;
-                case 0x08:
-                    mode = GRAPHICS_3C;
-                    if (sam_video_mode == 0x06) mode = GRAPHICS_6C; // Bump up to 6K higher-rez mode
-                    break;
-                case 0x0a:
-                    mode = GRAPHICS_3R;
-                    break;
-                case 0x0c:
-                    mode = GRAPHICS_6C;
-                    break;
-                case 0x0e:
-                    mode = GRAPHICS_6R;
-                    if (sam_video_mode == 0x04) sam_2x_rez = 2;     // Essentially 256x96 using 3K
-                    break;
-            }
+            case 0x00:
+                mode = GRAPHICS_1C;
+                break;
+            case 0x02:
+                mode = GRAPHICS_1R;
+                break;
+            case 0x04:
+                mode = GRAPHICS_2C;
+                if (sam_video_mode == 0x04) mode = GRAPHICS_3C; // Bump up to 3K higher-rez mode
+                break;
+            case 0x06:
+                mode = GRAPHICS_2R;
+                break;
+            case 0x08:
+                mode = GRAPHICS_3C;
+                if (sam_video_mode == 0x06) mode = GRAPHICS_6C; // Bump up to 6K higher-rez mode
+                break;
+            case 0x0a:
+                mode = GRAPHICS_3R;
+                break;
+            case 0x0c:
+                mode = GRAPHICS_6C;
+                break;
+            case 0x0e:
+                mode = GRAPHICS_6R;
+                if (sam_video_mode == 0x04) sam_2x_rez = 2;     // Essentially 256x96 using 3K
+                break;
         }
     }
     else // Text Modes...
