@@ -197,7 +197,6 @@ Pressing and holding the L/R shoulder buttons plus Y will create a screen snapsh
 Known Issues:
 -----------------------
 * Manic Miner (both Dragon and the CoCo port) will load but Willy just jumps constantly. Cause unknown.
-* Atom loads but crashes soon after play. Cause unknown.
 * OS-9 disks will not run correctly. Likely cause is the disk controller (FDC) handling as the Read Sector in OS-9 differs from the RSDOS handling.
 
 Compile Instructions :

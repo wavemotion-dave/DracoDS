@@ -1735,9 +1735,10 @@ void daa(void)
 
     if ( low_nibble > 0x09 || cc.h )
         temp += 0x06;
+        
     if ( high_nibble > 0x80 && low_nibble > 0x09 )
         temp += 0x60;
-    if (high_nibble > 0x90 || cc.c)
+    else if (high_nibble > 0x90 || cc.c)
         temp += 0x60;
 
     cpu.a = temp;
