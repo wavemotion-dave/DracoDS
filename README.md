@@ -8,7 +8,7 @@ really look under the hood, it's pretty clear that the Dragon reverse-engineered
 hardware such that it was virtually identical in some spots (e.g. Cartridge pinouts). There are some
 differences - mainly in the keyboard matrix handling and in some of the disk controller handling. 
 
-To that end, this emulator is primarily a Tandy CoCo 2 emulator with 32K standard 64K expanded
+To that end, this emulator is primarily a Tandy CoCo 2 emulator with 32K standard and 64K expanded
 support but it also works for the Dragon 32/64 and can be configured as such.
 
 ![image](./png/splash.png)
@@ -198,7 +198,7 @@ Known Issues:
 -----------------------
 * Manic Miner (both Dragon and the CoCo port) will load but Willy just jumps constantly. Cause unknown.
 * Atom loads but crashes soon after play. Cause unknown.
-* OS-9 disks will not run correctly. Cause unknown.
+* OS-9 disks will not run correctly. Likely cause is the disk controller (FDC) handling as the Read Sector in OS-9 differs from the RSDOS handling.
 
 Compile Instructions :
 -----------------------
