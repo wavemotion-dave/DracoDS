@@ -485,6 +485,8 @@ ITCM_CODE void vdg_render_semi_ext(video_mode_t mode, int vdg_mem_base)
 
     for ( row = 0; row < SCREEN_HEIGHT_CHAR; row++ )
     {
+        uint8_t buf[8];
+        
         for ( seg_row = 0; seg_row < segments; seg_row++ )
         {
             row_address = (row * segments + seg_row) * SCREEN_WIDTH_CHAR + vdg_mem_base;
@@ -495,13 +497,6 @@ ITCM_CODE void vdg_render_semi_ext(video_mode_t mode, int vdg_mem_base)
                 {
                     c = memory_RAM[col + row_address];
 
-                    /* Mode dependent initializations
-                    * for text or semigraphics 4:
-                    * - Determine foreground and background colors
-                    * - Character pattern array
-                    * - Character code index to bit pattern array
-                    *
-                    */
                     bg_color = FB_BLACK;
 
                     if ( (uint8_t)c & CHAR_SEMI_GRAPHICS )
@@ -534,7 +529,6 @@ ITCM_CODE void vdg_render_semi_ext(video_mode_t mode, int vdg_mem_base)
                         */
                         pix_pos = 0x80;
 
-                        uint8_t buf[8];
                         for ( font_col = 0; font_col < FONT_WIDTH; font_col++ )
                         {
                             /* Bit is set in Font, print pixel(s) in text color
@@ -560,10 +554,8 @@ ITCM_CODE void vdg_render_semi_ext(video_mode_t mode, int vdg_mem_base)
                         *screen_buffer++ = *ptr32++;
                     }
                 }
-
-                font_row++;
-                if ( font_row == FONT_HEIGHT )
-                    font_row = 0;
+                
+                if (++font_row == FONT_HEIGHT) font_row = 0;
             }
         }
     }

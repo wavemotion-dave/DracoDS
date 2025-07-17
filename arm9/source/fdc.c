@@ -176,23 +176,22 @@ void fdc_state_machine(void)
             case 0x90: // Read Sector (multiple)
                 if (FDC.wait_for_read == 0)
                 {
+                    FDC.status |= 0x03;                                  // Data Ready and no errors... still busy
+                    FDC.data = FDC.track_buffer[FDC.track_buffer_idx++]; // Read data from our track buffer
+                    FDC.wait_for_read = 1;                               // Wait for the CPU to fetch the data
+                    
+                    if (++FDC.sector_byte_counter >= Geom.sectorSize)    // Did we cross a sector boundary?
+                    {
+                        if (FDC.command & 0x10) FDC.sector++;       // Bump the sector number only if multiple sector command
+                        FDC.sector_byte_counter = 0;                // And reset our counter
+                    }
+                    
                     if (FDC.track_buffer_idx >= FDC.track_buffer_end) // Is there any more data to put out?
                     {
                         FDC.status &= ~0x03;                // Done. No longer busy. No data ready.
                         FDC.wait_for_read=2;                // Don't fetch more FDC data
                         FDC.sector_byte_counter = 0;        // And reset our counter
                         disk_intrq();                       // Let CPU know we're done with command
-                    }
-                    else
-                    {
-                        FDC.status |= 0x03;                                  // Data Ready and no errors... still busy
-                        FDC.data = FDC.track_buffer[FDC.track_buffer_idx++]; // Read data from our track buffer
-                        FDC.wait_for_read = 1;                               // Wait for the CPU to fetch the data
-                        if (++FDC.sector_byte_counter >= Geom.sectorSize)    // Did we cross a sector boundary?
-                        {
-                            if (FDC.command & 0x10) FDC.sector++;       // Bump the sector number only if multiple sector command
-                            FDC.sector_byte_counter = 0;                // And reset our counter
-                        }
                     }
                 }
                 break;
@@ -206,6 +205,7 @@ void fdc_state_machine(void)
                     FDC.write_tracks[FDC.track] = 1;
                     FDC.disk_write = 1;
                     FDC.track_buffer[FDC.track_buffer_idx++] = FDC.data; // Store CPU byte into our FDC buffer
+                    
                     if (FDC.track_buffer_idx >= FDC.track_buffer_end)
                     {
                         FDC.status &= ~0x01;            // Done. No longer busy.
@@ -229,10 +229,12 @@ void fdc_state_machine(void)
 
             case 0xC0: // Read Address
                 FDC.status &= ~0x01;                        // Not handled yet... just clear busy
+                disk_intrq();                               // Let CPU know we're done with command
                 break;
 
             case 0xD0: // Force Interrupt
                 FDC.status = (FDC.track ? 0x24:0x20);       // Drive ready, Not Busy and Maybe Track Zero
+                disk_intrq();                               // Let CPU know we're done with command
                 break;
 
             case 0xE0: // Read Track

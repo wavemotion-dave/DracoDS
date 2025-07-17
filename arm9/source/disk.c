@@ -48,6 +48,7 @@ static uint8_t  io_handler_drive_ctrl(uint16_t address, uint8_t data, mem_operat
    Module globals
 ----------------------------------------- */
 uint8_t nmi_enable = 0;
+uint8_t halt_flag = 0;
 
 /*------------------------------------------------
  * disk_init()
@@ -112,13 +113,14 @@ static uint8_t io_handler_drive_ctrl(uint16_t address, uint8_t data, mem_operati
         drive_num = (int) (data & 0x07);
         if (drive_num == 1)
         {
+            halt_flag  = (data & 0x80);             // Halt flag enable (we assume halt enabled anyway)
             nmi_enable = ((data & 0x20) ? 1 : 0);   // This is normally the density flag... but CoCo re-uses it.
             fdc_setMotor ((data & 0x08) ? 1 : 0);   // Motor enable (on) or disabled (off)
             fdc_setDrive(0);                        // We are drive 0 always
             fdc_setSide(0);                         // Tandy support is single sided only
         }
     }
-
+    
     return data;
 }
 
