@@ -31,12 +31,14 @@
 
 #include "lzav.h"
 
-#define DRACO_SAVE_VER   0x0003       // Change this if the basic format of the .SAV file changes. Invalidates older .sav files.
+#define DRACO_SAVE_VER   0x0004       // Change this if the basic format of the .SAV file changes. Invalidates older .sav files.
 
 u8 CompressBuffer[128*1024];
 
 char szLoadFile[MAX_FILENAME_LEN+1];
 char tmpStr[34];
+
+uint8_t spare[16] = {0};
 
 void DracoSaveState()
 {
@@ -78,6 +80,7 @@ void DracoSaveState()
     
     // Write DISK vars
     if (retVal) retVal = fwrite(&nmi_enable, sizeof(nmi_enable), 1, handle);
+    if (retVal) retVal = fwrite(&halt_flag,  sizeof(halt_flag),  1, handle);
     
     // Write FDC vars
     if (retVal) retVal = fwrite(&FDC,                   sizeof(FDC),                1, handle);
@@ -119,6 +122,9 @@ void DracoSaveState()
     if (retVal) retVal = fwrite(&emuFps,                  sizeof(emuFps),                   1, handle);
     if (retVal) retVal = fwrite(&emuActFrames,            sizeof(emuActFrames),             1, handle);
     if (retVal) retVal = fwrite(&timingFrames,            sizeof(timingFrames),             1, handle);
+    
+    // And some spare bytes we can eat into as needed without bumping the SAVE version
+    if (retVal) retVal = fwrite(spare,                    16,                               1, handle);    
     
     // IO Memory Space
     if (retVal) retVal = fwrite(memory_IO+0xFF00,         0x100,                            1, handle);
@@ -167,6 +173,8 @@ void DracoLoadState()
   szLoadFile[len-3] = 's';
   szLoadFile[len-2] = 'a';
   szLoadFile[len-1] = 'v';
+  
+  memset(spare, 0x00, sizeof(spare));
 
   FILE *handle = fopen(szLoadFile, "rb");
   if (handle != NULL)
@@ -192,6 +200,7 @@ void DracoLoadState()
         
         // Restore DISK vars
         if (retVal) retVal = fread(&nmi_enable, sizeof(nmi_enable), 1, handle);
+        if (retVal) retVal = fread(&halt_flag,  sizeof(halt_flag),  1, handle);
         
         // Restore FDC vars
         if (retVal) retVal = fread(&FDC,                    sizeof(FDC),                1, handle);
@@ -235,6 +244,9 @@ void DracoLoadState()
         if (retVal) retVal = fread(&emuFps,                  sizeof(emuFps),                   1, handle);
         if (retVal) retVal = fread(&emuActFrames,            sizeof(emuActFrames),             1, handle);
         if (retVal) retVal = fread(&timingFrames,            sizeof(timingFrames),             1, handle);
+        
+        // And some spare bytes we can eat into as needed without bumping the SAVE version
+        if (retVal) retVal = fread(spare,                    16,                               1, handle);    
 
         // IO Memory Space
         if (retVal) retVal = fread(memory_IO+0xFF00,         0x100,                            1, handle);

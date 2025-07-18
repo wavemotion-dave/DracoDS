@@ -12,6 +12,7 @@
 #define __DISK_H__
 
 extern uint8_t nmi_enable;
+extern uint8_t halt_flag;
 
 void disk_init(void);
 void disk_io_interrupt(void);

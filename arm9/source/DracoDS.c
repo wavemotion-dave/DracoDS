@@ -158,9 +158,9 @@ u16 mixer_write     __attribute__((section(".dtcm"))) = 0;
 s16 mixer[WAVE_DIRECT_BUF_SIZE+1];
 
 
-// The games normally run at the proper 100% speed, but user can override from 80% to 120%
-u16 GAME_SPEED_PAL[]  __attribute__((section(".dtcm"))) = {655, 596, 547, 728, 818 };
-u16 GAME_SPEED_NTSC[] __attribute__((section(".dtcm"))) = {546, 497, 455, 420, 607 };
+// The games normally run at the proper 100% speed, but user can override from 80% to 130%
+u16 GAME_SPEED_PAL[]  __attribute__((section(".dtcm"))) = {655, 596, 547, 504, 728, 818 };
+u16 GAME_SPEED_NTSC[] __attribute__((section(".dtcm"))) = {546, 497, 455, 416, 420, 607 };
 
 // -------------------------------------------------------------------------------------------
 // maxmod will call this routine when the buffer is half-empty and requests that
@@ -228,7 +228,7 @@ ITCM_CODE void processDirectAudio(void)
 // proper number of samples in our sound buffer... this isn't perfect but it's reasonably good!
 // -----------------------------------------------------------------------------------------------
 static u8 last_game_speed = 0;
-static u32 sample_rate_adjust[] = {100, 110, 120, 90, 80};
+static u32 sample_rate_adjust[] = {100, 110, 120, 130, 90, 80};
 void newStreamSampleRate(void)
 {
     if (last_game_speed != myConfig.gameSpeed)
@@ -1203,11 +1203,11 @@ void DracoDS_main(void)
             joy_x = JOY_CENTER + digital_offset_x; // Self-centering... almost
             joy_y = JOY_CENTER + digital_offset_y; // Self-centering... almost
 
-            if ( JoyState & JST_UP )    {joy_y = 0;   digital_offset_y = -1;  digital_offset_x = 0; joy_x = JOY_CENTER;}
-            if ( JoyState & JST_DOWN)   {joy_y = 64;  digital_offset_y = +1;  digital_offset_x = 0; joy_x = JOY_CENTER;}
+            if ( JoyState & JST_UP )    {joy_y = 0;   digital_offset_y = -1;  digital_offset_x = 0;}
+            if ( JoyState & JST_DOWN)   {joy_y = 64;  digital_offset_y = +1;  digital_offset_x = 0;}
 
-            if ( JoyState & JST_LEFT )  {joy_x = 0;   digital_offset_x = -1;  digital_offset_y = 0; joy_y = JOY_CENTER;}
-            if ( JoyState & JST_RIGHT ) {joy_x = 64;  digital_offset_x = +1;  digital_offset_y = 0; joy_y = JOY_CENTER;}
+            if ( JoyState & JST_LEFT )  {joy_x = 0;   digital_offset_x = -1;  digital_offset_y = 0;}
+            if ( JoyState & JST_RIGHT ) {joy_x = 64;  digital_offset_x = +1;  digital_offset_y = 0;}
             break;
       }
 

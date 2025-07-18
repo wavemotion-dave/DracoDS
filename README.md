@@ -224,6 +224,12 @@ And then move the soundbank.h file to the arm9/sources directory
 
 Versions :
 -----------------------
+V1.1: 18-July-2025 by wavemotion-dave
+* Fixed DAA instruction - BCD math now correct. Fixes Trapfall, Atom and more.
+* Improved Semi-Graphics handling so occasional tops of fonts are not cut-off.
+* Improved joypad 'Center+Offset' handling.
+* Other minor cleanups as time permitted.
+
 V1.0: 14-July-2025 by wavemotion-dave
 * Fixed keyboard graphic (glitch on key 8 and 9)
 * Fixed Semi Graphic 24 mode (fixes Protector, etc)

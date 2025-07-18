@@ -893,7 +893,7 @@ const struct options_t Option_Table[2][20] =
         {"MACHINE TYPE",   {"DRAGON 32", "TANDY COCO"},                                &myConfig.machine,           2},
         {"AUTO LOAD",      {"NO", "CLOADM [EXEC]", "CLOAD [RUN]"},                     &myConfig.autoLoad,          3},
         {"AUTO FIRE",      {"OFF", "ON"},                                              &myConfig.autoFire,          2},
-        {"GAME SPEED",     {"100%", "110%", "120%", "90%", "80%"},                     &myConfig.gameSpeed,         5},
+        {"GAME SPEED",     {"100%", "110%", "120%", "130%", "90%", "80%"},             &myConfig.gameSpeed,         6},
         {"DISK WRITE",     {"OFF", "ON"},                                              &myConfig.diskSave,          2},
         {"FORCE CSS",      {"NORMAL", "COLOR SET 0", "COLOR SET 1"},                   &myConfig.forceCSS,          3},
         {"ARTIFACTS",      {"BLUE/ORANGE", "ORANGE/BLUE", "OFF"},                      &myConfig.artifacts,         3},

@@ -66,6 +66,7 @@ void disk_init(void)
         mem_define_io(0xff40, 0xff40, io_handler_drive_ctrl);
 
         nmi_enable = 0;
+        halt_flag = 0;
 
         fdc_reset(true);
 
