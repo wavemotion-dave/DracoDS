@@ -173,7 +173,7 @@ of the DS touch-screen where only one key can be pressed at a time, the SHIFT ke
 Dungeons of Daggorath :
 -----------------------
 My favorite CoCo game! To that end, I've added 8 special 'MACRO' keys to the possible keyboard map to allow you to map a key to "ATTACK LEFT", "ATTACK RIGHT", "MOVE", "MOVE BACK", 
-"TURN LEFT", "TURN RIGHT", "PULL LEFT" and "PULL RIGHT". If you're using one of the standard cart ROMs, these should map in automatigally but you can map these to the d-pad or any
+"TURN LEFT", "TURN RIGHT", "PULL LEFT" and "PULL RIGHT". If you're using one of the standard cart ROMs, these should map in automatically but you can map these to the d-pad or any
 buttons you wish and playing DoD will be a joy.
 
 The Colors Aren't What I Remember :
