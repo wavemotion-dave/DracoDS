@@ -641,7 +641,7 @@ ITCM_CODE void vdg_render_resl_graph(video_mode_t mode, int vdg_mem_base)
 // --------------------------------------------------------------------
 // Handler for GRAPHICS_6R - this one is high-rez with artifacting...
 // --------------------------------------------------------------------
-int ds_lite_frameskip = 0;
+uint16_t ds_lite_frameskip = 0;
 
 ITCM_CODE void vdg_render_artifacting(video_mode_t mode, int vdg_mem_base)
 {
@@ -649,7 +649,7 @@ ITCM_CODE void vdg_render_artifacting(video_mode_t mode, int vdg_mem_base)
     int         video_mem, row_rep;
     uint8_t     pixels_byte, fg_color, pixel;
     uint8_t    *screen_buffer;
-    uint8_t     last_pixel = 99;
+    uint8_t     last_pixel = FB_BLACK;
     uint8_t     pixel_row[SCREEN_WIDTH_PIX+16];
 
     // -------------------------------------------------------------------------------------
@@ -740,20 +740,21 @@ ITCM_CODE void vdg_render_artifacting(video_mode_t mode, int vdg_mem_base)
                 screen_buffer += SCREEN_WIDTH_PIX;
             }
 
-            last_pixel = FB_BLACK;  // Assume we're coming into the screen from a black border
-
+            // Assume we're coming into the screen from a black border unless the first two pixels are 'hot'
+            last_pixel = ((memory_RAM[vdg_mem_offset + vdg_mem_base + 1] & 0xC0) == 0xC0) ? fg_color : FB_BLACK;
+            
             buffer_index = 0;
         }
     }
 }
 
-void vdg_render_artifacting_reverse(video_mode_t mode, int vdg_mem_base)
+ITCM_CODE void vdg_render_artifacting_reverse(video_mode_t mode, int vdg_mem_base)
 {
     int         i, vdg_mem_offset, element, buffer_index;
     int         video_mem, row_rep;
     uint8_t     pixels_byte, fg_color, pixel;
     uint8_t    *screen_buffer;
-    uint8_t     last_pixel = 99;
+    uint8_t     last_pixel = FB_BLACK;
     uint8_t     pixel_row[SCREEN_WIDTH_PIX+16];
 
     // -------------------------------------------------------------------------------------
@@ -844,7 +845,8 @@ void vdg_render_artifacting_reverse(video_mode_t mode, int vdg_mem_base)
                 screen_buffer += SCREEN_WIDTH_PIX;
             }
 
-            last_pixel = FB_BLACK;  // Assume we're coming into the screen from a black border
+            // Assume we're coming into the screen from a black border unless the first two pixels are 'hot'
+            last_pixel = ((memory_RAM[vdg_mem_offset + vdg_mem_base + 1] & 0xC0) == 0xC0) ? fg_color : FB_BLACK;
 
             buffer_index = 0;
         }
@@ -855,7 +857,7 @@ void vdg_render_artifacting_bw(video_mode_t mode, int vdg_mem_base)
 {
     int         i, vdg_mem_offset, element, buffer_index;
     int         video_mem, row_rep;
-    uint8_t     pixels_byte, fg_color, pixel;
+    uint8_t     pixels_byte;
     uint8_t    *screen_buffer;
     uint8_t     pixel_row[SCREEN_WIDTH_PIX+16];
 
@@ -874,15 +876,6 @@ void vdg_render_artifacting_bw(video_mode_t mode, int vdg_mem_base)
     row_rep = resolution[mode][RES_ROW_REP];
     buffer_index = 0;
 
-    if ( pia_video_mode & PIA_COLOR_SET )
-    {
-        fg_color = colors[DEF_COLOR_CSS_1];
-    }
-    else
-    {
-        fg_color = colors[DEF_COLOR_CSS_0];
-    }
-
     for ( vdg_mem_offset = 0; vdg_mem_offset < video_mem / sam_2x_rez; vdg_mem_offset++)
     {
         pixels_byte = memory_RAM[vdg_mem_offset + vdg_mem_base];
@@ -894,22 +887,13 @@ void vdg_render_artifacting_bw(video_mode_t mode, int vdg_mem_base)
         }
         else if (pixels_byte == 0xFF)
         {
-            memset(pixel_row+buffer_index, fg_color, 8);
+            memset(pixel_row+buffer_index, FB_WHITE, 8);
             buffer_index += 8;
         }
         else
         for ( element = 0x80; element != 0; element >>= 1)
         {
-            if (pixels_byte & element)
-            {
-                pixel = fg_color;
-            }
-            else
-            {
-                pixel = FB_BLACK;
-            }
-
-            pixel_row[buffer_index++] = pixel;
+            pixel_row[buffer_index++] = (pixels_byte & element) ? FB_WHITE : FB_BLACK;
         }
 
         if ( buffer_index >= SCREEN_WIDTH_PIX )
@@ -995,7 +979,7 @@ ITCM_CODE void vdg_render_color_graph(video_mode_t mode, int vdg_mem_base)
  * return: Video mode
  *
  */
-ITCM_CODE video_mode_t vdg_get_mode(void)
+video_mode_t vdg_get_mode(void)
 {
     video_mode_t mode = UNDEFINED;
 

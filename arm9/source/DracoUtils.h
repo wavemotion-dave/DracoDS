@@ -31,6 +31,7 @@
 
 #define DPAD_NORMAL                 0
 #define DPAD_SLIDE_N_GLIDE          1
+#define DPAD_DIAGONALS              2
 
 extern unsigned char DragonBASIC[0x4000];
 extern unsigned char CoCoBASIC[0x4000];

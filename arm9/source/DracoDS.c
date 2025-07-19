@@ -1032,6 +1032,13 @@ void DracoDS_main(void)
                             nds_key |= KEY_RIGHT;
                         }
                   }
+                  else if (myConfig.dpad == DPAD_DIAGONALS)
+                  {
+                           if (nds_key & KEY_UP)    nds_key |= KEY_RIGHT;  // UP-RIGHT
+                      else if (nds_key & KEY_DOWN)  nds_key |= KEY_LEFT;   // DOWN-LEFT
+                      else if (nds_key & KEY_LEFT)  nds_key |= KEY_UP;     // UP-LEFT
+                      else if (nds_key & KEY_RIGHT) nds_key |= KEY_DOWN;   // DOWN-RIGHT
+                  }
 
                   // --------------------------------------------------------------------------------------------------
                   // There are 12 NDS buttons (D-Pad, XYAB, L/R and Start+Select) - we allow mapping of any of these.
