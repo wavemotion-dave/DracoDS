@@ -213,7 +213,7 @@ ITCM_CODE void processDirectAudio(void)
         if (breather) {return;}
         if (pia_is_audio_dac_enabled())
         {
-            last_dac = dac_output*256;
+            last_dac = dac_output*384;
         }
 
         mixer[mixer_write] = beeper_vol + last_dac;
@@ -387,7 +387,7 @@ void DisplayStatusLine(void)
                     // Flush the disk back out to the SD card
                     FDC.disk_write = 0;
                     chdir(initial_path);
-                    FILE *fp = fopen(initial_file, "rb+");
+                    FILE *fp = fopen(last_file, "rb+");
                     if (fp)
                     {
                         for (int track=0; track<40; track++)
@@ -697,6 +697,7 @@ u8 __attribute__((noinline)) handle_meta_key(u8 meta_key)
             if (ucGameChoice >= 0)
             {
                 ReadFileCarefully(gpFic[ucGameChoice].szName, TapeCartDiskBuffer, sizeof(TapeCartDiskBuffer), 0);
+                strcpy(last_file, gpFic[ucGameChoice].szName);
                 fdc_reset(0);
             }
             BottomScreenKeyboard();

@@ -139,7 +139,6 @@ extern u32  crc32 (unsigned int crc, const unsigned char *buf, unsigned int len)
 extern void FadeToColor(unsigned char ucSens, unsigned short ucBG, unsigned char ucScr, unsigned char valEnd, unsigned char uWait);
 extern u8   DracoDSLoadFile(u8 bDiskOnly);
 extern void DisplayFileName(void);
-extern void DisplayFileNameCassette(void);
 extern u32  ReadFileCarefully(char *filename, u8 *buf, u32 buf_size, u32 buf_offset);
 extern u8   loadgame(const char *path);
 extern u8   DragonTandyInit(char *szGame);

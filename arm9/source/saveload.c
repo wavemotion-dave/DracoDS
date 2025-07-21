@@ -71,7 +71,7 @@ void DracoSaveState()
     // Write Last Directory Path / Tape File
     if (retVal) retVal = fwrite(&last_path, sizeof(last_path), 1, handle);
     if (retVal) retVal = fwrite(&last_file, sizeof(last_file), 1, handle);
-
+    
     // Write Motorola 6809 CPU
     if (retVal) retVal = fwrite(&cpu, sizeof(cpu), 1, handle);
 
@@ -191,6 +191,19 @@ void DracoLoadState()
         // Restore Last Directory Path / Tape File
         if (retVal) retVal = fread(&last_path, sizeof(last_path), 1, handle);
         if (retVal) retVal = fread(&last_file, sizeof(last_file), 1, handle);
+        
+        // ---------------------------------------------------------------
+        // If we saved a last path/file, we load it back up if possible....
+        // ---------------------------------------------------------------
+        if (strlen(last_path) > 1)
+        {
+            chdir(last_path);
+            
+            if (strlen(last_file) > 1)
+            {
+                ReadFileCarefully(last_file, TapeCartDiskBuffer, sizeof(TapeCartDiskBuffer), 0);
+            }
+        }
 
         // Restore Motorola 6809 CPU
         if (retVal) retVal = fread(&cpu, sizeof(cpu), 1, handle);

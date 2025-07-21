@@ -36,6 +36,7 @@ struct FDC_GEOMETRY_t   Geom;
 extern void disk_intrq(void);
 
 u8 io_show_status = 0;
+u8 bFireDiskIRQ=0;
 
 void fdc_debug(u8 bWrite, u8 addr, u8 data)
 {
@@ -44,12 +45,14 @@ void fdc_debug(u8 bWrite, u8 addr, u8 data)
     static char tmpBuf[33];
     static u8 line=0;
     static u8 idx=0;
+    extern u8 halt_flag;
 
     if (bWrite)
-        sprintf(tmpBuf, "W%04d %d=%02X  %02X %02X %02X %d %02X %d", idx++, addr, data, FDC.status, FDC.track, FDC.sector, FDC.side, FDC.data, FDC.drive);
+        sprintf(tmpBuf, "W%04d %d=%02X  %02X %02X %02X %d %02X %d", idx++, addr, data, FDC.status, FDC.track, FDC.sector, FDC.side, FDC.data, halt_flag);
     else
-        sprintf(tmpBuf, "R%04d %d     %02X %02X %02X %d %02X %d", idx++, addr, FDC.status, FDC.track, FDC.sector, FDC.side, FDC.data, FDC.drive);
-    DSPrint(0,5+line++, 7, tmpBuf);
+        sprintf(tmpBuf, "R%04d %d     %02X %02X %02X %d %02X %d", idx++, addr, FDC.status, FDC.track, FDC.sector, FDC.side, FDC.data, halt_flag);
+    //DSPrint(0,2+line++, 0, tmpBuf);
+    debug_printf("%s\n", tmpBuf);
     line = line % 19;
 #endif
 }
@@ -97,7 +100,6 @@ void fdc_flush_track(void)
 //    2  |   Not track 0    | ------ Lost data / byte ----- |
 //    1  |   Index Pulse    | -------- Data request ------- |
 //    0  |       Busy       | ------------ Busy ----------- |
-
 void fdc_state_machine(void)
 {
     if (FDC.commandType == 1)   // If Type-I command we fake some index pulses so long as the motor is on
@@ -106,6 +108,15 @@ void fdc_state_machine(void)
         {
            if (++FDC.indexPulseCounter & 0xF0) FDC.status |= 0x02; else FDC.status &= ~0x02; // Produce some fake index pulses
         }
+    }
+    
+    if (bFireDiskIRQ)
+    {
+        bFireDiskIRQ=0;
+        FDC.status &= ~0x03;                // Done. No longer busy. No data ready.
+        FDC.wait_for_read=2;                // Don't fetch more FDC data
+        FDC.sector_byte_counter = 0;        // And reset our counter
+        disk_intrq();                       // Let CPU know we're done with command
     }
 
     // If we are processing a command...
@@ -174,24 +185,22 @@ void fdc_state_machine(void)
 
             case 0x80: // Read Sector (single)
             case 0x90: // Read Sector (multiple)
-                if (FDC.wait_for_read == 0)
+                if (FDC.wait_for_read == 0) // Is the FDC.data register ready for new data?
                 {
                     FDC.status |= 0x03;                                  // Data Ready and no errors... still busy
                     FDC.data = FDC.track_buffer[FDC.track_buffer_idx++]; // Read data from our track buffer
-                    FDC.wait_for_read = 1;                               // Wait for the CPU to fetch the data
-                    
+                    FDC.wait_for_read = 1;                               // Wait for the CPU to fetch the data before re-filling the FDC.data buffer
+
                     if (++FDC.sector_byte_counter >= Geom.sectorSize)    // Did we cross a sector boundary?
                     {
                         if (FDC.command & 0x10) FDC.sector++;       // Bump the sector number only if multiple sector command
                         FDC.sector_byte_counter = 0;                // And reset our counter
                     }
-                    
+
                     if (FDC.track_buffer_idx >= FDC.track_buffer_end) // Is there any more data to put out?
                     {
-                        FDC.status &= ~0x03;                // Done. No longer busy. No data ready.
-                        FDC.wait_for_read=2;                // Don't fetch more FDC data
-                        FDC.sector_byte_counter = 0;        // And reset our counter
-                        disk_intrq();                       // Let CPU know we're done with command
+                        FDC.status &= ~0x02;
+                        bFireDiskIRQ = 1;
                     }
                 }
                 break;
@@ -205,7 +214,7 @@ void fdc_state_machine(void)
                     FDC.write_tracks[FDC.track] = 1;
                     FDC.disk_write = 1;
                     FDC.track_buffer[FDC.track_buffer_idx++] = FDC.data; // Store CPU byte into our FDC buffer
-                    
+
                     if (FDC.track_buffer_idx >= FDC.track_buffer_end)
                     {
                         FDC.status &= ~0x01;            // Done. No longer busy.
@@ -258,7 +267,7 @@ u8 fdc_read(u8 addr)
 {
     if (FDC.drive >= Geom.drives) return (0x80); // Not ready
 
-    fdc_state_machine();    // Clock the floppy drive controller state machine on reads
+    fdc_state_machine(); // Clock the state machine on any read
 
     fdc_debug(0, addr, 0);  // Debug the read routine
 
@@ -270,7 +279,7 @@ u8 fdc_read(u8 addr)
         case 3:
             FDC.status &= ~0x02;     // Clear Data Available flag
             FDC.wait_for_read = 0;   // Clock in next byte (or end sequence if we're read all there is)
-            return FDC.data;         // Return data to caller
+            return FDC.data;         // Return previous data to caller
     }
 
     return (0x80);  // Not ready

@@ -307,17 +307,19 @@ ITCM_CODE void cpu_run(void)
     int         eff_addr;
     uint8_t     operand8;
     uint16_t    operand16;
-    int         intr_latch;
+    int         intr_latch = 0;
     int         op_code;
 
     /* Latch interrupt requests
      */
-    intr_latch  = cpu.nmi_latched ? INT_NMI : 0;
+    
     intr_latch |= cpu.irq_asserted ? INT_IRQ : 0;
     intr_latch |= cpu.firq_asserted ? INT_FIRQ : 0;
     
     while (1)
     {
+        intr_latch  |= cpu.nmi_latched ? INT_NMI : 0;  // The NMI (from disk controller) is the only one that can happen as we process a scanline
+        
         /* We get here if not in RESET and not HALTed.
          * If the CPU was put into SYNC mode by 'SYNC' or 'CWAI'
          * then this point will force the emulation to exit execution
@@ -523,7 +525,7 @@ ITCM_CODE void cpu_run(void)
                         default:
                             /* Exception: Illegal 0x11 op-code cpu_run()
                              */
-                            if (debug[6] == 0) {debug[6] = op_code;} debug[6] = op_code;
+                            if (debug[6] == 0) {debug[6] = op_code;}
                             cpu.cpu_state = CPU_EXCEPTION;
                     }
                 }
@@ -637,7 +639,7 @@ ITCM_CODE void cpu_run(void)
                         default:
                             /* Exception: Illegal 0x10 op-code cpu_run()
                              */
-                             if (debug[6] == 0) {debug[6] = op_code;} debug[6] = op_code;
+                             if (debug[6] == 0) {debug[6] = op_code;}
                             cpu.cpu_state = CPU_EXCEPTION;
                     }
                 }

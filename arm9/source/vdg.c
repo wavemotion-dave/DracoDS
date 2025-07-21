@@ -42,8 +42,7 @@ void vdg_render_semi_ext(video_mode_t mode, int vdg_mem_base);
 void vdg_render_resl_graph(video_mode_t mode, int vdg_mem_base);
 void vdg_render_color_graph(video_mode_t mode, int vdg_mem_base);
 void vdg_render_artifacting(video_mode_t mode, int vdg_mem_base);
-void vdg_render_artifacting_reverse(video_mode_t mode, int vdg_mem_base);
-void vdg_render_artifacting_bw(video_mode_t mode, int vdg_mem_base);
+void vdg_render_artifacting_mono(video_mode_t mode, int vdg_mem_base);
 
 video_mode_t vdg_get_mode(void);
 
@@ -105,6 +104,16 @@ uint16_t colors16[] __attribute__((section(".dtcm"))) = {
 
 uint32_t color_translation_32[8][16] __attribute__((section(".dtcm"))) = {0};
 
+
+uint32_t color_artifact_0[16] __attribute__((section(".dtcm"))) = {0};
+uint32_t color_artifact_1[16] __attribute__((section(".dtcm"))) = {0};
+uint32_t color_artifact_0r[16] __attribute__((section(".dtcm"))) = {0};
+uint32_t color_artifact_1r[16] __attribute__((section(".dtcm"))) = {0};
+
+uint32_t color_artifact_mono_0[16] __attribute__((section(".dtcm"))) = {0};
+uint32_t color_artifact_mono_1[16] __attribute__((section(".dtcm"))) = {0};
+
+
 /*------------------------------------------------
  * vdg_init()
  *
@@ -115,6 +124,9 @@ uint32_t color_translation_32[8][16] __attribute__((section(".dtcm"))) = {0};
  */
 void vdg_init(void)
 {
+    uint8_t buf[4];
+    int buffer_index;
+    
     video_ram_offset = 0x02;    // For offset 0x400 text screen
     sam_video_mode = 0;         // Alphanumeric
 
@@ -151,6 +163,103 @@ void vdg_init(void)
                 case 0xF: color_translation_32[color][i] = (colors[color]<<0)  | (colors[color]<<8) | (colors[color]<<16) | (colors[color]<<24);    break;
             }
         }
+    }
+
+    // ---------------------------------------------------------------------------------
+    // Pre-render the artifact color modes for fast look-up and 32-bit writes for speed
+    // ---------------------------------------------------------------------------------
+    for (int pixels_byte=0; pixels_byte<16; pixels_byte++)
+    {
+        uint8_t buf2[4];
+        uint8_t pixel = 0;
+        uint8_t pixel2 = 0;
+        uint8_t last_pixel;
+        
+        buffer_index = 0;
+        last_pixel = FB_BLACK;
+        for ( uint8_t element = 0x08; element != 0; element >>= 1)
+        {
+            if (pixels_byte & element)
+            {
+                pixel = FB_WHITE;
+                pixel2 = FB_WHITE;
+                if (pixel != last_pixel)
+                {
+                    last_pixel = pixel;
+                    pixel  = (buffer_index & 1) ? ARTIFACT_BLUE : ARTIFACT_ORANGE;
+                    pixel2 = (buffer_index & 1) ? ARTIFACT_ORANGE : ARTIFACT_BLUE;
+                }
+            }
+            else
+            {
+                pixel = FB_BLACK;
+                pixel2 = FB_BLACK;
+                if (pixel != last_pixel)
+                {
+                    last_pixel = pixel;
+                    pixel  = (buffer_index & 1) ? ARTIFACT_ORANGE : ARTIFACT_BLUE;
+                    pixel2 = (buffer_index & 1) ? ARTIFACT_BLUE : ARTIFACT_ORANGE;
+                }
+            }
+
+            buf[buffer_index] = pixel;
+            buf2[buffer_index++] = pixel2;
+        }
+
+        color_artifact_0[pixels_byte] = (buf[3] << 24) | (buf[2] << 16) | (buf[1] << 8) | (buf[0] << 0);
+        color_artifact_0r[pixels_byte] = (buf2[3] << 24) | (buf2[2] << 16) | (buf2[1] << 8) | (buf2[0] << 0);
+
+
+        buffer_index = 0;
+        last_pixel = FB_WHITE;
+        for (uint8_t element = 0x08; element != 0; element >>= 1)
+        {
+            if (pixels_byte & element)
+            {
+                pixel = FB_WHITE;
+                pixel2 = FB_WHITE;
+                if (pixel != last_pixel)
+                {
+                    last_pixel = pixel;
+                    pixel  = (buffer_index & 1) ? ARTIFACT_BLUE : ARTIFACT_ORANGE;
+                    pixel2 = (buffer_index & 1) ? ARTIFACT_ORANGE : ARTIFACT_BLUE;
+                }
+            }
+            else
+            {
+                pixel = FB_BLACK;
+                pixel2 = FB_BLACK;
+                if (pixel != last_pixel)
+                {
+                    last_pixel = pixel;
+                    pixel  = (buffer_index & 1) ? ARTIFACT_ORANGE : ARTIFACT_BLUE;
+                    pixel2 = (buffer_index & 1) ? ARTIFACT_BLUE : ARTIFACT_ORANGE;
+                }
+            }
+
+            buf[buffer_index] = pixel;
+            buf2[buffer_index++] = pixel2;
+        }
+
+        color_artifact_1[pixels_byte] = (buf[3] << 24) | (buf[2] << 16) | (buf[1] << 8) | (buf[0] << 0);
+        color_artifact_1r[pixels_byte] = (buf2[3] << 24) | (buf2[2] << 16) | (buf2[1] << 8) | (buf2[0] << 0);
+    }
+
+    for (int pixels_byte=0; pixels_byte<16; pixels_byte++)
+    {
+        buffer_index = 0;
+        for (uint8_t element = 0x08; element != 0; element >>= 1)
+        {
+            buf[buffer_index++] = (pixels_byte & element) ? FB_WHITE : FB_BLACK;
+        }
+        color_artifact_mono_0[pixels_byte] = (buf[3] << 24) | (buf[2] << 16) | (buf[1] << 8) | (buf[0] << 0);
+        
+        buffer_index = 0;
+        for (uint8_t element = 0x08; element != 0; element >>= 1)
+        {
+            buf[buffer_index++] = (pixels_byte & element) ? FB_LIGHT_GREEN : FB_BLACK;
+        }
+        color_artifact_mono_1[pixels_byte] = (buf[3] << 24) | (buf[2] << 16) | (buf[1] << 8) | (buf[0] << 0);
     }
 }
 
@@ -210,13 +319,9 @@ ITCM_CODE void vdg_render(void)
             break;
 
         case GRAPHICS_6R:
-            if (myConfig.artifacts)
+            if (myConfig.artifacts == 2)
             {
-                if (myConfig.artifacts == 1)
-                    vdg_render_artifacting_reverse(current_mode, vdg_mem_base);
-                else
-                    vdg_render_artifacting_bw(current_mode, vdg_mem_base);
-
+                vdg_render_artifacting_mono(current_mode, vdg_mem_base);
             }
             else
                 vdg_render_artifacting(current_mode, vdg_mem_base);
@@ -486,7 +591,7 @@ ITCM_CODE void vdg_render_semi_ext(video_mode_t mode, int vdg_mem_base)
     for ( row = 0; row < SCREEN_HEIGHT_CHAR; row++ )
     {
         uint8_t buf[8];
-        
+
         for ( seg_row = 0; seg_row < segments; seg_row++ )
         {
             row_address = (row * segments + seg_row) * SCREEN_WIDTH_CHAR + vdg_mem_base;
@@ -554,7 +659,7 @@ ITCM_CODE void vdg_render_semi_ext(video_mode_t mode, int vdg_mem_base)
                         *screen_buffer++ = *ptr32++;
                     }
                 }
-                
+
                 if (++font_row == FONT_HEIGHT) font_row = 0;
             }
         }
@@ -638,279 +743,6 @@ ITCM_CODE void vdg_render_resl_graph(video_mode_t mode, int vdg_mem_base)
     }
 }
 
-// --------------------------------------------------------------------
-// Handler for GRAPHICS_6R - this one is high-rez with artifacting...
-// --------------------------------------------------------------------
-uint16_t ds_lite_frameskip = 0;
-
-ITCM_CODE void vdg_render_artifacting(video_mode_t mode, int vdg_mem_base)
-{
-    int         i, vdg_mem_offset, element, buffer_index;
-    int         video_mem, row_rep;
-    uint8_t     pixels_byte, fg_color, pixel;
-    uint8_t    *screen_buffer;
-    uint8_t     last_pixel = FB_BLACK;
-    uint8_t     pixel_row[SCREEN_WIDTH_PIX+16];
-
-    // -------------------------------------------------------------------------------------
-    // For the DS-Lite/Phat, we need a bit of frameskip to help render the more complex
-    // artifacting high-rez mode. So we show 3 out of 4 frames - which is still quite fine.
-    // -------------------------------------------------------------------------------------
-    if (!isDSiMode())
-    {
-        if ((++ds_lite_frameskip & 3) == 0) return;
-    }
-
-    screen_buffer = (uint8_t *) (0x06000000);
-
-    video_mem = resolution[mode][RES_MEM];
-    row_rep = resolution[mode][RES_ROW_REP];
-    buffer_index = 0;
-
-    if ( pia_video_mode & PIA_COLOR_SET )
-    {
-        fg_color = colors[DEF_COLOR_CSS_1];
-    }
-    else
-    {
-        fg_color = colors[DEF_COLOR_CSS_0];
-    }
-
-    for ( vdg_mem_offset = 0; vdg_mem_offset < video_mem / sam_2x_rez; vdg_mem_offset++)
-    {
-        pixels_byte = memory_RAM[vdg_mem_offset + vdg_mem_base];
-
-        if (pixels_byte == 0x00)
-        {
-            memset(pixel_row+buffer_index, FB_BLACK, 8);
-            buffer_index += 8;
-            last_pixel = pixel = FB_BLACK;
-        }
-        else if (pixels_byte == 0xFF)
-        {
-            memset(pixel_row+buffer_index, fg_color, 8);
-            buffer_index += 8;
-            last_pixel = pixel = fg_color;
-        }
-        else if (pixels_byte == 0xAA)
-        {
-            memset(pixel_row+buffer_index, ARTIFACT_ORANGE, 8);
-            buffer_index += 8;
-            last_pixel = pixel = FB_BLACK;
-        }
-        else if (pixels_byte == 0x55)
-        {
-            memset(pixel_row+buffer_index, ARTIFACT_BLUE , 8);
-            buffer_index += 8;
-            last_pixel = pixel = fg_color;
-        }
-        else
-        for ( element = 0x80; element != 0; element >>= 1)
-        {
-            if (pixels_byte & element)
-            {
-                pixel = fg_color;
-                if (pixel != last_pixel)
-                {
-                    last_pixel = pixel;
-                    pixel = (buffer_index & 1) ? ARTIFACT_BLUE : ARTIFACT_ORANGE;
-                }
-            }
-            else
-            {
-                pixel = FB_BLACK;
-                if (pixel != last_pixel)
-                {
-                    last_pixel = pixel;
-                    pixel = (buffer_index & 1) ? ARTIFACT_ORANGE : ARTIFACT_BLUE;
-                }
-            }
-
-            pixel_row[buffer_index++] = pixel;
-        }
-
-        if ( buffer_index >= SCREEN_WIDTH_PIX )
-        {
-            // A few games like Monster Maze and Temple of ROM are 256x192 VDG mode but the
-            // SAM bits indicate a 256x96 mode... In essence, they are doing 256x192 but only
-            // using 3K of memory and the vertical resolution is doubled. sam_2x_rez handles that.
-            for ( i = 0; i < row_rep * sam_2x_rez; i++ )
-            {
-                memcpy(screen_buffer, pixel_row, SCREEN_WIDTH_PIX);
-                screen_buffer += SCREEN_WIDTH_PIX;
-            }
-
-            // Assume we're coming into the screen from a black border unless the first two pixels are 'hot'
-            last_pixel = ((memory_RAM[vdg_mem_offset + vdg_mem_base + 1] & 0xC0) == 0xC0) ? fg_color : FB_BLACK;
-            
-            buffer_index = 0;
-        }
-    }
-}
-
-ITCM_CODE void vdg_render_artifacting_reverse(video_mode_t mode, int vdg_mem_base)
-{
-    int         i, vdg_mem_offset, element, buffer_index;
-    int         video_mem, row_rep;
-    uint8_t     pixels_byte, fg_color, pixel;
-    uint8_t    *screen_buffer;
-    uint8_t     last_pixel = FB_BLACK;
-    uint8_t     pixel_row[SCREEN_WIDTH_PIX+16];
-
-    // -------------------------------------------------------------------------------------
-    // For the DS-Lite/Phat, we need a bit of frameskip to help render the more complex
-    // artifacting high-rez mode. So we show 3 out of 4 frames - which is still quite fine.
-    // -------------------------------------------------------------------------------------
-    if (!isDSiMode())
-    {
-        if ((++ds_lite_frameskip & 3) == 0) return;
-    }
-
-    screen_buffer = (uint8_t *) (0x06000000);
-
-    video_mem = resolution[mode][RES_MEM];
-    row_rep = resolution[mode][RES_ROW_REP];
-    buffer_index = 0;
-
-    if ( pia_video_mode & PIA_COLOR_SET )
-    {
-        fg_color = colors[DEF_COLOR_CSS_1];
-    }
-    else
-    {
-        fg_color = colors[DEF_COLOR_CSS_0];
-    }
-
-    for ( vdg_mem_offset = 0; vdg_mem_offset < video_mem / sam_2x_rez; vdg_mem_offset++)
-    {
-        pixels_byte = memory_RAM[vdg_mem_offset + vdg_mem_base];
-
-        if (pixels_byte == 0x00)
-        {
-            memset(pixel_row+buffer_index, FB_BLACK, 8);
-            buffer_index += 8;
-            last_pixel = pixel = FB_BLACK;
-        }
-        else if (pixels_byte == 0xFF)
-        {
-            memset(pixel_row+buffer_index, fg_color, 8);
-            buffer_index += 8;
-            last_pixel = pixel = fg_color;
-        }
-        else if (pixels_byte == 0xAA)
-        {
-            memset(pixel_row+buffer_index, ARTIFACT_BLUE, 8);
-            buffer_index += 8;
-            last_pixel = pixel = FB_BLACK;
-        }
-        else if (pixels_byte == 0x55)
-        {
-            memset(pixel_row+buffer_index, ARTIFACT_ORANGE, 8);
-            buffer_index += 8;
-            last_pixel = pixel = fg_color;
-        }
-        else
-        for ( element = 0x80; element != 0; element >>= 1)
-        {
-            if (pixels_byte & element)
-            {
-                pixel = fg_color;
-                if (pixel != last_pixel)
-                {
-                    last_pixel = pixel;
-                    pixel = (buffer_index & 1) ? ARTIFACT_ORANGE : ARTIFACT_BLUE;
-                }
-            }
-            else
-            {
-                pixel = FB_BLACK;
-                if (pixel != last_pixel)
-                {
-                    last_pixel = pixel;
-                    pixel = (buffer_index & 1) ? ARTIFACT_BLUE : ARTIFACT_ORANGE;
-                }
-            }
-
-            pixel_row[buffer_index++] = pixel;
-        }
-
-        if ( buffer_index >= SCREEN_WIDTH_PIX )
-        {
-            // A few games like Monster Maze and Temple of ROM are 256x192 VDG mode but the
-            // SAM bits indicate a 256x96 mode... In essence, they are doing 256x192 but only
-            // using 3K of memory and the vertical resolution is doubled. sam_2x_rez handles that.
-            for ( i = 0; i < row_rep * sam_2x_rez; i++ )
-            {
-                memcpy(screen_buffer, pixel_row, SCREEN_WIDTH_PIX);
-                screen_buffer += SCREEN_WIDTH_PIX;
-            }
-
-            // Assume we're coming into the screen from a black border unless the first two pixels are 'hot'
-            last_pixel = ((memory_RAM[vdg_mem_offset + vdg_mem_base + 1] & 0xC0) == 0xC0) ? fg_color : FB_BLACK;
-
-            buffer_index = 0;
-        }
-    }
-}
-
-void vdg_render_artifacting_bw(video_mode_t mode, int vdg_mem_base)
-{
-    int         i, vdg_mem_offset, element, buffer_index;
-    int         video_mem, row_rep;
-    uint8_t     pixels_byte;
-    uint8_t    *screen_buffer;
-    uint8_t     pixel_row[SCREEN_WIDTH_PIX+16];
-
-    // -------------------------------------------------------------------------------------
-    // For the DS-Lite/Phat, we need a bit of frameskip to help render the more complex
-    // artifacting high-rez mode. So we show 3 out of 4 frames - which is still quite fine.
-    // -------------------------------------------------------------------------------------
-    if (!isDSiMode())
-    {
-        if ((++ds_lite_frameskip & 3) == 0) return;
-    }
-
-    screen_buffer = (uint8_t *) (0x06000000);
-
-    video_mem = resolution[mode][RES_MEM];
-    row_rep = resolution[mode][RES_ROW_REP];
-    buffer_index = 0;
-
-    for ( vdg_mem_offset = 0; vdg_mem_offset < video_mem / sam_2x_rez; vdg_mem_offset++)
-    {
-        pixels_byte = memory_RAM[vdg_mem_offset + vdg_mem_base];
-
-        if (pixels_byte == 0x00)
-        {
-            memset(pixel_row+buffer_index, FB_BLACK, 8);
-            buffer_index += 8;
-        }
-        else if (pixels_byte == 0xFF)
-        {
-            memset(pixel_row+buffer_index, FB_WHITE, 8);
-            buffer_index += 8;
-        }
-        else
-        for ( element = 0x80; element != 0; element >>= 1)
-        {
-            pixel_row[buffer_index++] = (pixels_byte & element) ? FB_WHITE : FB_BLACK;
-        }
-
-        if ( buffer_index >= SCREEN_WIDTH_PIX )
-        {
-            // A few games like Monster Maze and Temple of ROM are 256x192 VDG mode but the
-            // SAM bits indicate a 256x96 mode... In essence, they are doing 256x192 but only
-            // using 3K of memory and the vertical resolution is doubled. sam_2x_rez handles that.
-            for ( i = 0; i < row_rep * sam_2x_rez; i++ )
-            {
-                memcpy(screen_buffer, pixel_row, SCREEN_WIDTH_PIX);
-                screen_buffer += SCREEN_WIDTH_PIX;
-            }
-
-            buffer_index = 0;
-        }
-    }
-}
 
 /*------------------------------------------------
  * vdg_render_color_graph()
@@ -966,6 +798,203 @@ ITCM_CODE void vdg_render_color_graph(video_mode_t mode, int vdg_mem_base)
             }
 
             pixRowPtr = (uint16_t *)pixel_row;
+        }
+    }
+}
+
+
+// --------------------------------------------------------------------
+// Handler for GRAPHICS_6R - this one is high-rez with artifacting...
+// It's the most complicated but also the hallmark of the NTSC Coco.
+// --------------------------------------------------------------------
+ITCM_CODE void vdg_render_artifacting(video_mode_t mode, int vdg_mem_base)
+{
+    int         vdg_mem_offset;
+    int         video_mem;
+    uint8_t     pixels_byte, fg_color;
+    uint32_t   *screen_buffer;
+    uint8_t     last_pixel = FB_BLACK;
+    int         pix_char = 0;
+
+    if ( pia_video_mode & PIA_COLOR_SET )
+    {
+        // This is the NTSC Black/White artifacting mode...
+        fg_color = colors[DEF_COLOR_CSS_1];
+    }
+    else // Mono... just greens in this case
+    {
+        vdg_render_artifacting_mono(mode, vdg_mem_base);
+        return;
+    }
+    
+    screen_buffer = (uint32_t *) (0x06000000);
+
+    video_mem = resolution[mode][RES_MEM];
+    uint8_t bDoubleRez = ((resolution[mode][RES_ROW_REP] * sam_2x_rez) > 1) ? 1:0;
+
+    uint32_t fg32 = (fg_color << 24)        | (fg_color << 16)        | (fg_color << 8)        | (fg_color << 0);
+    uint32_t or32 = (ARTIFACT_ORANGE << 24) | (ARTIFACT_ORANGE << 16) | (ARTIFACT_ORANGE << 8) | (ARTIFACT_ORANGE << 0);
+    uint32_t bl32 = (ARTIFACT_BLUE << 24)   | (ARTIFACT_BLUE << 16)   | (ARTIFACT_BLUE << 8)   | (ARTIFACT_BLUE << 0);
+    
+    if (myConfig.artifacts) // Reverse normal artifacting
+    {
+        uint32_t temp = or32;
+        or32 = bl32;  bl32=temp; // Swap Orange/Blue
+    }
+
+    for ( vdg_mem_offset = 0; vdg_mem_offset < video_mem / sam_2x_rez; vdg_mem_offset++)
+    {
+        pixels_byte = memory_RAM[vdg_mem_offset + vdg_mem_base];
+
+        if (pixels_byte == 0x00) // All background color
+        {
+            *screen_buffer++ = 0;
+            *screen_buffer++ = 0;
+            last_pixel = FB_BLACK;
+        }
+        else if (pixels_byte == 0xFF) // All foreground color
+        {
+            *screen_buffer++ = fg32;
+            *screen_buffer++ = fg32;
+            last_pixel = FB_WHITE;
+        }
+        else if (pixels_byte == 0xAA) // All orange color
+        {
+            *screen_buffer++ = or32;
+            *screen_buffer++ = or32;
+            last_pixel = FB_BLACK;
+        }
+        else if (pixels_byte == 0x55) // All blue color
+        {
+            *screen_buffer++ = bl32;
+            *screen_buffer++ = bl32;
+            last_pixel = FB_WHITE;
+        }
+        else // Need to do this set of 8 pixels the hard way...
+        {
+            if (myConfig.artifacts) // Reverse normal artifacting
+            {
+                if (last_pixel)
+                {
+                    *screen_buffer++ = color_artifact_1r[(pixels_byte>>4) & 0x0F];
+                }
+                else
+                {
+                    *screen_buffer++ = color_artifact_0r[(pixels_byte>>4) & 0x0F];
+                }
+                
+                if (pixels_byte & 0x10)
+                {
+                    *screen_buffer++ = color_artifact_1r[pixels_byte & 0x0F];
+                }
+                else
+                {
+                    *screen_buffer++ = color_artifact_0r[pixels_byte & 0x0F];
+                }            
+            }
+            else
+            {
+                if (last_pixel)
+                {
+                    *screen_buffer++ = color_artifact_1[(pixels_byte>>4) & 0x0F];
+                }
+                else
+                {
+                    *screen_buffer++ = color_artifact_0[(pixels_byte>>4) & 0x0F];
+                }
+                
+                if (pixels_byte & 0x10)
+                {
+                    *screen_buffer++ = color_artifact_1[pixels_byte & 0x0F];
+                }
+                else
+                {
+                    *screen_buffer++ = color_artifact_0[pixels_byte & 0x0F];
+                }
+            }
+
+            last_pixel = (pixels_byte & 1) ? FB_WHITE : FB_BLACK;
+        }
+
+        // Check if full line rendered... 32 chars (256 pixels)
+        if (++pix_char & 0x20)
+        {
+            pix_char = 0;
+            if (bDoubleRez)
+            {                
+                memcpy(screen_buffer, screen_buffer-64, SCREEN_WIDTH_PIX);
+                screen_buffer += 64;
+            }
+            last_pixel = ((memory_RAM[vdg_mem_offset + vdg_mem_base + 1] & 0xC0) == 0xC0) ? FB_WHITE : FB_BLACK;
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------------------------------
+// For when we are not NTSC Arifacting - or if the user has selected no artifacting in configuration.
+// This will render either a Black/White or Black/Green monochrome high-rez image at 256x192.
+// ---------------------------------------------------------------------------------------------------
+ITCM_CODE void vdg_render_artifacting_mono(video_mode_t mode, int vdg_mem_base)
+{
+    int         vdg_mem_offset;
+    int         video_mem;
+    uint8_t     pixels_byte, fg_color;
+    uint32_t   *screen_buffer;
+    uint8_t     pix_char = 0;
+
+    if ( pia_video_mode & PIA_COLOR_SET )
+    {
+        fg_color = colors[DEF_COLOR_CSS_1];
+    }
+    else
+    {
+        fg_color = colors[DEF_COLOR_CSS_0];
+    }    
+
+    screen_buffer = (uint32_t *) (0x06000000);
+
+    video_mem = resolution[mode][RES_MEM];
+    uint8_t bDoubleRez = ((resolution[mode][RES_ROW_REP] * sam_2x_rez) > 1) ? 1:0;
+
+    uint32_t fg32 = (fg_color << 24)        | (fg_color << 16)        | (fg_color << 8)        | (fg_color << 0);
+
+    for ( vdg_mem_offset = 0; vdg_mem_offset < video_mem / sam_2x_rez; vdg_mem_offset++)
+    {
+        pixels_byte = memory_RAM[vdg_mem_offset + vdg_mem_base];
+
+        if (pixels_byte == 0x00)
+        {
+            *screen_buffer++ = 0;
+            *screen_buffer++ = 0;
+        }
+        else if (pixels_byte == 0xFF)
+        {
+            *screen_buffer++ = fg32;
+            *screen_buffer++ = fg32;
+        }
+        else
+        {
+            if (fg_color)
+            {
+                *screen_buffer++ = color_artifact_mono_1[(pixels_byte>>4) & 0x0F];
+                *screen_buffer++ = color_artifact_mono_1[pixels_byte & 0x0F];
+            }
+            else
+            {
+                *screen_buffer++ = color_artifact_mono_0[(pixels_byte>>4) & 0x0F];
+                *screen_buffer++ = color_artifact_mono_0[pixels_byte & 0x0F];
+            }
+        }
+
+        // Check if full line rendered... 32 chars (256 pixels)
+        if (++pix_char & 0x20)
+        {
+            pix_char = 0;
+            if (bDoubleRez)
+            {                
+                memcpy(screen_buffer, screen_buffer-64, SCREEN_WIDTH_PIX);
+                screen_buffer += 64;
+            }
         }
     }
 }

@@ -212,7 +212,7 @@ ITCM_CODE uint8_t io_handler_sam_write(uint16_t address, uint8_t data, mem_opera
         return data;
     }
 
-    return 0;
+    return 0x00; // SAM registers are write-only... return 0x00
 }
 
 // -----------------------------------------------------------------------

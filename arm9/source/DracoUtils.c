@@ -1239,28 +1239,6 @@ void DisplayFileName(void)
     }
 }
 
-void DisplayFileNameCassette(void)
-{
-    sprintf(szName,"%s",last_file);
-    for (u8 i=strlen(szName)-1; i>0; i--) if (szName[i] == '.') {szName[i]=0;break;}
-    if (strlen(szName)>28) szName[28]='\0';
-    DSPrint((16 - (strlen(szName)/2)),16,0,szName);
-    if (strlen(last_file) >= 33)   // If there is more than a few characters left, show it on the 2nd line
-    {
-        if (strlen(last_file) <= 58)
-        {
-            sprintf(szName,"%s",last_file+28);
-        }
-        else
-        {
-            sprintf(szName,"%s",last_file+strlen(last_file)-30);
-        }
-
-        if (strlen(szName)>28) szName[28]='\0';
-        DSPrint((16 - (strlen(szName)/2)),17,0,szName);
-    }
-}
-
 //*****************************************************************************
 // Display info screen and change options "main menu"
 //*****************************************************************************
@@ -1314,7 +1292,9 @@ void ReadFileCRCAndConfig(void)
 
     // Save the initial filename and file - we need it for save/restore of state
     strcpy(initial_file, gpFic[ucGameChoice].szName);
+    strcpy(last_file, gpFic[ucGameChoice].szName);
     getcwd(initial_path, MAX_FILENAME_LEN);
+    getcwd(last_path, MAX_FILENAME_LEN);
 
     // Grab the all-important file CRC - this also loads the file into TapeCartDiskBuffer[]
     getfile_crc(gpFic[ucGameChoice].szName);
@@ -1760,6 +1740,7 @@ u8 loadgame(const char *filename)
     // See if we are loading a file from a directory different than our
     // last saved directory... if so, we save this new directory as default.
     // -----------------------------------------------------------------------
+    getcwd(last_path, MAX_FILENAME_LEN);
     if (myGlobalConfig.lastDir)
     {
         if (strcmp(initial_path, myGlobalConfig.szLastPath) != 0)

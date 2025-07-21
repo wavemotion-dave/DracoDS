@@ -196,8 +196,8 @@ Pressing and holding the L/R shoulder buttons plus Y will create a screen snapsh
 
 Known Issues:
 -----------------------
+* Skiing (cart or disk) will load but as soon as the voice says 'Get Ready... Get Set' the game freezes. Cause unknown.
 * Manic Miner (both Dragon and the CoCo port) will load but Willy just jumps constantly. Cause unknown.
-* OS-9 disks will not run correctly. Likely cause is the disk controller (FDC) handling as the Read Sector in OS-9 differs from the RSDOS handling.
 
 Compile Instructions :
 -----------------------
@@ -224,6 +224,12 @@ And then move the soundbank.h file to the arm9/sources directory
 
 Versions :
 -----------------------
+V1.2: ??-July-2025 by wavemotion-dave
+* Improved FDC disk handling - OS9 games now load and run.
+* Improved artifacting - less glitches and 50% faster. DS-Lite no longer has any frameskip!
+* Added 'Diagonals' as a d-pad option for Q-Bert like games.
+* Boosted sound 50% across the board
+
 V1.1: 18-July-2025 by wavemotion-dave
 * Fixed DAA instruction - BCD math now correct. Fixes Trapfall, Atom and more.
 * Improved Semi-Graphics handling so occasional tops of fonts are not cut-off.
