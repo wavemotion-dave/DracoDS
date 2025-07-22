@@ -25,6 +25,7 @@ struct sam_reg_t
 };
 
 extern struct sam_reg_t sam_registers;
+extern uint32_t sam_64k_mode_counter;
 
 extern void sam_init(void);
 

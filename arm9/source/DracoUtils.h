@@ -50,6 +50,7 @@ extern u32 file_size;
 extern u32 tape_pos;
 extern u16 tape_motor;
 extern u8  bDISKBIOS_found;
+extern u8  bSkiingHack;
 
 typedef struct {
   char szName[MAX_FILENAME_LEN+1];

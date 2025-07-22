@@ -35,7 +35,8 @@
 
 extern unsigned int debug[];
 
-#define CPU_CYCLES_PER_LINE  57
+#define CPU_CYCLES_PER_LINE             57
+#define CPU_CYCLES_PER_LINE_OVERCLOCK   (CPU_CYCLES_PER_LINE * 2)
 
 /* -----------------------------------------
    Local definitions
@@ -310,9 +311,10 @@ ITCM_CODE void cpu_run(void)
     int         intr_latch = 0;
     int         op_code;
 
-    /* Latch interrupt requests
-     */
+    int cycles_per_line = (sam_registers.mpu_rate) ? CPU_CYCLES_PER_LINE_OVERCLOCK : CPU_CYCLES_PER_LINE;
     
+    /* Latch interrupt requests
+     */    
     intr_latch |= cpu.irq_asserted ? INT_IRQ : 0;
     intr_latch |= cpu.firq_asserted ? INT_FIRQ : 0;
     
@@ -1422,9 +1424,9 @@ ITCM_CODE void cpu_run(void)
             }
         }
         
-        if (cycles_this_scanline >= CPU_CYCLES_PER_LINE)
+        if (cycles_this_scanline >= cycles_per_line)
         {
-            cycles_this_scanline -= CPU_CYCLES_PER_LINE;
+            cycles_this_scanline -= cycles_per_line;
             break;
         }
     }
