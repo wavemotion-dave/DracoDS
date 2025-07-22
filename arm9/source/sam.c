@@ -46,6 +46,8 @@ static uint8_t io_page_one(uint16_t address, uint8_t data, mem_operation_t op);
 ----------------------------------------- */
 struct sam_reg_t sam_registers  __attribute__((section(".dtcm")));
 
+uint32_t sam_64k_mode_counter   __attribute__((section(".dtcm"))) = 0;
+
 /*------------------------------------------------
  * sam_init()
  *
@@ -66,12 +68,14 @@ void sam_init(void)
     mem_define_io(0xffd5, 0xffd5, io_page_one);     // Mapping upper RAM into lower 32K
 
     sam_registers.vdg_mode = 0;                     // Alphanumeric mode
-    sam_registers.vdg_display_offset = 2;           // Dragon computer text page 0x0400
+    sam_registers.vdg_display_offset = 2;           // Dragon/Tandy computer text page 0x0400
     sam_registers.page = 0;                         // 0=Normal, 1=Map upper 32K RAM to lower address space
-    sam_registers.mpu_rate = 0;                     // For compatibility, not used. Fixed to 0.89MHz
-    sam_registers.memory_size = 2;                  // For compatibility, not used. Fixed to 64K
-    sam_registers.memory_map_type = 0x8000;         // 1=ROMs in place, 0=ALL RAM mode 64K
+    sam_registers.mpu_rate = 0;                     // Default is 0.89MHz but can be overclocked to 1.78MHz
+    sam_registers.memory_size = 2;                  // Fixed to 32K/64K
+    sam_registers.memory_map_type = 0x8000;         // 0x8000=ROMs in place (32K mode), 0x0000=ALL RAM mode 64K
     sam_registers.map_upper_to_lower = 0x0000;      // No SAM offset to memory
+    
+    sam_64k_mode_counter = 0;
 }
 
 /*------------------------------------------------
@@ -227,6 +231,8 @@ static uint8_t io_rom_mode(uint16_t address, uint8_t data, mem_operation_t op)
     {
         sam_registers.memory_map_type = 0x8000;
         sam_registers.map_upper_to_lower = (sam_registers.page ? 0x8000:0x0000);
+        
+        return data;
     }
 
     return 0;
@@ -238,6 +244,9 @@ static uint8_t io_ram_mode(uint16_t address, uint8_t data, mem_operation_t op)
     {
         sam_registers.memory_map_type = 0;
         sam_registers.map_upper_to_lower = 0x0000;
+        sam_64k_mode_counter++;
+        
+        return data;
     }
 
     return 0;
@@ -249,6 +258,8 @@ static uint8_t io_page_zero(uint16_t address, uint8_t data, mem_operation_t op)
     {
         sam_registers.map_upper_to_lower = 0x0000;
         sam_registers.page = 0;
+        
+        return data;
     }
 
     return 0;
@@ -260,6 +271,8 @@ static uint8_t io_page_one(uint16_t address, uint8_t data, mem_operation_t op)
     {
         sam_registers.map_upper_to_lower = (sam_registers.memory_map_type ? 0x8000 : 0x0000);
         sam_registers.page = 1;
+        
+        return data;
     }
 
     return 0;

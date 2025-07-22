@@ -43,6 +43,7 @@ void vdg_render_resl_graph(video_mode_t mode, int vdg_mem_base);
 void vdg_render_color_graph(video_mode_t mode, int vdg_mem_base);
 void vdg_render_artifacting(video_mode_t mode, int vdg_mem_base);
 void vdg_render_artifacting_mono(video_mode_t mode, int vdg_mem_base);
+void vdg_render_artifacting_green(video_mode_t mode, int vdg_mem_base);
 
 video_mode_t vdg_get_mode(void);
 
@@ -104,14 +105,16 @@ uint16_t colors16[] __attribute__((section(".dtcm"))) = {
 
 uint32_t color_translation_32[8][16] __attribute__((section(".dtcm"))) = {0};
 
+uint32_t color_artifact_0[16]       __attribute__((section(".dtcm"))) = {0};
+uint32_t color_artifact_1[16]       __attribute__((section(".dtcm"))) = {0};
+uint32_t color_artifact_0r[16]      __attribute__((section(".dtcm"))) = {0};
+uint32_t color_artifact_1r[16]      __attribute__((section(".dtcm"))) = {0};
 
-uint32_t color_artifact_0[16] __attribute__((section(".dtcm"))) = {0};
-uint32_t color_artifact_1[16] __attribute__((section(".dtcm"))) = {0};
-uint32_t color_artifact_0r[16] __attribute__((section(".dtcm"))) = {0};
-uint32_t color_artifact_1r[16] __attribute__((section(".dtcm"))) = {0};
+uint32_t color_artifact_mono_0[16]  __attribute__((section(".dtcm"))) = {0};
+uint32_t color_artifact_mono_1[16]  __attribute__((section(".dtcm"))) = {0};
 
-uint32_t color_artifact_mono_0[16] __attribute__((section(".dtcm"))) = {0};
-uint32_t color_artifact_mono_1[16] __attribute__((section(".dtcm"))) = {0};
+uint32_t color_artifact_green0[16]  __attribute__((section(".dtcm"))) = {0};
+uint32_t color_artifact_green1[16]  __attribute__((section(".dtcm"))) = {0};
 
 
 /*------------------------------------------------
@@ -261,6 +264,74 @@ void vdg_init(void)
         }
         color_artifact_mono_1[pixels_byte] = (buf[3] << 24) | (buf[2] << 16) | (buf[1] << 8) | (buf[0] << 0);
     }
+    
+    
+    // ---------------------------------------------------------------------------------
+    // Pre-render the artifact color modes for fast look-up and 32-bit writes for speed
+    // This one is for the "muddied green artifacting" when using the green color set.
+    // ---------------------------------------------------------------------------------
+    for (int pixels_byte=0; pixels_byte<16; pixels_byte++)
+    {
+        uint8_t pixel = 0;
+        uint8_t last_pixel;
+        
+        buffer_index = 0;
+        last_pixel = FB_BLACK;
+        for ( uint8_t element = 0x08; element != 0; element >>= 1)
+        {
+            if (pixels_byte & element)
+            {
+                pixel = FB_LIGHT_GREEN;
+                if (pixel != last_pixel)
+                {
+                    last_pixel = pixel;
+                    pixel  = FB_GREEN;
+                }
+            }
+            else
+            {
+                pixel = FB_BLACK;
+                if (pixel != last_pixel)
+                {
+                    last_pixel = pixel;
+                    pixel  = FB_GREEN;
+                }
+            }
+
+            buf[buffer_index++] = pixel;
+        }
+
+        color_artifact_green0[pixels_byte] = (buf[3] << 24) | (buf[2] << 16) | (buf[1] << 8) | (buf[0] << 0);
+
+
+        buffer_index = 0;
+        last_pixel = FB_LIGHT_GREEN;
+        for (uint8_t element = 0x08; element != 0; element >>= 1)
+        {
+            if (pixels_byte & element)
+            {
+                pixel = FB_LIGHT_GREEN;
+                if (pixel != last_pixel)
+                {
+                    last_pixel = pixel;
+                    pixel  = FB_GREEN;
+                }
+            }
+            else
+            {
+                pixel = FB_BLACK;
+                if (pixel != last_pixel)
+                {
+                    last_pixel = pixel;
+                    pixel  = FB_GREEN;
+                }
+            }
+
+            buf[buffer_index++] = pixel;
+        }
+
+        color_artifact_green1[pixels_byte] = (buf[3] << 24) | (buf[2] << 16) | (buf[1] << 8) | (buf[0] << 0);
+    }    
 }
 
 /*------------------------------------------------
@@ -823,7 +894,7 @@ ITCM_CODE void vdg_render_artifacting(video_mode_t mode, int vdg_mem_base)
     }
     else // Mono... just greens in this case
     {
-        vdg_render_artifacting_mono(mode, vdg_mem_base);
+        vdg_render_artifacting_green(mode, vdg_mem_base);
         return;
     }
     
@@ -926,6 +997,77 @@ ITCM_CODE void vdg_render_artifacting(video_mode_t mode, int vdg_mem_base)
                 screen_buffer += 64;
             }
             last_pixel = ((memory_RAM[vdg_mem_offset + vdg_mem_base + 1] & 0xC0) == 0xC0) ? FB_WHITE : FB_BLACK;
+        }
+    }
+}
+
+ITCM_CODE void vdg_render_artifacting_green(video_mode_t mode, int vdg_mem_base)
+{
+    int         vdg_mem_offset;
+    int         video_mem;
+    uint8_t     pixels_byte, fg_color;
+    uint32_t   *screen_buffer;
+    uint8_t     last_pixel = FB_BLACK;
+    int         pix_char = 0;
+
+    fg_color = FB_LIGHT_GREEN;
+    
+    screen_buffer = (uint32_t *) (0x06000000);
+
+    video_mem = resolution[mode][RES_MEM];
+    uint8_t bDoubleRez = ((resolution[mode][RES_ROW_REP] * sam_2x_rez) > 1) ? 1:0;
+
+    uint32_t fg32 = (fg_color << 24)        | (fg_color << 16)        | (fg_color << 8)        | (fg_color << 0);
+    
+    for ( vdg_mem_offset = 0; vdg_mem_offset < video_mem / sam_2x_rez; vdg_mem_offset++)
+    {
+        pixels_byte = memory_RAM[vdg_mem_offset + vdg_mem_base];
+
+        if (pixels_byte == 0x00) // All background color
+        {
+            *screen_buffer++ = 0;
+            *screen_buffer++ = 0;
+            last_pixel = FB_BLACK;
+        }
+        else if (pixels_byte == 0xFF) // All foreground color
+        {
+            *screen_buffer++ = fg32;
+            *screen_buffer++ = fg32;
+            last_pixel = FB_LIGHT_GREEN;
+        }
+        else // Need to do this set of 8 pixels the hard way...
+        {
+            if (last_pixel)
+            {
+                *screen_buffer++ = color_artifact_green1[(pixels_byte>>4) & 0x0F];
+            }
+            else
+            {
+                *screen_buffer++ = color_artifact_green0[(pixels_byte>>4) & 0x0F];
+            }
+            
+            if (pixels_byte & 0x10)
+            {
+                *screen_buffer++ = color_artifact_green1[pixels_byte & 0x0F];
+            }
+            else
+            {
+                *screen_buffer++ = color_artifact_green0[pixels_byte & 0x0F];
+            }
+
+            last_pixel = (pixels_byte & 1) ? FB_LIGHT_GREEN : FB_BLACK;
+        }
+
+        // Check if full line rendered... 32 chars (256 pixels)
+        if (++pix_char & 0x20)
+        {
+            pix_char = 0;
+            if (bDoubleRez)
+            {                
+                memcpy(screen_buffer, screen_buffer-64, SCREEN_WIDTH_PIX);
+                screen_buffer += 64;
+            }
+            last_pixel = ((memory_RAM[vdg_mem_offset + vdg_mem_base + 1] & 0xC0) == 0xC0) ? FB_LIGHT_GREEN : FB_BLACK;
         }
     }
 }

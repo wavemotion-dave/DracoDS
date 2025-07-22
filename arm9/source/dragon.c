@@ -98,7 +98,7 @@ void dragon_reset(void)
 // the VSYNC, we also draw the entire frame. This is not perfect emulation
 // as the frame should be drawn scanline-by-scanline... but good enough for now.
 // -----------------------------------------------------------------------------
-ITCM_CODE u32 dragon_run(void)
+ u32 dragon_run(void)
 {
     // --------------------------------------
     // Process 1 scanline worth of DAC Audio
