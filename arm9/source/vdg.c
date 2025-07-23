@@ -882,7 +882,7 @@ ITCM_CODE void vdg_render_artifacting(video_mode_t mode, int vdg_mem_base)
 {
     int         vdg_mem_offset;
     int         video_mem;
-    uint8_t     pixels_byte, fg_color;
+    uint8_t     pixels_byte;
     uint32_t   *screen_buffer;
     uint8_t     last_pixel = FB_BLACK;
     int         pix_char = 0;
@@ -890,7 +890,6 @@ ITCM_CODE void vdg_render_artifacting(video_mode_t mode, int vdg_mem_base)
     if ( pia_video_mode & PIA_COLOR_SET )
     {
         // This is the NTSC Black/White artifacting mode...
-        fg_color = colors[DEF_COLOR_CSS_1];
     }
     else // Mono... just greens in this case
     {
@@ -903,89 +902,54 @@ ITCM_CODE void vdg_render_artifacting(video_mode_t mode, int vdg_mem_base)
     video_mem = resolution[mode][RES_MEM];
     uint8_t bDoubleRez = ((resolution[mode][RES_ROW_REP] * sam_2x_rez) > 1) ? 1:0;
 
-    uint32_t fg32 = (fg_color << 24)        | (fg_color << 16)        | (fg_color << 8)        | (fg_color << 0);
-    uint32_t or32 = (ARTIFACT_ORANGE << 24) | (ARTIFACT_ORANGE << 16) | (ARTIFACT_ORANGE << 8) | (ARTIFACT_ORANGE << 0);
-    uint32_t bl32 = (ARTIFACT_BLUE << 24)   | (ARTIFACT_BLUE << 16)   | (ARTIFACT_BLUE << 8)   | (ARTIFACT_BLUE << 0);
+    last_pixel = ((memory_RAM[vdg_mem_base] & 0xC0) == 0xC0) ? FB_WHITE : FB_BLACK;
     
-    if (myConfig.artifacts) // Reverse normal artifacting
-    {
-        uint32_t temp = or32;
-        or32 = bl32;  bl32=temp; // Swap Orange/Blue
-    }
-
     for ( vdg_mem_offset = 0; vdg_mem_offset < video_mem / sam_2x_rez; vdg_mem_offset++)
     {
         pixels_byte = memory_RAM[vdg_mem_offset + vdg_mem_base];
 
-        if (pixels_byte == 0x00) // All background color
+        if (myConfig.artifacts) // Reverse normal artifacting
         {
-            *screen_buffer++ = 0;
-            *screen_buffer++ = 0;
-            last_pixel = FB_BLACK;
-        }
-        else if (pixels_byte == 0xFF) // All foreground color
-        {
-            *screen_buffer++ = fg32;
-            *screen_buffer++ = fg32;
-            last_pixel = FB_WHITE;
-        }
-        else if (pixels_byte == 0xAA) // All orange color
-        {
-            *screen_buffer++ = or32;
-            *screen_buffer++ = or32;
-            last_pixel = FB_BLACK;
-        }
-        else if (pixels_byte == 0x55) // All blue color
-        {
-            *screen_buffer++ = bl32;
-            *screen_buffer++ = bl32;
-            last_pixel = FB_WHITE;
-        }
-        else // Need to do this set of 8 pixels the hard way...
-        {
-            if (myConfig.artifacts) // Reverse normal artifacting
+            if (last_pixel)
             {
-                if (last_pixel)
-                {
-                    *screen_buffer++ = color_artifact_1r[(pixels_byte>>4) & 0x0F];
-                }
-                else
-                {
-                    *screen_buffer++ = color_artifact_0r[(pixels_byte>>4) & 0x0F];
-                }
-                
-                if (pixels_byte & 0x10)
-                {
-                    *screen_buffer++ = color_artifact_1r[pixels_byte & 0x0F];
-                }
-                else
-                {
-                    *screen_buffer++ = color_artifact_0r[pixels_byte & 0x0F];
-                }            
+                *screen_buffer++ = color_artifact_1r[(pixels_byte>>4) & 0x0F];
             }
             else
             {
-                if (last_pixel)
-                {
-                    *screen_buffer++ = color_artifact_1[(pixels_byte>>4) & 0x0F];
-                }
-                else
-                {
-                    *screen_buffer++ = color_artifact_0[(pixels_byte>>4) & 0x0F];
-                }
-                
-                if (pixels_byte & 0x10)
-                {
-                    *screen_buffer++ = color_artifact_1[pixels_byte & 0x0F];
-                }
-                else
-                {
-                    *screen_buffer++ = color_artifact_0[pixels_byte & 0x0F];
-                }
+                *screen_buffer++ = color_artifact_0r[(pixels_byte>>4) & 0x0F];
             }
-
-            last_pixel = (pixels_byte & 1) ? FB_WHITE : FB_BLACK;
+            
+            if (pixels_byte & 0x10)
+            {
+                *screen_buffer++ = color_artifact_1r[pixels_byte & 0x0F];
+            }
+            else
+            {
+                *screen_buffer++ = color_artifact_0r[pixels_byte & 0x0F];
+            }            
         }
+        else
+        {
+            if (last_pixel)
+            {
+                *screen_buffer++ = color_artifact_1[(pixels_byte>>4) & 0x0F];
+            }
+            else
+            {
+                *screen_buffer++ = color_artifact_0[(pixels_byte>>4) & 0x0F];
+            }
+            
+            if (pixels_byte & 0x10)
+            {
+                *screen_buffer++ = color_artifact_1[pixels_byte & 0x0F];
+            }
+            else
+            {
+                *screen_buffer++ = color_artifact_0[pixels_byte & 0x0F];
+            }
+        }
+
+        last_pixel = (pixels_byte & 1) ? FB_WHITE : FB_BLACK;
 
         // Check if full line rendered... 32 chars (256 pixels)
         if (++pix_char & 0x20)
@@ -1005,58 +969,41 @@ ITCM_CODE void vdg_render_artifacting_green(video_mode_t mode, int vdg_mem_base)
 {
     int         vdg_mem_offset;
     int         video_mem;
-    uint8_t     pixels_byte, fg_color;
+    uint8_t     pixels_byte;
     uint32_t   *screen_buffer;
     uint8_t     last_pixel = FB_BLACK;
     int         pix_char = 0;
 
-    fg_color = FB_LIGHT_GREEN;
-    
     screen_buffer = (uint32_t *) (0x06000000);
 
     video_mem = resolution[mode][RES_MEM];
     uint8_t bDoubleRez = ((resolution[mode][RES_ROW_REP] * sam_2x_rez) > 1) ? 1:0;
 
-    uint32_t fg32 = (fg_color << 24)        | (fg_color << 16)        | (fg_color << 8)        | (fg_color << 0);
+    last_pixel = ((memory_RAM[vdg_mem_base] & 0xC0) == 0xC0) ? FB_LIGHT_GREEN : FB_BLACK;
     
     for ( vdg_mem_offset = 0; vdg_mem_offset < video_mem / sam_2x_rez; vdg_mem_offset++)
     {
         pixels_byte = memory_RAM[vdg_mem_offset + vdg_mem_base];
 
-        if (pixels_byte == 0x00) // All background color
+        if (last_pixel)
         {
-            *screen_buffer++ = 0;
-            *screen_buffer++ = 0;
-            last_pixel = FB_BLACK;
+            *screen_buffer++ = color_artifact_green1[(pixels_byte>>4) & 0x0F];
         }
-        else if (pixels_byte == 0xFF) // All foreground color
+        else
         {
-            *screen_buffer++ = fg32;
-            *screen_buffer++ = fg32;
-            last_pixel = FB_LIGHT_GREEN;
+            *screen_buffer++ = color_artifact_green0[(pixels_byte>>4) & 0x0F];
         }
-        else // Need to do this set of 8 pixels the hard way...
+        
+        if (pixels_byte & 0x10)
         {
-            if (last_pixel)
-            {
-                *screen_buffer++ = color_artifact_green1[(pixels_byte>>4) & 0x0F];
-            }
-            else
-            {
-                *screen_buffer++ = color_artifact_green0[(pixels_byte>>4) & 0x0F];
-            }
-            
-            if (pixels_byte & 0x10)
-            {
-                *screen_buffer++ = color_artifact_green1[pixels_byte & 0x0F];
-            }
-            else
-            {
-                *screen_buffer++ = color_artifact_green0[pixels_byte & 0x0F];
-            }
+            *screen_buffer++ = color_artifact_green1[pixels_byte & 0x0F];
+        }
+        else
+        {
+            *screen_buffer++ = color_artifact_green0[pixels_byte & 0x0F];
+        }
 
-            last_pixel = (pixels_byte & 1) ? FB_LIGHT_GREEN : FB_BLACK;
-        }
+        last_pixel = (pixels_byte & 1) ? FB_LIGHT_GREEN : FB_BLACK;
 
         // Check if full line rendered... 32 chars (256 pixels)
         if (++pix_char & 0x20)
@@ -1098,34 +1045,19 @@ ITCM_CODE void vdg_render_artifacting_mono(video_mode_t mode, int vdg_mem_base)
     video_mem = resolution[mode][RES_MEM];
     uint8_t bDoubleRez = ((resolution[mode][RES_ROW_REP] * sam_2x_rez) > 1) ? 1:0;
 
-    uint32_t fg32 = (fg_color << 24)        | (fg_color << 16)        | (fg_color << 8)        | (fg_color << 0);
-
     for ( vdg_mem_offset = 0; vdg_mem_offset < video_mem / sam_2x_rez; vdg_mem_offset++)
     {
         pixels_byte = memory_RAM[vdg_mem_offset + vdg_mem_base];
 
-        if (pixels_byte == 0x00)
+        if (fg_color == FB_LIGHT_GREEN)
         {
-            *screen_buffer++ = 0;
-            *screen_buffer++ = 0;
-        }
-        else if (pixels_byte == 0xFF)
-        {
-            *screen_buffer++ = fg32;
-            *screen_buffer++ = fg32;
+            *screen_buffer++ = color_artifact_mono_1[(pixels_byte>>4) & 0x0F];
+            *screen_buffer++ = color_artifact_mono_1[pixels_byte & 0x0F];
         }
         else
         {
-            if (fg_color)
-            {
-                *screen_buffer++ = color_artifact_mono_1[(pixels_byte>>4) & 0x0F];
-                *screen_buffer++ = color_artifact_mono_1[pixels_byte & 0x0F];
-            }
-            else
-            {
-                *screen_buffer++ = color_artifact_mono_0[(pixels_byte>>4) & 0x0F];
-                *screen_buffer++ = color_artifact_mono_0[pixels_byte & 0x0F];
-            }
+            *screen_buffer++ = color_artifact_mono_0[(pixels_byte>>4) & 0x0F];
+            *screen_buffer++ = color_artifact_mono_0[pixels_byte & 0x0F];
         }
 
         // Check if full line rendered... 32 chars (256 pixels)

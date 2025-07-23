@@ -197,6 +197,7 @@ Pressing and holding the L/R shoulder buttons plus Y will create a screen snapsh
 Known Issues:
 -----------------------
 * Manic Miner (both Dragon and the CoCo port) will load but Willy just jumps constantly. Cause unknown.
+* Shamus loads but will not run correctly - freezes at first screen key/joystick input. Cause unknown.
 
 Compile Instructions :
 -----------------------

@@ -772,7 +772,6 @@ void SetDefaultGameConfig(void)
     // Now some special overrides for known games that need it
     if ((file_crc == 0x6f1e913a) || (file_crc == 0x3ee6ed00))  // Dragonfire (cart and cassette)
     {
-        myConfig.forceCSS = 2;   // Needs fixed Color Select
         myConfig.joystick = 1;   // Uses Left Joystick
     }
     
