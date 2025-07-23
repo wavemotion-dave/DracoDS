@@ -793,12 +793,6 @@ void SetDefaultGameConfig(void)
         myConfig.keymap[11]  = 49;   // NDS SELECT mapped to SPACE
     }
     
-    bSkiingHack = 0;
-    if ((file_crc == 0x1a05a395) || (file_crc == 0x9248a550))
-    {
-       bSkiingHack = 1;
-    }
-
     for (int i=0; i<strlen(initial_file); i++)
     {
         initial_file[i] = toupper(initial_file[i]);

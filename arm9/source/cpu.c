@@ -54,12 +54,6 @@ extern unsigned int debug[];
 #define     VEC_SWI3                0xfff2
 #define     VEC_RESERVED            0xfff0
 
-/* Interrupt sources
- */
-#define     INT_NMI                 1
-#define     INT_IRQ                 2
-#define     INT_FIRQ                4
-
 /* Indexed addressing post-byte bit fields
  */
 #define     INDX_POST_5BIT_OFF      0x80
@@ -247,7 +241,7 @@ void cpu_reset(int state)
  */
 void cpu_nmi_trigger(void)
 {
-    cpu.nmi_latched = 1;
+    cpu.nmi_latched = INT_NMI;
 }
 
 /*------------------------------------------------
@@ -308,19 +302,15 @@ ITCM_CODE void cpu_run(void)
     int         eff_addr;
     uint8_t     operand8;
     uint16_t    operand16;
-    int         intr_latch = 0;
     int         op_code;
 
     int cycles_per_line = (sam_registers.mpu_rate) ? CPU_CYCLES_PER_LINE_OVERCLOCK : CPU_CYCLES_PER_LINE;
     
-    /* Latch interrupt requests
-     */    
-    intr_latch |= cpu.irq_asserted ? INT_IRQ : 0;
-    intr_latch |= cpu.firq_asserted ? INT_FIRQ : 0;
-    
     while (1)
     {
-        intr_latch  |= cpu.nmi_latched ? INT_NMI : 0;  // The NMI (from disk controller) is the only one that can happen as we process a scanline
+        /* Latch interrupt requests - these can change between opcode processing so must be re-latched every CPU pass
+         */    
+        int intr_latch = cpu.irq_asserted | cpu.firq_asserted | cpu.nmi_latched; // Latch all possible IRQs that might happen
         
         /* We get here if not in RESET and not HALTed.
          * If the CPU was put into SYNC mode by 'SYNC' or 'CWAI'
@@ -471,7 +461,7 @@ ITCM_CODE void cpu_run(void)
         
         // Fetch the OP Code directly from memory
         op_code = mem_read_pc(cpu.pc++);
-        
+
         // Process the Op-Code... handle the double-byte instructions as part of the normal case
         {
             /* 'operand8' will be operand byte, and for a 16-bit operand 'operand8'

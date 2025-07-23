@@ -197,7 +197,6 @@ Pressing and holding the L/R shoulder buttons plus Y will create a screen snapsh
 Known Issues:
 -----------------------
 * Manic Miner (both Dragon and the CoCo port) will load but Willy just jumps constantly. Cause unknown.
-* Draconian (Cassette and Disk) will freeze after the first level is complete. Cause unknown.
 
 Compile Instructions :
 -----------------------
@@ -232,6 +231,7 @@ V1.2: 22-July-2025 by wavemotion-dave
 * Speedup POKE is now available to boost CPU speed to an effective 1.78MHz
 * Fixed Skiing cart so it now runs past the 'Get Ready... Get Set' voice.
 * Boosted sound 50% across the board
+* 1.2a hotfix for Draconian, Skiing and probably others with IRQ latching
 
 V1.1: 18-July-2025 by wavemotion-dave
 * Fixed DAA instruction - BCD math now correct. Fixes Trapfall, Atom and more.

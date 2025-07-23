@@ -764,20 +764,6 @@ void DracoDS_main(void)
   // -----------------------------------------------------------
   while(1)
   {
-    if (bSkiingHack)
-    {
-        // Skiing gets 'stuck' looking for 'B' to change for unknown emulation reasons. Unstick it here...
-        if ((cpu.pc == 0xC3DC) || (cpu.pc == 0x43DC))
-        {
-            static int unstick_counter=0;
-            if (++unstick_counter & 0x08)
-            {
-                unstick_counter = 0;
-                cpu.b++;
-            }
-        }
-    }
-    
     // Take a tour of the Z80 counter and display the screen if necessary
     if (dragon_run())
     {
