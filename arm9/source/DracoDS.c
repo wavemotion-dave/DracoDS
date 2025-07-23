@@ -106,7 +106,6 @@ int bg0, bg1, bg0b, bg1b;      // Some vars for NDS background screen handling
 u16 vusCptVBL = 0;             // We use this as a basic timer for the Mario sprite... could be removed if another timer can be utilized
 u8 touch_debounce = 0;         // A bit of touch-screen debounce
 u8 key_debounce = 0;           // A bit of key debounce to ensure the key is held pressed for a minimum amount of time
-u8 bSkiingHack = 0;            // Set to '1' if using Skiing cart which needs a hack to bypass register B check
 
 // The DS/DSi has 12 keys that can be mapped
 u16 NDS_keyMap[12] __attribute__((section(".dtcm"))) = {KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_A, KEY_B, KEY_X, KEY_Y, KEY_R, KEY_L, KEY_START, KEY_SELECT};
@@ -764,20 +763,6 @@ void DracoDS_main(void)
   // -----------------------------------------------------------
   while(1)
   {
-    if (bSkiingHack)
-    {
-        // Skiing gets 'stuck' looking for 'B' to change for unknown emulation reasons. Unstick it here...
-        if ((cpu.pc == 0xC3DC) || (cpu.pc == 0x43DC))
-        {
-            static int unstick_counter=0;
-            if (++unstick_counter & 0x08)
-            {
-                unstick_counter = 0;
-                cpu.b++;
-            }
-        }
-    }
-    
     // Take a tour of the Z80 counter and display the screen if necessary
     if (dragon_run())
     {

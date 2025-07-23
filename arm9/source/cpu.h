@@ -59,6 +59,13 @@ typedef struct
 
 extern cpu_state_t cpu;
 
+/* Interrupt sources
+ */
+#define     INT_NMI                 1
+#define     INT_IRQ                 2
+#define     INT_FIRQ                4
+
+
 /********************************************************************
  *  CPU module API
  */

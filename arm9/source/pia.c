@@ -351,7 +351,7 @@ void pia_vsync_irq(void)
      */
     if ( pia0_cb1_int_enabled )
     {
-        cpu_irq(1);
+        cpu_irq(INT_IRQ);
     }
 }
 
@@ -375,7 +375,7 @@ void pia_hsync_firq(void)
      */
     if ( pia0_ca1_int_enabled )
     {
-        cpu_firq(1);
+        cpu_firq(INT_FIRQ);
     }
 }
 
@@ -399,7 +399,7 @@ void pia_cart_firq(void)
      */
     if ( pia1_cb1_int_enabled )
     {
-        cpu_firq(1);
+        cpu_firq(INT_FIRQ);
     }
 }
 
