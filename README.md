@@ -224,6 +224,11 @@ And then move the soundbank.h file to the arm9/sources directory
 
 Versions :
 -----------------------
+V1.3: ??-July-2025 by wavemotion-dave
+* Fixed color palette so reds, greens and blues show properly for the mid-rez graphics modes.
+* Improved artifact handling so it's a little faster and a bit more accurate.
+* Other minor cleanups as time permitted.
+
 V1.2: 22-July-2025 by wavemotion-dave
 * Improved FDC disk handling - OS9 games now load and run.
 * Improved artifacting - less glitches and 50% faster. DS-Lite no longer has any frameskip!

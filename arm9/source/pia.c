@@ -545,6 +545,12 @@ ITCM_CODE static uint8_t io_handler_pia0_pa(uint16_t address, uint8_t data, mem_
         memory_IO[PIA0_CRA] &= ~PIA_CR_IRQ_STAT;
         cpu_firq(0);
     }
+    else
+    {
+        if (!pia0_ddr_a)
+        {
+        }
+    }
 
     return data;
 }
@@ -571,6 +577,9 @@ ITCM_CODE static uint8_t io_handler_pia0_pb(uint16_t address, uint8_t data, mem_
         if (!pia0_ddr_b)
         {
             //data = memory_IO[PIA0_PB];  // If we are not in write mode, return the old value
+        }
+        else
+        {
         }
     }
     /* A read from the port address has the effect of resetting
@@ -674,6 +683,10 @@ ITCM_CODE static uint8_t io_handler_pia1_pa(uint16_t address, uint8_t data, mem_
         {
             dac_output = (data >> 2) & 0x3f;
         }
+        else
+        {
+
+        }
     }
     else
     {
@@ -749,7 +762,7 @@ ITCM_CODE static uint8_t io_handler_pia1_pa(uint16_t address, uint8_t data, mem_
  *  Bit 4   O   Screen Mode GM0 / INT
  *  Bit 3   O   Screen Mode CSS
  *  Bit 2   I   Ram Size (1=16k 0=32/64k)
- *  Bit 1   O   Single bit sound output
+ *  Bit 1   I/O Single bit sound output
  *  Bit 0   I   Rs232 In / Printer Busy, not implemented
  *
  *  A read resets FIRQ request output.
@@ -772,6 +785,10 @@ ITCM_CODE static uint8_t io_handler_pia1_pb(uint16_t address, uint8_t data, mem_
             {
                 beeper_vol = (beeper_vol ? 0x000:0xFFF);
             }
+        }
+        else
+        {
+            
         }
     }
     /* A read from the port address has the effect of resetting

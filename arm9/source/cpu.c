@@ -305,13 +305,13 @@ ITCM_CODE void cpu_run(void)
     int         op_code;
 
     int cycles_per_line = (sam_registers.mpu_rate) ? CPU_CYCLES_PER_LINE_OVERCLOCK : CPU_CYCLES_PER_LINE;
-    
+
     while (1)
     {
         /* Latch interrupt requests - these can change between opcode processing so must be re-latched every CPU pass
-         */    
+         */
         int intr_latch = cpu.irq_asserted | cpu.firq_asserted | cpu.nmi_latched; // Latch all possible IRQs that might happen
-        
+
         /* We get here if not in RESET and not HALTed.
          * If the CPU was put into SYNC mode by 'SYNC' or 'CWAI'
          * then this point will force the emulation to exit execution
@@ -332,7 +332,7 @@ ITCM_CODE void cpu_run(void)
                     return; // Waiting for an interrupt (masked or not)
                 }
             }
-            
+
             if (cpu.cpu_state == CPU_HALTED)
             {
                 if ( !(cc.f) && (intr_latch & INT_FIRQ) )
@@ -348,7 +348,7 @@ ITCM_CODE void cpu_run(void)
                 else return; // We're waiting for an unmasked interrupt
             }
         }
-        
+
         if (intr_latch)
         {
             /* If an interrupt is received and it is enabled, then
@@ -370,7 +370,7 @@ ITCM_CODE void cpu_run(void)
                 cpu.cpu_state = CPU_EXEC;
                 cc.e = CC_FLAG_SET;
                 cycles_this_scanline += 20;
-                
+
                 cpu.s--;
                 mem_write(cpu.s, cpu.pc & 0xff);
                 cpu.s--;
@@ -409,7 +409,7 @@ ITCM_CODE void cpu_run(void)
                 cpu.cpu_state = CPU_EXEC;
                 cc.e = CC_FLAG_CLR;
                 cycles_this_scanline += 10;
-                
+
                 cpu.s--;
                 mem_write(cpu.s, cpu.pc & 0xff);
                 cpu.s--;
@@ -427,7 +427,7 @@ ITCM_CODE void cpu_run(void)
                 cpu.cpu_state = CPU_EXEC;
                 cc.e = CC_FLAG_SET;
                 cycles_this_scanline += 20;
-                
+
                 cpu.s--;
                 mem_write(cpu.s, cpu.pc & 0xff);
                 cpu.s--;
@@ -458,7 +458,7 @@ ITCM_CODE void cpu_run(void)
                 cpu.pc = (mem_read(VEC_IRQ) << 8) + mem_read(VEC_IRQ+1);
             }
         }
-        
+
         // Fetch the OP Code directly from memory
         op_code = mem_read_pc(cpu.pc++);
 
@@ -477,9 +477,9 @@ ITCM_CODE void cpu_run(void)
                 case 0x11:
                 {
                     op_code = mem_read_pc(cpu.pc++);
-                    
+
                     cycles_this_scanline += machine_code_11[op_code].cycles;
-                    
+
                     eff_addr = get_eff_addr(machine_code_11[op_code].mode);
 
                     switch ( op_code )
@@ -522,11 +522,11 @@ ITCM_CODE void cpu_run(void)
                     }
                 }
                 break;
-                
+
                 case 0x10:
                 {
                     op_code = mem_read_pc(cpu.pc++);
-                    
+
                     cycles_this_scanline += machine_code_10[op_code].cycles;
 
                     eff_addr = get_eff_addr(machine_code_10[op_code].mode);
@@ -635,7 +635,7 @@ ITCM_CODE void cpu_run(void)
                             cpu.cpu_state = CPU_EXCEPTION;
                     }
                 }
-                break;                
+                break;
                 /* ABX
                  */
                 case 0x3a:
@@ -948,7 +948,7 @@ ITCM_CODE void cpu_run(void)
                 case 0x96:
                 case 0xa6:
                 case 0xb6:
-                    cpu.a = (uint8_t) mem_read(eff_addr);;
+                    cpu.a = (uint8_t) mem_read(eff_addr);
                     eval_cc_z((uint16_t) cpu.a);
                     eval_cc_n((uint16_t) cpu.a);
                     cc.v = CC_FLAG_CLR;
@@ -960,7 +960,7 @@ ITCM_CODE void cpu_run(void)
                 case 0xd6:
                 case 0xe6:
                 case 0xf6:
-                    cpu.b = (uint8_t) mem_read(eff_addr);;
+                    cpu.b = (uint8_t) mem_read(eff_addr);
                     eval_cc_z((uint16_t) cpu.b);
                     eval_cc_n((uint16_t) cpu.b);
                     cc.v = CC_FLAG_CLR;
@@ -972,7 +972,7 @@ ITCM_CODE void cpu_run(void)
                 case 0xdc:
                 case 0xec:
                 case 0xfc:
-                    cpu.a = (uint8_t) mem_read(eff_addr);;
+                    cpu.a = (uint8_t) mem_read(eff_addr);
                     eff_addr++;
                     cpu.b = (uint8_t) mem_read(eff_addr);
                     eval_cc_z16(d);
@@ -1057,7 +1057,7 @@ ITCM_CODE void cpu_run(void)
                     cpu.a = GET_REG_HIGH(operand16);
                     cpu.b = GET_REG_LOW(operand16);
                     eval_cc_z16(operand16);
-                    eval_cc_c(operand16);;
+                    eval_cc_c(operand16);
                     break;
 
                 /* NEG, NEGA, NEGB
@@ -1380,12 +1380,12 @@ ITCM_CODE void cpu_run(void)
                 case 0x22 ... 0x2f:
                     branch(op_code, 0, eff_addr);
                     break;
-                    
+
                 case 0x87:
                 case 0xC7:
                     cc.n = CC_FLAG_SET;
                     cc.z = CC_FLAG_CLR;
-                    cc.v = CC_FLAG_CLR;                
+                    cc.v = CC_FLAG_CLR;
                     break;
 
                 case 0x02:
@@ -1404,16 +1404,16 @@ ITCM_CODE void cpu_run(void)
                         mem_write(eff_addr, operand8);
                     }
                     break;
-                    
+
                 default:
                     /* Exception: Illegal op-code cpu_run()
                      */
                     if (debug[7] == 0) {debug[7] = op_code;}
                     cpu.cpu_state = CPU_EXCEPTION;
-                
+
             }
         }
-        
+
         if (cycles_this_scanline >= cycles_per_line)
         {
             cycles_this_scanline -= cycles_per_line;
@@ -1729,7 +1729,7 @@ void daa(void)
 
     if ( low_nibble > 0x09 || cc.h )
         temp += 0x06;
-        
+
     if ( high_nibble > 0x80 && low_nibble > 0x09 )
         temp += 0x60;
     else if (high_nibble > 0x90 || cc.c)
@@ -2537,7 +2537,7 @@ void inline __attribute__((always_inline)) do_branch(int long_short, uint16_t ef
  *  To use this function with short branches (8-bit signed offset),
  *  the branch offset must be sign-extended to 16-bit.
  *
- *  param:  Branch opcode, long ('1') or short ('0') branch, 16-bit sign-extended offset, 
+ *  param:  Branch opcode, long ('1') or short ('0') branch, 16-bit sign-extended offset,
  *          pointer to opcode cycles.
  *  return: Nothing
  */
