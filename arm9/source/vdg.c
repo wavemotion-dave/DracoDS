@@ -80,30 +80,37 @@ int resolution[][3] __attribute__((section(".dtcm"))) = {
 };
 
 uint8_t colors[] __attribute__((section(".dtcm"))) = {
-        FB_LIGHT_GREEN,
+        FB_BLACK,
+        
+        FB_GREEN,
         FB_YELLOW,
-        FB_LIGHT_BLUE,
-        FB_LIGHT_RED,
+        FB_BLUE,
+        FB_RED,
 
-        FB_WHITE,
+        FB_BUFF,
         FB_CYAN,
-        FB_LIGHT_MAGENTA,
-        FB_BROWN,
+        FB_MAGENTA,
+        FB_ORANGE,
+        
+        ARTIFACT_BLUE,
+        ARTIFACT_ORANGE,
 };
 
 uint16_t colors16[] __attribute__((section(".dtcm"))) = {
-        (FB_LIGHT_GREEN<<8)   | FB_LIGHT_GREEN,
-        (FB_YELLOW<<8)        | FB_YELLOW,
-        (FB_LIGHT_BLUE<<8)    | FB_LIGHT_BLUE,
-        (FB_LIGHT_RED<<8)     | FB_LIGHT_RED,
+        (FB_BLACK<<8)   | FB_BLACK,
+        
+        (FB_GREEN<<8)   | FB_GREEN,
+        (FB_YELLOW<<8)  | FB_YELLOW,
+        (FB_BLUE<<8)    | FB_BLUE,
+        (FB_RED<<8)     | FB_RED,
 
-        (FB_WHITE<<8)         | FB_WHITE,
-        (FB_CYAN<<8)          | FB_CYAN,
-        (FB_LIGHT_MAGENTA<<8) | FB_LIGHT_MAGENTA,
-        (FB_BROWN<<8)         | FB_BROWN,
+        (FB_BUFF<<8)    | FB_BUFF,
+        (FB_CYAN<<8)    | FB_CYAN,
+        (FB_MAGENTA<<8) | FB_MAGENTA,
+        (FB_ORANGE<<8)  | FB_ORANGE,
 };
 
-uint32_t color_translation_32[8][16] __attribute__((section(".dtcm"))) = {0};
+uint32_t color_translation_32[9][16] __attribute__((section(".dtcm"))) = {0};
 
 uint32_t color_artifact_0[16]       __attribute__((section(".dtcm"))) = {0};
 uint32_t color_artifact_1[16]       __attribute__((section(".dtcm"))) = {0};
@@ -142,7 +149,8 @@ void vdg_init(void)
     // --------------------------------------------------------------------------
     // Pre-render the 2-color modes for fast look-up and 32-bit writes for speed
     // --------------------------------------------------------------------------
-    for (int color = 0; color < 8; color++)
+    memset(color_translation_32, 0x00, sizeof(color_translation_32));
+    for (int color = 1; color < 9; color++)
     {
         for (int i=0; i<16; i++)
         {
@@ -184,8 +192,8 @@ void vdg_init(void)
         {
             if (pixels_byte & element)
             {
-                pixel = FB_WHITE;
-                pixel2 = FB_WHITE;
+                pixel = FB_BUFF;
+                pixel2 = FB_BUFF;
                 if (pixel != last_pixel)
                 {
                     last_pixel = pixel;
@@ -214,13 +222,13 @@ void vdg_init(void)
 
 
         buffer_index = 0;
-        last_pixel = FB_WHITE;
+        last_pixel = FB_BUFF;
         for (uint8_t element = 0x08; element != 0; element >>= 1)
         {
             if (pixels_byte & element)
             {
-                pixel = FB_WHITE;
-                pixel2 = FB_WHITE;
+                pixel = FB_BUFF;
+                pixel2 = FB_BUFF;
                 if (pixel != last_pixel)
                 {
                     last_pixel = pixel;
@@ -253,14 +261,14 @@ void vdg_init(void)
         buffer_index = 0;
         for (uint8_t element = 0x08; element != 0; element >>= 1)
         {
-            buf[buffer_index++] = (pixels_byte & element) ? FB_WHITE : FB_BLACK;
+            buf[buffer_index++] = (pixels_byte & element) ? FB_BUFF : FB_BLACK;
         }
         color_artifact_mono_0[pixels_byte] = (buf[3] << 24) | (buf[2] << 16) | (buf[1] << 8) | (buf[0] << 0);
         
         buffer_index = 0;
         for (uint8_t element = 0x08; element != 0; element >>= 1)
         {
-            buf[buffer_index++] = (pixels_byte & element) ? FB_LIGHT_GREEN : FB_BLACK;
+            buf[buffer_index++] = (pixels_byte & element) ? FB_GREEN : FB_BLACK;
         }
         color_artifact_mono_1[pixels_byte] = (buf[3] << 24) | (buf[2] << 16) | (buf[1] << 8) | (buf[0] << 0);
     }
@@ -281,7 +289,7 @@ void vdg_init(void)
         {
             if (pixels_byte & element)
             {
-                pixel = FB_LIGHT_GREEN;
+                pixel = FB_GREEN;
                 if (pixel != last_pixel)
                 {
                     last_pixel = pixel;
@@ -303,14 +311,13 @@ void vdg_init(void)
 
         color_artifact_green0[pixels_byte] = (buf[3] << 24) | (buf[2] << 16) | (buf[1] << 8) | (buf[0] << 0);
 
-
         buffer_index = 0;
-        last_pixel = FB_LIGHT_GREEN;
+        last_pixel = FB_GREEN;
         for (uint8_t element = 0x08; element != 0; element >>= 1)
         {
             if (pixels_byte & element)
             {
-                pixel = FB_LIGHT_GREEN;
+                pixel = FB_GREEN;
                 if (pixel != last_pixel)
                 {
                     last_pixel = pixel;
@@ -516,7 +523,7 @@ ITCM_CODE void vdg_render_alpha_semi4(int vdg_mem_base)
                  */
                 if ( (uint8_t)c & CHAR_SEMI_GRAPHICS )
                 {
-                    fg_color = (((uint8_t)c & 0b01110000) >> 4);
+                    fg_color = 1+(((uint8_t)c & 0b01110000) >> 4);
                     char_index = (int)(((uint8_t) c) & SEMI_GRAPH4_MASK);
                     bit_pattern = semi_graph_4[char_index][font_row];
                 }
@@ -560,7 +567,11 @@ ITCM_CODE void vdg_render_semi6(int vdg_mem_base)
     uint32_t    *screen_buffer;
 
     screen_buffer = (uint32_t *)0x06000000;
-    color_set = (int)(4 * (pia_video_mode & PIA_COLOR_SET));
+
+    if ( pia_video_mode & PIA_COLOR_SET )
+        color_set = DEF_COLOR_CSS_1;
+    else
+        color_set = DEF_COLOR_CSS_0;
 
     for ( row = 0; row < SCREEN_HEIGHT_CHAR; row++ )
     {
@@ -677,7 +688,7 @@ ITCM_CODE void vdg_render_semi_ext(video_mode_t mode, int vdg_mem_base)
 
                     if ( (uint8_t)c & CHAR_SEMI_GRAPHICS )
                     {
-                        fg_color = colors[(((uint8_t)c & 0b01110000) >> 4)];
+                        fg_color = colors[(((uint8_t)c & 0b01110000) >> 4) + 1];
                         char_index = (int)(((uint8_t) c) & SEMI_GRAPH4_MASK);
                         bit_pattern = semi_graph_4[char_index][font_row];
                     }
@@ -837,7 +848,11 @@ ITCM_CODE void vdg_render_color_graph(video_mode_t mode, int vdg_mem_base)
 
     video_mem = resolution[mode][RES_MEM];
     row_rep = resolution[mode][RES_ROW_REP];
-    color_set = 4 * (pia_video_mode & PIA_COLOR_SET);
+
+    if ( pia_video_mode & PIA_COLOR_SET )
+        color_set = DEF_COLOR_CSS_1;
+    else
+        color_set = DEF_COLOR_CSS_0;
 
     uint16_t *pixRowPtr = (uint16_t *)pixel_row;
     for ( vdg_mem_offset = 0; vdg_mem_offset < video_mem; vdg_mem_offset++)
@@ -902,7 +917,7 @@ ITCM_CODE void vdg_render_artifacting(video_mode_t mode, int vdg_mem_base)
     video_mem = resolution[mode][RES_MEM];
     uint8_t bDoubleRez = ((resolution[mode][RES_ROW_REP] * sam_2x_rez) > 1) ? 1:0;
 
-    last_pixel = ((memory_RAM[vdg_mem_base] & 0xC0) == 0xC0) ? FB_WHITE : FB_BLACK;
+    last_pixel = ((memory_RAM[vdg_mem_base] & 0xC0) == 0xC0) ? FB_BUFF : FB_BLACK;
     
     for ( vdg_mem_offset = 0; vdg_mem_offset < video_mem / sam_2x_rez; vdg_mem_offset++)
     {
@@ -949,7 +964,7 @@ ITCM_CODE void vdg_render_artifacting(video_mode_t mode, int vdg_mem_base)
             }
         }
 
-        last_pixel = (pixels_byte & 1) ? FB_WHITE : FB_BLACK;
+        last_pixel = (pixels_byte & 1) ? FB_BUFF : FB_BLACK;
 
         // Check if full line rendered... 32 chars (256 pixels)
         if (++pix_char & 0x20)
@@ -960,7 +975,7 @@ ITCM_CODE void vdg_render_artifacting(video_mode_t mode, int vdg_mem_base)
                 memcpy(screen_buffer, screen_buffer-64, SCREEN_WIDTH_PIX);
                 screen_buffer += 64;
             }
-            last_pixel = ((memory_RAM[vdg_mem_offset + vdg_mem_base + 1] & 0xC0) == 0xC0) ? FB_WHITE : FB_BLACK;
+            last_pixel = ((memory_RAM[vdg_mem_offset + vdg_mem_base + 1] & 0xC0) == 0xC0) ? FB_BUFF : FB_BLACK;
         }
     }
 }
@@ -979,7 +994,7 @@ ITCM_CODE void vdg_render_artifacting_green(video_mode_t mode, int vdg_mem_base)
     video_mem = resolution[mode][RES_MEM];
     uint8_t bDoubleRez = ((resolution[mode][RES_ROW_REP] * sam_2x_rez) > 1) ? 1:0;
 
-    last_pixel = ((memory_RAM[vdg_mem_base] & 0xC0) == 0xC0) ? FB_LIGHT_GREEN : FB_BLACK;
+    last_pixel = ((memory_RAM[vdg_mem_base] & 0xC0) == 0xC0) ? FB_GREEN : FB_BLACK;
     
     for ( vdg_mem_offset = 0; vdg_mem_offset < video_mem / sam_2x_rez; vdg_mem_offset++)
     {
@@ -1003,7 +1018,7 @@ ITCM_CODE void vdg_render_artifacting_green(video_mode_t mode, int vdg_mem_base)
             *screen_buffer++ = color_artifact_green0[pixels_byte & 0x0F];
         }
 
-        last_pixel = (pixels_byte & 1) ? FB_LIGHT_GREEN : FB_BLACK;
+        last_pixel = (pixels_byte & 1) ? FB_GREEN : FB_BLACK;
 
         // Check if full line rendered... 32 chars (256 pixels)
         if (++pix_char & 0x20)
@@ -1014,7 +1029,7 @@ ITCM_CODE void vdg_render_artifacting_green(video_mode_t mode, int vdg_mem_base)
                 memcpy(screen_buffer, screen_buffer-64, SCREEN_WIDTH_PIX);
                 screen_buffer += 64;
             }
-            last_pixel = ((memory_RAM[vdg_mem_offset + vdg_mem_base + 1] & 0xC0) == 0xC0) ? FB_LIGHT_GREEN : FB_BLACK;
+            last_pixel = ((memory_RAM[vdg_mem_offset + vdg_mem_base + 1] & 0xC0) == 0xC0) ? FB_GREEN : FB_BLACK;
         }
     }
 }
@@ -1049,7 +1064,7 @@ ITCM_CODE void vdg_render_artifacting_mono(video_mode_t mode, int vdg_mem_base)
     {
         pixels_byte = memory_RAM[vdg_mem_offset + vdg_mem_base];
 
-        if (fg_color == FB_LIGHT_GREEN)
+        if (fg_color == FB_GREEN)
         {
             *screen_buffer++ = color_artifact_mono_1[(pixels_byte>>4) & 0x0F];
             *screen_buffer++ = color_artifact_mono_1[pixels_byte & 0x0F];

@@ -197,7 +197,8 @@ Pressing and holding the L/R shoulder buttons plus Y will create a screen snapsh
 Known Issues:
 -----------------------
 * Manic Miner (both Dragon and the CoCo port) will load but Willy just jumps constantly. Cause unknown.
-* Shamus loads but will not run correctly - freezes at first screen key/joystick input. Cause unknown.
+* Shamus loads but will not run correctly - freezes at first screen key/joystick input. Cause unknown (but likely related to non-cycle accurate interrupt timing).
+* Rocky's Boots two-disk version will not load. Cause unknown. Seek the 180K single-disk version which does work.
 
 Compile Instructions :
 -----------------------
@@ -224,9 +225,10 @@ And then move the soundbank.h file to the arm9/sources directory
 
 Versions :
 -----------------------
-V1.3: ??-July-2025 by wavemotion-dave
-* Fixed color palette so reds, greens and blues show properly for the mid-rez graphics modes.
+V1.3: 26-July-2025 by wavemotion-dave
+* Fixed color palette so reds, greens and blues show properly for the various non-artifacting graphics modes.
 * Improved artifact handling so it's a little faster and a bit more accurate.
+* IRQ latching improved so more games run more accurately.
 * Other minor cleanups as time permitted.
 
 V1.2: 22-July-2025 by wavemotion-dave

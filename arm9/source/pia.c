@@ -545,7 +545,7 @@ ITCM_CODE static uint8_t io_handler_pia0_pa(uint16_t address, uint8_t data, mem_
         memory_IO[PIA0_CRA] &= ~PIA_CR_IRQ_STAT;
         cpu_firq(0);
     }
-    else
+    else // MEM_WRITE
     {
         if (!pia0_ddr_a)
         {

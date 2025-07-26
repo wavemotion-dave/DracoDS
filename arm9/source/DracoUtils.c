@@ -1659,26 +1659,29 @@ void DragonTandyRun(void)
   BottomScreenKeyboard();                 // Show the game-related screen with keypad / keyboard
 }
 
-u8 Dragon_Coco_palette[18*3] =
+// ------------------------------------------------------------------------------------
+// These colors were derived by using other emulators and taking screenshots and then
+// using GIMPs color-picker to try and get as close as possible. At first I was just
+// assigning RGB values that made sense - for example FB_CYAN was 0x00FFFF but in 
+// reality the color names are only approximations of the actual colors rendered by 
+// the Motorola video chip... these aren't perfect but they will be good enough.
+// ------------------------------------------------------------------------------------
+u8 Dragon_Coco_palette[11*3] =
 {
   0x00, 0x00, 0x00, // FB_BLACK
-  0x00, 0x00, 0x80, // FB_BLUE
-  0x00, 0x80, 0x00, // FB_GREEN
-  0x00, 0x80, 0x80, // FB_CYAN
-  0x80, 0x00, 0x00, // FB_RED
-  0x80, 0x00, 0x80, // FB_MAGENTA
-  0xff, 0x99, 0x33, // FB_BROWN (ORANGE-ish)
-  0xC0, 0xC0, 0xC0, // FB_GREY
-  0x80, 0x80, 0x80, // FB_DARK_GRAY
-  0x00, 0x00, 0xFF, // FB_LIGHT_BLUE
-  0x00, 0xFF, 0x00, // FB_LIGHT_GREEN
-  0x00, 0xFF, 0xFF, // FB_LIGHT_CYAN
-  0xFF, 0x00, 0x00, // FB_LIGHT_RED
-  0xFF, 0x00, 0xFF, // FB_LIGHT_MAGENTA
+  
+  0x00, 0xFF, 0x00, // FB_GREEN
   0xFF, 0xFF, 0x00, // FB_YELLOW
-  0xFF, 0xFF, 0xFF, // FB_WHITE
+  0x00, 0x00, 0xFF, // FB_BLUE
+  0xFF, 0x00, 0x00, // FB_RED
+  
+  0xF0, 0xF0, 0xF0, // FB_BUFF (White-ish)
+  0x00, 0xDD, 0x76, // FB_CYAN  
+  0xFD, 0x25, 0xFF, // FB_MAGENTA
+  0xFE, 0x42, 0x0D, // FB_ORANGE (tinted to the red side)
+
   0x00, 0x80, 0xFF, // Artifact BLUE
-  0xFF, 0x80, 0x00  // Artifact Orange
+  0xFF, 0x80, 0x00  // Artifact ORANGE
 };
 
 
@@ -1690,7 +1693,7 @@ void DragonTandySetPalette(void)
 {
   u8 uBcl,r,g,b;
 
-  for (uBcl=0;uBcl<18;uBcl++)
+  for (uBcl=0;uBcl<11;uBcl++)
   {
     r = (u8) ((float) Dragon_Coco_palette[uBcl*3+0]*0.121568f);
     g = (u8) ((float) Dragon_Coco_palette[uBcl*3+1]*0.121568f);

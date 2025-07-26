@@ -45,6 +45,7 @@ void pia_cart_firq(void);
 void pia_hsync_firq(void);
 int  pia_function_key(void);
 
+// The 6-Bit DAC Sound is enabled if the sound bit is enabled and the MUX is 00
 #define pia_is_audio_dac_enabled() ((sound_enable && !mux_select) ? 1:0)
 
 #endif  /* __PIA_H__ */

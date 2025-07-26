@@ -32,24 +32,19 @@
 #define     SCREEN_HEIGHT_CHAR      16
 
 #define     FB_BLACK                0
-#define     FB_BLUE                 1
-#define     FB_GREEN                2
-#define     FB_CYAN                 3
-#define     FB_RED                  4
-#define     FB_MAGENTA              5
-#define     FB_BROWN                6
-#define     FB_GRAY                 7
-#define     FB_DARK_GRAY            8
-#define     FB_LIGHT_BLUE           9
-#define     FB_LIGHT_GREEN          10
-#define     FB_LIGHT_CYAN           11
-#define     FB_LIGHT_RED            12
-#define     FB_LIGHT_MAGENTA        13
-#define     FB_YELLOW               14
-#define     FB_WHITE                15
-#define     ARTIFACT_BLUE           16 // For High-Res alternating white-black
-#define     ARTIFACT_ORANGE         17 // For High-Res alternating black-white
 
+#define     FB_GREEN                1
+#define     FB_YELLOW               2
+#define     FB_BLUE                 3
+#define     FB_RED                  4
+
+#define     FB_BUFF                 5
+#define     FB_CYAN                 6
+#define     FB_MAGENTA              7
+#define     FB_ORANGE               8
+
+#define     ARTIFACT_BLUE           9  // For High-Res alternating white-black
+#define     ARTIFACT_ORANGE         10 // For High-Res alternating black-white
 
 #define     CHAR_SEMI_GRAPHICS      0x80
 #define     CHAR_INVERSE            0x40
@@ -63,8 +58,8 @@
 
 #define     PIA_COLOR_SET           0x01
 
-#define     DEF_COLOR_CSS_0         0
-#define     DEF_COLOR_CSS_1         4
+#define     DEF_COLOR_CSS_0         1  // GREEN, YELLOW, BLUE, RED
+#define     DEF_COLOR_CSS_1         5  // BUFF, CYAN, MAGENTA, ORANGE
 
 /* Index definitions for resolution[] matrix
  */
