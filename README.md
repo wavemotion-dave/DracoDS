@@ -180,7 +180,7 @@ The Colors Aren't What I Remember :
 -----------------------
 Probably true. First of all, the colors are an approximation with emulation but the bigger issue is that this emulator (in order to gain the emulation speed needed) has scanline granularity. 
 Some games will change the color set as the beam races down the screen... and that's super cool! It's also not something that DracoDS supports (at least not yet). So yeah... it's possible
-your light red fire will render as a light blue flame - but it's a small price to pay to get all this stuff playable no the tiny DS handheld.
+your light red fire will render as an orange flame - but it's a small price to pay to get all this stuff playable no the tiny DS handheld.
 
 Artifact Colors
 -----------------------
@@ -199,6 +199,38 @@ Known Issues:
 * Manic Miner (both Dragon and the CoCo port) will load but Willy just jumps constantly. Cause unknown.
 * Shamus loads but will not run correctly - freezes at first screen key/joystick input. Cause unknown (but likely related to non-cycle accurate interrupt timing).
 * Rocky's Boots two-disk version will not load. Cause unknown. Seek the 180K single-disk version which does work.
+
+Recommended Games:
+-----------------------
+If you're new to the Tandy Coco / Dragon scene, here are some games that I enjoy. This is not an exhaustive list nor is it an indictment on other games that might 
+be someone else's favs... but these are games that I personally enjoy and run quite well on the DS handheld.
+
+* Dungeons of Daggorath
+* Dragon Slayer
+* Temple of ROM
+* Polaris
+* Downland
+* Monster Maze
+* Canyon Climber
+* Fahrfall (homebrew)
+* Draco (Draconian clone)
+* Donkey King / The King
+* Sailor Man (Popeye clone)
+* Outhouse
+* Space Assault
+* Spidercide
+* Astro Blast
+* Whirlybird Run
+* Devil Assault
+* Shock Trooper
+* Time Bandit
+* Dragonfire
+* Caves of the Unwashed Heathen
+* Dungeon Raid
+* Protector II
+* Dunjunz
+* Turtle Attack
+* Wizards Den
 
 Compile Instructions :
 -----------------------
