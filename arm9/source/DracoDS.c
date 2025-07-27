@@ -1226,7 +1226,7 @@ void DracoDS_main(void)
       static u8 autoFireTimer=0;
       if (myConfig.autoFire && (JoyState & JST_FIRE))  // Fire Button
       {
-         if ((++autoFireTimer & 7) > 4)  JoyState &= ~JST_FIRE;
+         if ((++autoFireTimer & 0xf) > 8)  JoyState &= ~JST_FIRE;
       }
     }
   }

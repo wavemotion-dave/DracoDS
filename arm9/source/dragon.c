@@ -123,7 +123,6 @@ void dragon_reset(void)
         vdg_render();       // Draw the frame
         pia_vsync_irq();    // Render the sync intterupt
         draco_line = 0;     // Back to the top
-        extern int cycles_this_scanline;
         cycles_this_scanline = 0;
         return 1; // End of frame
     }

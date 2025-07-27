@@ -66,6 +66,8 @@ extern cpu_state_t cpu;
 #define     INT_FIRQ                4
 
 
+extern int cycles_this_scanline;
+
 /********************************************************************
  *  CPU module API
  */
