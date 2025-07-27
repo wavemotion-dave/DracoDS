@@ -74,8 +74,8 @@ void sam_init(void)
     sam_registers.memory_size = 2;                  // Fixed to 32K/64K
     sam_registers.memory_map_type = 0x8000;         // 0x8000=ROMs in place (32K mode), 0x0000=ALL RAM mode 64K
     sam_registers.map_upper_to_lower = 0x0000;      // No SAM offset to memory
-    
-    sam_64k_mode_counter = 0;
+
+    sam_64k_mode_counter = 0;                       // Used to track if we've switched to 64K (so even if we switch back to 32K temporarily, we can show '64K' on the screen)
 }
 
 /*------------------------------------------------
@@ -86,6 +86,7 @@ void sam_init(void)
  */
 static uint8_t io_handler_vector_redirect(uint16_t address, uint8_t data, mem_operation_t op)
 {
+    // Note: even if we are in 'ALL-RAM' mode, the redirect happens from the BASIC ROM
     return memory_ROM[address & 0xbfff];
 }
 
@@ -189,7 +190,7 @@ ITCM_CODE uint8_t io_handler_sam_write(uint16_t address, uint8_t data, mem_opera
             case 0x13:
                 sam_registers.vdg_display_offset |= 0x40;
                 break;
-                
+
             case 0x16:
                 sam_registers.mpu_rate &= ~0x01;
                 break;
@@ -231,11 +232,11 @@ static uint8_t io_rom_mode(uint16_t address, uint8_t data, mem_operation_t op)
     {
         sam_registers.memory_map_type = 0x8000;
         sam_registers.map_upper_to_lower = (sam_registers.page ? 0x8000:0x0000);
-        
+
         return data;
     }
 
-    return 0;
+    return 0x00; // SAM registers are write-only... return 0x00
 }
 
 static uint8_t io_ram_mode(uint16_t address, uint8_t data, mem_operation_t op)
@@ -245,11 +246,11 @@ static uint8_t io_ram_mode(uint16_t address, uint8_t data, mem_operation_t op)
         sam_registers.memory_map_type = 0;
         sam_registers.map_upper_to_lower = 0x0000;
         sam_64k_mode_counter++;
-        
+
         return data;
     }
 
-    return 0;
+    return 0x00; // SAM registers are write-only... return 0x00
 }
 
 static uint8_t io_page_zero(uint16_t address, uint8_t data, mem_operation_t op)
@@ -258,11 +259,11 @@ static uint8_t io_page_zero(uint16_t address, uint8_t data, mem_operation_t op)
     {
         sam_registers.map_upper_to_lower = 0x0000;
         sam_registers.page = 0;
-        
+
         return data;
     }
 
-    return 0;
+    return 0x00; // SAM registers are write-only... return 0x00
 }
 
 static uint8_t io_page_one(uint16_t address, uint8_t data, mem_operation_t op)
@@ -271,9 +272,9 @@ static uint8_t io_page_one(uint16_t address, uint8_t data, mem_operation_t op)
     {
         sam_registers.map_upper_to_lower = (sam_registers.memory_map_type ? 0x8000 : 0x0000);
         sam_registers.page = 1;
-        
+
         return data;
     }
 
-    return 0;
+    return 0x00; // SAM registers are write-only... return 0x00
 }

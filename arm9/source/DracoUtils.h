@@ -11,13 +11,14 @@
 
 #ifndef _DRACO_UTILS_H_
 #define _DRACO_UTILS_H_
+
 #include <nds.h>
 #include "DracoDS.h"
 #include "cpu.h"
 
 #define MAX_FILES                   1048
 #define MAX_FILENAME_LEN            160
-#define MAX_FILE_SIZE               (256*1024) // 256K is big enough for any .CAS or .CCC file or standard (160K) .DSK file
+#define MAX_FILE_SIZE               (256*1024) // 256K is big enough for any .CAS or .CCC file or standard (160K / 180K) .DSK file
 
 #define MAX_CONFIGS                 1000
 #define CONFIG_VERSION              0x0004
@@ -45,7 +46,6 @@ extern u8  draco_special_key;
 extern u32 last_file_size;
 extern u8  tape_play_skip_frame;
 extern u32 draco_scanline_counter;
-extern u8  draco_special_key;
 extern u32 file_size;
 extern u32 tape_pos;
 extern u16 tape_motor;
@@ -113,7 +113,7 @@ extern struct GlobalConfig_t myGlobalConfig;
 extern uint16_t joy_x;
 extern uint16_t joy_y;
 
-extern u16 JoyState;                    // Joystick management
+extern u16 JoyState;
 
 extern u32 file_crc;
 extern u8 bFirstTime;
@@ -125,9 +125,8 @@ extern u8 BufferedKeysReadIdx;
 extern u8 TapeCartDiskBuffer[MAX_FILE_SIZE];
 
 extern FIDraco gpFic[MAX_FILES];
-extern int uNbRoms;
-extern int ucGameAct;
-extern int ucGameChoice;
+extern short int ucGameAct;
+extern short int ucGameChoice;
 
 extern void LoadConfig(void);
 extern u8   showMessage(char *szCh1, char *szCh2);

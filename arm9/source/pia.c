@@ -796,9 +796,9 @@ ITCM_CODE static uint8_t io_handler_pia1_pb(uint16_t address, uint8_t data, mem_
      */
     else
     {
-        data = (pia_video_mode << 3); // Also reports 32K (0 for bit 2)
-        data |= 1;  // RS232 In/Printer Busy
-        memory_IO[PIA1_CRB] &= ~PIA_CR_IRQ_STAT; // Cart IRQ
+        data = (pia_video_mode << 3);            // Also reports 32K/64K (0 for bit 2)
+        data |= 1;                               // RS232 In/Printer Busy
+        memory_IO[PIA1_CRB] &= ~PIA_CR_IRQ_STAT; // Cart IRQ cleared
         cpu_firq(0);
     }
 

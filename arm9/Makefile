@@ -70,7 +70,7 @@ SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
 BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
 PNGFILES	:=	$(foreach dir,$(GRAPHICS),$(notdir $(wildcard $(dir)/*.png)))
 
-OSPECIALS :=  dragon_kbd.o cassette.o mainmenu.o top_dragon.o top_coco.o coco_kbd.o pdev_bg0.o  
+OSPECIALS :=  dragon_kbd.o cassette.o mainmenu.o top_dragon.o top_coco.o coco_kbd.o pdev_bg0.o debug_kbd.o
 
 #---------------------------------------------------------------------------------
 # use CXX for linking C++ projects, CC for standard C
@@ -145,6 +145,9 @@ dragon_kbd.s dragon_kbd.h : dragon_kbd.png
 	grit $^ -o $@  -gt -mrt -mR8 -mLs -gzl -mzl
 
 coco_kbd.s coco_kbd.h : coco_kbd.png
+	grit $^ -o $@  -gt -mrt -mR8 -mLs -gzl -mzl
+
+debug_kbd.s debug_kbd.h : debug_kbd.png
 	grit $^ -o $@  -gt -mrt -mR8 -mLs -gzl -mzl
 
 cassette.s cassette.h : cassette.png

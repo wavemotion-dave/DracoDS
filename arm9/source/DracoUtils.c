@@ -29,19 +29,19 @@
 #include "CRC32.h"
 #include "printf.h"
 
-int         fileCount=0;
-int         ucGameAct=0;
-int         ucGameChoice = -1;
+short int   fileCount=0;
+short int   ucGameAct=0;
+short int   ucGameChoice = -1;
 FIDraco     gpFic[MAX_FILES];
 char        szName[256];
+char        szName2[40];
 char        szFile[256];
 u32         file_size = 0;
 char        strBuf[40];
 
-struct Config_t AllConfigs[MAX_CONFIGS];
-struct Config_t myConfig __attribute((aligned(4))) __attribute__((section(".dtcm")));
-struct GlobalConfig_t myGlobalConfig;
-extern u32 file_crc;
+struct Config_t         AllConfigs[MAX_CONFIGS];
+struct Config_t         myConfig __attribute((aligned(4))) __attribute__((section(".dtcm")));
+struct GlobalConfig_t   myGlobalConfig;
 
 u16 *pVidFlipBuf  = (u16*) (0x06000000);    // Video flipping buffer
 
@@ -112,9 +112,9 @@ const char szKeyName[MAX_KEY_OPTIONS][16] = {
   "KEYBOARD RIGHT",
   "KEYBOARD DOWN",
 
-  "CLEAR",
-  "SHIFT",          // 55
-  "BREAK",
+  "KEYBOARD CLEAR",
+  "KEYBOARD SHIFT", // 55
+  "KEYBOARD BREAK",
   "RESERVED",
   "RESERVED",
   "JOYSTICK FIRE 2",// 59
@@ -244,7 +244,6 @@ u8 showMessage(char *szCh1, char *szCh2)
 /*********************************************************************************
  * Show The 14 games on the list to allow the user to choose a new game.
  ********************************************************************************/
-static char szName2[40];
 void dsDisplayFiles(u16 NoDebGame, u8 ucSel)
 {
   u16 ucBcl,ucGame;
@@ -1676,19 +1675,19 @@ u8 Dragon_Coco_palette[11*3] =
   0xFF, 0x00, 0x00, // FB_RED
   
   0xF0, 0xF0, 0xF0, // FB_BUFF (White-ish)
-  0x00, 0xDD, 0x76, // FB_CYAN  
-  0xFD, 0x25, 0xFF, // FB_MAGENTA
-  0xFE, 0x42, 0x0D, // FB_ORANGE (tinted to the red side)
+  0x00, 0xDD, 0x76, // FB_CYAN (slightly more greenish)
+  0xFD, 0x25, 0xFF, // FB_MAGENTA (slightly more purplish)
+  0xFE, 0x42, 0x0D, // FB_ORANGE (slightly more reddish)
 
   0x00, 0x80, 0xFF, // Artifact BLUE
   0xFF, 0x80, 0x00  // Artifact ORANGE
 };
 
 
-/*********************************************************************************
- * Set Dragon / Tandy color palette... 9 colors (black plus 2 pallets of 4 colors)
- * plus we map some alternate colors and artifact colors for our emulation use.
- ********************************************************************************/
+/**********************************************************************************
+ * Set Dragon / Tandy color palette... 9 colors (black plus 2 palettes of 4 colors)
+ * plus we map some alternate artifact colors for our high-rez rendering emulation.
+ *********************************************************************************/
 void DragonTandySetPalette(void)
 {
   u8 uBcl,r,g,b;

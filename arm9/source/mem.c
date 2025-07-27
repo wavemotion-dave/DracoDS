@@ -30,7 +30,7 @@ static uint8_t do_nothing_io_handler(uint16_t address, uint8_t data, mem_operati
 /* -----------------------------------------
    Module globals
 ----------------------------------------- */
-io_handler_callback callback_io[MEMORY_SIZE];  // IO Handler 
+io_handler_callback callback_io[MEMORY_SIZE];  // IO Handler - we only really use the back-end 256 entries here but space is not an issue
 uint8_t  memory_RAM[MEMORY_SIZE];              // 64K of RAM
 uint8_t  memory_ROM[MEMORY_SIZE];              // 64K of ROM but only the upper 32K is ever mapped/used
 uint8_t  memory_IO[MEMORY_SIZE];               // 256 bytes of IO Space (but we allocate the full map so we don't have to mask)

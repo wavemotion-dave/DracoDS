@@ -25,6 +25,7 @@
 #include "DracoUtils.h"
 #include "dragon_kbd.h"
 #include "coco_kbd.h"
+#include "debug_kbd.h"
 #include "cassette.h"
 #include "top_dragon.h"
 #include "top_coco.h"
@@ -290,7 +291,7 @@ void setupStream(void)
 
 void sound_chip_reset()
 {
-  memset(mixer,   0x00, sizeof(mixer));
+  memset(mixer, 0x00, sizeof(mixer));
   mixer_read=0;
   mixer_write=0;
 }
@@ -1323,19 +1324,29 @@ void BottomScreenKeyboard(void)
     swiWaitForVBlank();
 
     //  Init bottom screen for Dragon/Tandy Keyboard
-    if (myConfig.machine)
+    if (myGlobalConfig.debugger)
     {
-        decompress(coco_kbdTiles, bgGetGfxPtr(bg0b),  LZ77Vram);
-        decompress(coco_kbdMap, (void*) bgGetMapPtr(bg0b),  LZ77Vram);
+        decompress(debug_kbdTiles, bgGetGfxPtr(bg0b),  LZ77Vram);
+        decompress(debug_kbdMap, (void*) bgGetMapPtr(bg0b),  LZ77Vram);
         dmaCopy((void*) bgGetMapPtr(bg0b)+32*30*2,(void*) bgGetMapPtr(bg1b),32*24*2);
-        dmaCopy((void*) coco_kbdPal,(void*) BG_PALETTE_SUB,256*2);
+        dmaCopy((void*) debug_kbdPal,(void*) BG_PALETTE_SUB,256*2);
     }
     else
     {
-        decompress(dragon_kbdTiles, bgGetGfxPtr(bg0b),  LZ77Vram);
-        decompress(dragon_kbdMap, (void*) bgGetMapPtr(bg0b),  LZ77Vram);
-        dmaCopy((void*) bgGetMapPtr(bg0b)+32*30*2,(void*) bgGetMapPtr(bg1b),32*24*2);
-        dmaCopy((void*) dragon_kbdPal,(void*) BG_PALETTE_SUB,256*2);
+        if (myConfig.machine)
+        {
+            decompress(coco_kbdTiles, bgGetGfxPtr(bg0b),  LZ77Vram);
+            decompress(coco_kbdMap, (void*) bgGetMapPtr(bg0b),  LZ77Vram);
+            dmaCopy((void*) bgGetMapPtr(bg0b)+32*30*2,(void*) bgGetMapPtr(bg1b),32*24*2);
+            dmaCopy((void*) coco_kbdPal,(void*) BG_PALETTE_SUB,256*2);
+        }
+        else
+        {
+            decompress(dragon_kbdTiles, bgGetGfxPtr(bg0b),  LZ77Vram);
+            decompress(dragon_kbdMap, (void*) bgGetMapPtr(bg0b),  LZ77Vram);
+            dmaCopy((void*) bgGetMapPtr(bg0b)+32*30*2,(void*) bgGetMapPtr(bg1b),32*24*2);
+            dmaCopy((void*) dragon_kbdPal,(void*) BG_PALETTE_SUB,256*2);
+        }
     }
 
     unsigned  short dmaVal = *(bgGetMapPtr(bg1b)+24*32);
@@ -1438,126 +1449,128 @@ void LoadBIOSFiles(void)
  ***********************************************************************************/
 int main(int argc, char **argv)
 {
-  //  Init sound
-  consoleDemoInit();
-
-  if  (!fatInitDefault()) {
-     iprintf("Unable to initialize libfat!\n");
-     return -1;
-  }
-
-  lcdMainOnTop();
-
-  //  Init timer for frame management
-  TIMER2_DATA=0;
-  TIMER2_CR=TIMER_ENABLE|TIMER_DIV_1024;
-  dsInstallSoundEmuFIFO();
-
-  // -----------------------------------------------------------------
-  // And do an initial load of configuration... We'll match it up
-  // with the game that was selected later...
-  // -----------------------------------------------------------------
-  LoadConfig();
-
-  //  Show the fade-away intro logo...
-  intro_logo();
-
-  SetYtrigger(190); //trigger 2 lines before vblank
-
-  irqSet(IRQ_VBLANK,  irqVBlank);
-  irqEnable(IRQ_VBLANK);
-
-  // -----------------------------------------------------------------
-  // Grab the BIOS before we try to switch any directories around...
-  // -----------------------------------------------------------------
-  useVRAM();
-  LoadBIOSFiles();
-
-  //  Handle command line argument... mostly for TWL++
-  if  (argc > 1)
-  {
-      //  We want to start in the directory where the file is being launched...
-      if  (strchr(argv[1], '/') != NULL)
-      {
-          static char  path[128];
-          strcpy(path,  argv[1]);
-          char  *ptr = &path[strlen(path)-1];
-          while (*ptr !=  '/') ptr--;
-          ptr++;
-          strcpy(cmd_line_file,  ptr);
-          *ptr=0;
-          chdir(path);
-      }
-      else
-      {
-          strcpy(cmd_line_file,  argv[1]);
-      }
-  }
-  else
-  {
-      cmd_line_file[0]=0; // No file passed on command line...
-
-      if ((myGlobalConfig.lastDir == 2) && (strlen(myGlobalConfig.szLastPath) > 2))
-      {
-          chdir(myGlobalConfig.szLastPath);  // Try to start back where we last were...
-      }
-      else
-      {
-          chdir("/roms");       // Try to start in roms area... doesn't matter if it fails
-          if (myGlobalConfig.lastDir == 0)
-            chdir("dragon");      // And try to start in the proper subdir. Doesn't really matter if it fails.
-          else
-            chdir("coco");        // And try to start in the proper subdir. Doesn't really matter if it fails.
-      }
-  }
-
-  SoundPause();
-
-  srand(time(NULL));
-
-  //  ------------------------------------------------------------
-  //  We run this loop forever until game exit is selected...
-  //  ------------------------------------------------------------
-  while(1)
-  {
-    DracoDSInit();
-
-    // ---------------------------------------------------------------
-    // Let the user know what BIOS files were found - the only BIOS
-    // that must exist is 48.rom or else the show is off...
-    // ---------------------------------------------------------------
-    if (!bBIOS_found)
+    //  Init sound
+    consoleDemoInit();
+   
+    if  (!fatInitDefault())
     {
-        DSPrint(2,10,0," ERROR: DRAGON32.ROM OR     ");
-        DSPrint(2,12,0," BAS12.ROM AND EXTBAS11.ROM ");
-        DSPrint(2,14,0," NOT FOUND. PLACE THESE IN  ");
-        DSPrint(2,15,0," /ROMS/BIOS OR WITH EMULATOR");
-        while(1) ;  // We're done... Need a bios to run this emulator
+       iprintf("Unable to initialize libfat!\n");
+       return -1;
     }
-
+   
+    lcdMainOnTop();
+   
+    //  Init timer for frame management
+    TIMER2_DATA=0;
+    TIMER2_CR=TIMER_ENABLE|TIMER_DIV_1024;
+    dsInstallSoundEmuFIFO();
+   
+    // -----------------------------------------------------------------
+    // And do an initial load of configuration... We'll match it up
+    // with the game that was selected later...
+    // -----------------------------------------------------------------
+    LoadConfig();
+   
+    //  Show the fade-away intro logo...
+    intro_logo();
+   
+    SetYtrigger(190); //trigger 2 lines before vblank
+   
+    irqSet(IRQ_VBLANK,  irqVBlank);
+    irqEnable(IRQ_VBLANK);
+   
+    // -----------------------------------------------------------------
+    // Grab the BIOS before we try to switch any directories around...
+    // -----------------------------------------------------------------
+    useVRAM();
+    LoadBIOSFiles();
+   
+    //  Handle command line argument... mostly for TWL++
+    if  (argc > 1)
+    {
+        //  We want to start in the directory where the file is being launched...
+        if  (strchr(argv[1], '/') != NULL)
+        {
+            static char  path[128];
+            strcpy(path,  argv[1]);
+            char  *ptr = &path[strlen(path)-1];
+            while (*ptr !=  '/') ptr--;
+            ptr++;
+            strcpy(cmd_line_file,  ptr);
+            *ptr=0;
+            chdir(path);
+        }
+        else
+        {
+            strcpy(cmd_line_file,  argv[1]);
+        }
+    }
+    else
+    {
+        cmd_line_file[0]=0; // No file passed on command line...
+   
+        if ((myGlobalConfig.lastDir == 2) && (strlen(myGlobalConfig.szLastPath) > 2))
+        {
+            chdir(myGlobalConfig.szLastPath);  // Try to start back where we last were...
+        }
+        else
+        {
+            chdir("/roms");       // Try to start in roms area... doesn't matter if it fails
+            if (myGlobalConfig.lastDir == 0)
+              chdir("dragon");      // And try to start in the proper subdir. Doesn't really matter if it fails.
+            else
+              chdir("coco");        // And try to start in the proper subdir. Doesn't really matter if it fails.
+        }
+    }
+   
+    SoundPause();
+   
+    srand(time(NULL));
+   
+    //  ------------------------------------------------------------
+    //  We run this loop forever until game exit is selected...
+    //  ------------------------------------------------------------
     while(1)
     {
-      SoundPause();
-      //  Choose option
-      if  (cmd_line_file[0] != 0)
+      DracoDSInit();
+   
+      // ---------------------------------------------------------------
+      // Let the user know what BIOS files were found - the only BIOS
+      // that must exist is 48.rom or else the show is off...
+      // ---------------------------------------------------------------
+      if (!bBIOS_found)
       {
-          ucGameChoice=0;
-          ucGameAct=0;
-          strcpy(gpFic[ucGameAct].szName, cmd_line_file);
-          cmd_line_file[0] = 0;    // No more initial file...
-          ReadFileCRCAndConfig(); // Get CRC32 of the file and read the config/keys
+          DSPrint(2,10,0," ERROR: DRAGON32.ROM OR     ");
+          DSPrint(2,12,0," BAS12.ROM AND EXTBAS11.ROM ");
+          DSPrint(2,14,0," NOT FOUND. PLACE THESE IN  ");
+          DSPrint(2,15,0," /ROMS/BIOS OR WITH EMULATOR");
+          while(1) ;  // We're done... Need a bios to run this emulator
       }
-      else
+   
+      while(1)
       {
-          DracoDSChangeOptions();
+        SoundPause();
+        //  Choose option
+        if  (cmd_line_file[0] != 0)
+        {
+            ucGameChoice=0;
+            ucGameAct=0;
+            strcpy(gpFic[ucGameAct].szName, cmd_line_file);
+            cmd_line_file[0] = 0;    // No more initial file...
+            ReadFileCRCAndConfig(); // Get CRC32 of the file and read the config/keys
+        }
+        else
+        {
+            DracoDSChangeOptions();
+        }
+   
+        //  Run Machine
+        DracoDSInitCPU();
+        DracoDS_main();
       }
-
-      //  Run Machine
-      DracoDSInitCPU();
-      DracoDS_main();
     }
-  }
-  return(0);
+    
+    return(0);
 }
 
 
@@ -1566,7 +1579,7 @@ int main(int argc, char **argv)
 // write printf() like strings out to a file. Basically we accumulate
 // the strings into a large RAM buffer and then when the L+R shoulder
 // buttons are pressed and held, we will snapshot out the debug.log file.
-// The DS-Lite only gets a small 16K debug buffer but the DSi gets 4MB!
+// The DS-Lite only gets a small 16K debug buffer but the DSi gets 2MB!
 // -----------------------------------------------------------------------
 
 #define MAX_DPRINTF_STR_SIZE  256
