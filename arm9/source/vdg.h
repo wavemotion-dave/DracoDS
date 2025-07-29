@@ -45,6 +45,7 @@
 
 #define     ARTIFACT_BLUE           9  // For High-Res alternating white-black
 #define     ARTIFACT_ORANGE         10 // For High-Res alternating black-white
+#define     ARTIFACT_GREEN          11 // For High-Res green colorset
 
 #define     CHAR_SEMI_GRAPHICS      0x80
 #define     CHAR_INVERSE            0x40

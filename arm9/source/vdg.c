@@ -94,6 +94,7 @@ uint8_t colors[] __attribute__((section(".dtcm"))) = {
         
         ARTIFACT_BLUE,
         ARTIFACT_ORANGE,
+        ARTIFACT_GREEN,
 };
 
 uint16_t colors16[] __attribute__((section(".dtcm"))) = {
@@ -293,7 +294,7 @@ void vdg_init(void)
                 if (pixel != last_pixel)
                 {
                     last_pixel = pixel;
-                    pixel  = FB_GREEN;
+                    pixel  = ARTIFACT_GREEN;
                 }
             }
             else
@@ -302,7 +303,7 @@ void vdg_init(void)
                 if (pixel != last_pixel)
                 {
                     last_pixel = pixel;
-                    pixel  = FB_GREEN;
+                    pixel  = ARTIFACT_GREEN;
                 }
             }
 
@@ -859,7 +860,7 @@ ITCM_CODE void vdg_render_color_graph(video_mode_t mode, int vdg_mem_base)
     {
         pixels_byte = memory_RAM[vdg_mem_offset + vdg_mem_base];
 
-        color = (int)((pixels_byte >> 6)) + color_set;
+        color = (int)((pixels_byte >> 6) & 0x03) + color_set;
         *pixRowPtr++ = colors16[color];
         if ( mode == GRAPHICS_1C ) *pixRowPtr++ = colors16[color];
 
