@@ -65,7 +65,7 @@ BIOS/BASIC Files Needed :
 ```
 * e3879310 dragon32.rom - Dragon BASIC 16K
 * 54368805 bas12.rom - Tandy CoCo BASIC 8K
-* a82a6254 extbas11.rom - Tando CoCo Extended BASIC 8K
+* a82a6254 extbas11.rom - Tandy CoCo Extended BASIC 8K
 * 0b9c5415 disk11.rom - Tandy CoCo Disk Extended BASIC 8K
 ```
 
