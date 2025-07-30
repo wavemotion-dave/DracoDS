@@ -1,7 +1,7 @@
 ![image](./png/DRACO-DS.png)
 
 # DracoDS
-DracoDS is a Tandy Color Computer (CoCo 2) and Dragon 32/64 emulator for your DS/DSi/XL/LL handheld.
+DracoDS is a Tandy Color Computer (CoCo 2) and Dragon 32 emulator for your DS/DSi/XL/LL handheld.
 
 The Dragon and Tandy machines were quite similar - both using the same Motorola reference design and, when you 
 really look under the hood, it's pretty clear that the Dragon reverse-engineered some of the Tandy
@@ -9,14 +9,14 @@ hardware such that it was virtually identical in some spots (e.g. Cartridge pino
 differences - mainly in the keyboard matrix handling and in some of the disk controller handling. 
 
 To that end, this emulator is primarily a Tandy CoCo 2 emulator with 32K standard and 64K expanded
-support but it also works for the Dragon 32/64 and can be configured as such.
+support but it also works for the Dragon 32 and can be configured as such.
 
 ![image](./png/splash.png)
 
 Features :
 -----------------------
 * Tandy CoCo 2 support with 32K and 64K of RAM. Running at 60Hz NTSC.
-* Dragon 32/64 support with 32K and 64K of RAM. Running at the 50Hz PAL speed.
+* Dragon 32 support with 32K and 64K of RAM (see Dragon Compatibility section). Running at the 50Hz PAL speed.
 * Cassette (.cas) support for both the Dragon and Tandy emulated machines.
 * Cartridge (.ccc or .rom) support for the Tandy emulated machine.
 * Disk (.dsk) support for the Tandy emulated machine. Standard single-sided 160K (35 track) or 180K (40 track) disks only.
@@ -108,6 +108,10 @@ Where FILENAME is the desired file as shown in the DIR command. You can press th
 Dragon vs Tandy Mode :
 -----------------------
 The default mode is Tandy CoCo. You can change the default in Global Settings. You can also override on a per-game basis. Be sure to run games intended for the Dragon in Dragon mode (you should see the Dragon logo on the keyboard) and be sure to run Tandy CoCo games in Tandy mode (the Tandy Color Computer logo should be shown on the main keyboard graphic).
+
+Dragon 32 vs 64
+-----------------------
+When in Dragon (vs Tandy) mode, this emulator most closely emulates a Dragon 32 machine with 32K of RAM. It does also support a 64K RAM upgrade but it does not strictly emulate a Dragon 64 (that is: it will not use the Dragon 64 BASIC ROM nor will it support the extra peripherals of the 64). In short - think of this as a Dragon 32 that someone wired in support for 64K and so most 64K games should run fine provided it doesn't need the exact Dragon 64 Hardware.
 
 Blue or Orange Screen? :
 -----------------------
@@ -257,6 +261,12 @@ And then move the soundbank.h file to the arm9/sources directory
 
 Versions :
 -----------------------
+V1.3c: 30-July-2025 by wavemotion-dave
+* Improved DS color palette for better accuracy.
+* Fixed auto-fire joystick handling.
+* Improved color mode (1C, 2C, 3C and 6C) rendering and speed.
+* Improved green artifacting mode color.
+
 V1.3: 26-July-2025 by wavemotion-dave
 * Fixed color palette so reds, greens and blues show properly for the various non-artifacting graphics modes.
 * Improved artifact handling so it's a little faster and a bit more accurate.

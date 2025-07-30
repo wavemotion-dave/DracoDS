@@ -98,8 +98,6 @@ uint8_t colors[] __attribute__((section(".dtcm"))) = {
 };
 
 uint16_t colors16[] __attribute__((section(".dtcm"))) = {
-        (FB_BLACK<<8)   | FB_BLACK,
-        
         (FB_GREEN<<8)   | FB_GREEN,
         (FB_YELLOW<<8)  | FB_YELLOW,
         (FB_BLUE<<8)    | FB_BLUE,
@@ -165,6 +163,7 @@ void vdg_init(void)
                 case 0x5: color_translation_32[color][i] = (FB_BLACK<<0)       | (colors[color]<<8) | (FB_BLACK<<16)      | (colors[color]<<24);    break;
                 case 0x6: color_translation_32[color][i] = (FB_BLACK<<0)       | (colors[color]<<8) | (colors[color]<<16) | (FB_BLACK<<24);         break;
                 case 0x7: color_translation_32[color][i] = (FB_BLACK<<0)       | (colors[color]<<8) | (colors[color]<<16) | (colors[color]<<24);    break;
+                
                 case 0x8: color_translation_32[color][i] = (colors[color]<<0)  | (FB_BLACK<<8)      | (FB_BLACK<<16)      | (FB_BLACK<<24);         break;
                 case 0x9: color_translation_32[color][i] = (colors[color]<<0)  | (FB_BLACK<<8)      | (FB_BLACK<<16)      | (colors[color]<<24);    break;
                 case 0xA: color_translation_32[color][i] = (colors[color]<<0)  | (FB_BLACK<<8)      | (colors[color]<<16) | (FB_BLACK<<24);         break;
@@ -840,7 +839,8 @@ ITCM_CODE void vdg_render_resl_graph(video_mode_t mode, int vdg_mem_base)
 ITCM_CODE void vdg_render_color_graph(video_mode_t mode, int vdg_mem_base)
 {
     int         i, vdg_mem_offset;
-    int         video_mem, row_rep, color_set, color;
+    int         video_mem, row_rep;
+    uint8_t     color_set;
     uint8_t     pixels_byte;
     uint8_t    *screen_buffer;
     uint8_t     pixel_row[SCREEN_WIDTH_PIX+16];
@@ -851,40 +851,63 @@ ITCM_CODE void vdg_render_color_graph(video_mode_t mode, int vdg_mem_base)
     row_rep = resolution[mode][RES_ROW_REP];
 
     if ( pia_video_mode & PIA_COLOR_SET )
-        color_set = DEF_COLOR_CSS_1;
+        color_set = 4;
     else
-        color_set = DEF_COLOR_CSS_0;
-
-    uint16_t *pixRowPtr = (uint16_t *)pixel_row;
-    for ( vdg_mem_offset = 0; vdg_mem_offset < video_mem; vdg_mem_offset++)
+        color_set = 0;
+        
+    if ( mode == GRAPHICS_1C )
     {
-        pixels_byte = memory_RAM[vdg_mem_offset + vdg_mem_base];
-
-        color = (int)((pixels_byte >> 6) & 0x03) + color_set;
-        *pixRowPtr++ = colors16[color];
-        if ( mode == GRAPHICS_1C ) *pixRowPtr++ = colors16[color];
-
-        color = (int)((pixels_byte >> 4) & 0x03) + color_set;
-        *pixRowPtr++ = colors16[color];
-        if ( mode == GRAPHICS_1C ) *pixRowPtr++ = colors16[color];
-
-        color = (int)((pixels_byte >> 2) & 0x03) + color_set;
-        *pixRowPtr++ = colors16[color];
-        if ( mode == GRAPHICS_1C ) *pixRowPtr++ = colors16[color];
-
-        color = (int)((pixels_byte) & 0x03) + color_set;
-        *pixRowPtr++ = colors16[color];
-        if ( mode == GRAPHICS_1C ) *pixRowPtr++ = colors16[color];
-
-        if ( pixRowPtr >= (uint16_t *)(pixel_row+SCREEN_WIDTH_PIX) )
+        uint16_t *pixRowPtr = (uint16_t *)pixel_row;
+        for ( vdg_mem_offset = 0; vdg_mem_offset < video_mem; vdg_mem_offset++)
         {
-            for ( i = 0; i < row_rep; i++ )
-            {
-                memcpy(screen_buffer, pixel_row, SCREEN_WIDTH_PIX);
-                screen_buffer += SCREEN_WIDTH_PIX;
-            }
+            pixels_byte = memory_RAM[vdg_mem_offset + vdg_mem_base];
 
-            pixRowPtr = (uint16_t *)pixel_row;
+            *pixRowPtr++ = colors16[((pixels_byte >> 6) & 0x03) | color_set];
+            *pixRowPtr++ = colors16[((pixels_byte >> 6) & 0x03) | color_set];
+
+            *pixRowPtr++ = colors16[((pixels_byte >> 4) & 0x03) | color_set];
+            *pixRowPtr++ = colors16[((pixels_byte >> 4) & 0x03) | color_set];
+
+            *pixRowPtr++ = colors16[((pixels_byte >> 2) & 0x03) | color_set];
+            *pixRowPtr++ = colors16[((pixels_byte >> 2) & 0x03) | color_set];
+
+            *pixRowPtr++ = colors16[((pixels_byte)      & 0x03) | color_set];
+            *pixRowPtr++ = colors16[((pixels_byte)      & 0x03) | color_set];
+
+            if ( pixRowPtr >= (uint16_t *)(pixel_row+SCREEN_WIDTH_PIX) )
+            {
+                for ( i = 0; i < row_rep; i++ )
+                {
+                    memcpy(screen_buffer, pixel_row, SCREEN_WIDTH_PIX);
+                    screen_buffer += SCREEN_WIDTH_PIX;
+                }
+
+                pixRowPtr = (uint16_t *)pixel_row;
+            }
+        }
+    }
+    else // Graphics 2C, 3C and 6C
+    {
+        uint16_t *pixRowPtr = (uint16_t *)pixel_row;
+        for ( vdg_mem_offset = 0; vdg_mem_offset < video_mem; vdg_mem_offset++)
+        {
+            pixels_byte = memory_RAM[vdg_mem_offset + vdg_mem_base];
+
+            *pixRowPtr++ = colors16[((pixels_byte >> 6) & 0x03) | color_set];
+            *pixRowPtr++ = colors16[((pixels_byte >> 4) & 0x03) | color_set];
+            *pixRowPtr++ = colors16[((pixels_byte >> 2) & 0x03) | color_set];
+            *pixRowPtr++ = colors16[((pixels_byte     ) & 0x03) | color_set];
+
+            if ( pixRowPtr >= (uint16_t *)(pixel_row+SCREEN_WIDTH_PIX) )
+            {
+                for ( i = 0; i < row_rep; i++ )
+                {
+                    memcpy(screen_buffer, pixel_row, SCREEN_WIDTH_PIX);
+                    screen_buffer += SCREEN_WIDTH_PIX;
+                }
+
+                pixRowPtr = (uint16_t *)pixel_row;
+            }
         }
     }
 }

@@ -59,7 +59,7 @@ void DracoSaveState()
   szLoadFile[len-1] = 'v';
 
   strcpy(tmpStr,"SAVING...");
-  DSPrint(3,0,0,tmpStr);
+  DSPrint(12,0,0,tmpStr);
 
   FILE *handle = fopen(szLoadFile, "wb+");
   if (handle != NULL)
@@ -140,9 +140,9 @@ void DracoSaveState()
     if (retVal) retVal = fwrite(&CompressBuffer,    comp_len,         1, handle);
 
     strcpy(tmpStr, (retVal ? "OK ":"ERR"));
-    DSPrint(12,0,0,tmpStr);
+    DSPrint(21,0,0,tmpStr);
     WAITVBL;WAITVBL;WAITVBL;WAITVBL;WAITVBL;WAITVBL;
-    DSPrint(3,0,0,"             ");
+    DSPrint(12,0,0,"             ");
   }
   else
   {
@@ -180,7 +180,7 @@ void DracoLoadState()
   if (handle != NULL)
   {
      strcpy(tmpStr,"LOADING...");
-     DSPrint(4,0,0,tmpStr);
+     DSPrint(12,0,0,tmpStr);
 
     // Read Version
     u16 save_ver = 0xBEEF;
@@ -276,17 +276,17 @@ void DracoLoadState()
         (void)lzav_decompress( CompressBuffer, memory_RAM, comp_len, 0x10000 );
         
         strcpy(tmpStr, (retVal ? "OK ":"ERR"));
-        DSPrint(13,0,0,tmpStr);
+        DSPrint(21,0,0,tmpStr);
 
         WAITVBL;WAITVBL;WAITVBL;WAITVBL;WAITVBL;WAITVBL;
-        DSPrint(4,0,0,"             ");
+        DSPrint(12,0,0,"             ");
       }
   }
   else
   {
-      DSPrint(4,0,0,"NO SAVED GAME");
+      DSPrint(12,0,0,"NO SAVED GAME");
       WAITVBL;WAITVBL;WAITVBL;WAITVBL;WAITVBL;WAITVBL;
-      DSPrint(4,0,0,"             ");
+      DSPrint(12,0,0,"             ");
   }
 
     fclose(handle);
