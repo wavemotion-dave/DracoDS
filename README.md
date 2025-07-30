@@ -18,7 +18,7 @@ Features :
 * Tandy CoCo 2 support with 32K and 64K of RAM. Running at 60Hz NTSC.
 * Dragon 32 support with 32K and 64K of RAM (see Dragon Compatibility section). Running at the 50Hz PAL speed.
 * Cassette (.cas) support for both the Dragon and Tandy emulated machines.
-* Cartridge (.ccc or .rom) support for the Tandy emulated machine.
+* Cartridge (.ccc or .rom) support for the Dragon and Tandy emulated machines.
 * Disk (.dsk) support for the Tandy emulated machine. Standard single-sided 160K (35 track) or 180K (40 track) disks only.
 * Save/Load Game State (one slot).
 * Digital/Analog Joystick support with various sensitivity levels and the ability to auto-center or stick-in-place.
