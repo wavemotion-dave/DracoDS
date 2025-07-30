@@ -21,6 +21,7 @@ Features :
 * Cartridge (.ccc or .rom) support for the Tandy emulated machine.
 * Disk (.dsk) support for the Tandy emulated machine. Standard single-sided 160K (35 track) or 180K (40 track) disks only.
 * Save/Load Game State (one slot).
+* Digital/Analog Joystick support with various sensitivity levels and the ability to auto-center or stick-in-place.
 * Artifacting support to 4-color high-rez mode (and the ability to swap BLUE/ORANGE on a per-game basis).
 * LCD Screen Swap (press and hold L+R+X during gameplay).
 * LCD Screen snapshot - (press and hold L+R+Y during gameplay and the .png file will be written to the SD card).
