@@ -262,11 +262,12 @@ And then move the soundbank.h file to the arm9/sources directory
 
 Versions :
 -----------------------
-V1.3c: 30-July-2025 by wavemotion-dave
+V1.4: 31-July-2025 by wavemotion-dave
 * Improved DS color palette for better accuracy.
 * Fixed auto-fire joystick handling.
 * Improved color mode (1C, 2C, 3C and 6C) rendering and speed.
 * Improved green artifacting mode color.
+* New Dragon 32 splash screen
 
 V1.3: 26-July-2025 by wavemotion-dave
 * Fixed color palette so reds, greens and blues show properly for the various non-artifacting graphics modes.

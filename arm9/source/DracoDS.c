@@ -224,7 +224,7 @@ ITCM_CODE void processDirectAudio(void)
 }
 
 // -----------------------------------------------------------------------------------------------
-// The user can override the core emulation speed from 80% to 120% to make games play faster/slow
+// The user can override the core emulation speed from 80% to 130% to make games play faster/slow
 // than normal. We must adjust the MaxMode sample frequency to match or else we will not have the
 // proper number of samples in our sound buffer... this isn't perfect but it's reasonably good!
 // -----------------------------------------------------------------------------------------------
@@ -237,7 +237,7 @@ void newStreamSampleRate(void)
         last_game_speed = myConfig.gameSpeed;
         mmStreamClose();
 
-        // Adjust the sample rate to match the core emulation speed... user can override from 80% to 120%
+        // Adjust the sample rate to match the core emulation speed... user can override from 80% to 130%
         int new_sample_rate     = (sample_rate * sample_rate_adjust[myConfig.gameSpeed]) / 100;
         myStream.sampling_rate  = new_sample_rate;        // sample_rate to match the Dragon/Tandy scanline emulation
         myStream.buffer_length  = buffer_size;            // buffer length = (512+16)
@@ -254,46 +254,46 @@ void newStreamSampleRate(void)
 // -------------------------------------------------------------------------------------------
 void setupStream(void)
 {
-  //----------------------------------------------------------------
-  //  initialize maxmod with our small 3-effect soundbank
-  //----------------------------------------------------------------
-  mmInitDefaultMem((mm_addr)soundbank_bin);
+    //----------------------------------------------------------------
+    //  initialize maxmod with our small 3-effect soundbank
+    //----------------------------------------------------------------
+    mmInitDefaultMem((mm_addr)soundbank_bin);
 
-  mmLoadEffect(SFX_CLICKNOQUIT);
-  mmLoadEffect(SFX_KEYCLICK);
-  mmLoadEffect(SFX_MUS_INTRO);
-  mmLoadEffect(SFX_FLOPPY);
+    mmLoadEffect(SFX_CLICKNOQUIT);
+    mmLoadEffect(SFX_KEYCLICK);
+    mmLoadEffect(SFX_MUS_INTRO);
+    mmLoadEffect(SFX_FLOPPY);
 
-  //----------------------------------------------------------------
-  //  open stream
-  //----------------------------------------------------------------
-  myStream.sampling_rate  = sample_rate;            // sample_rate for the Dragon/Tandy emulation
-  myStream.buffer_length  = buffer_size;            // buffer length = (512+16)
-  myStream.callback       = OurSoundMixer;          // set callback function
-  myStream.format         = MM_STREAM_16BIT_STEREO; // format = stereo 16-bit
-  myStream.timer          = MM_TIMER0;              // use hardware timer 0
-  myStream.manual         = false;                  // use automatic filling
-  mmStreamOpen(&myStream);
+    //----------------------------------------------------------------
+    //  open stream
+    //----------------------------------------------------------------
+    myStream.sampling_rate  = sample_rate;            // sample_rate for the Dragon/Tandy emulation
+    myStream.buffer_length  = buffer_size;            // buffer length = (512+16)
+    myStream.callback       = OurSoundMixer;          // set callback function
+    myStream.format         = MM_STREAM_16BIT_STEREO; // format = stereo 16-bit
+    myStream.timer          = MM_TIMER0;              // use hardware timer 0
+    myStream.manual         = false;                  // use automatic filling
+    mmStreamOpen(&myStream);
 
-  //----------------------------------------------------------------
-  //  when using 'automatic' filling, your callback will be triggered
-  //  every time half of the wave buffer is processed.
-  //
-  //  so:
-  //  25000 (rate)
-  //  ----- = ~21 Hz for a full pass, and ~42hz for half pass
-  //  1200  (length)
-  //----------------------------------------------------------------
-  //  with 'manual' filling, you must call mmStreamUpdate
-  //  periodically (and often enough to avoid buffer underruns)
-  //----------------------------------------------------------------
+    //----------------------------------------------------------------
+    //  when using 'automatic' filling, your callback will be triggered
+    //  every time half of the wave buffer is processed.
+    //
+    //  so:
+    //  25000 (rate)
+    //  ----- = ~21 Hz for a full pass, and ~42hz for half pass
+    //  1200  (length)
+    //----------------------------------------------------------------
+    //  with 'manual' filling, you must call mmStreamUpdate
+    //  periodically (and often enough to avoid buffer underruns)
+    //----------------------------------------------------------------
 }
 
 void sound_chip_reset()
 {
-  memset(mixer, 0x00, sizeof(mixer));
-  mixer_read=0;
-  mixer_write=0;
+    memset(mixer, 0x00, sizeof(mixer));
+    mixer_read=0;
+    mixer_write=0;
 }
 
 // -----------------------------------------------------------------------
@@ -301,10 +301,10 @@ void sound_chip_reset()
 // -----------------------------------------------------------------------
 void dsInstallSoundEmuFIFO(void)
 {
-  SoundPause();             // Pause any sound output
-  sound_chip_reset();       // Reset the sound generator
-  setupStream();            // Setup maxmod stream...
-  bStartSoundEngine = 5;    // Volume will 'unpause' after 5 frames in the main loop.
+    SoundPause();             // Pause any sound output
+    sound_chip_reset();       // Reset the sound generator
+    setupStream();            // Setup maxmod stream...
+    bStartSoundEngine = 5;    // Volume will 'unpause' after 5 frames in the main loop.
 }
 
 //*****************************************************************************
@@ -317,32 +317,32 @@ void dsInstallSoundEmuFIFO(void)
 // --------------------------------------------------------------
 void ResetDragonTandy(void)
 {
-  JoyState = 0x00000000;                // Nothing pressed to start
+    JoyState = 0x00000000;                // Nothing pressed to start
 
-  sound_chip_reset();                   // Reset the sound generator
-  dragon_reset();                       // Reset the Dragon/Tandy emulation
+    sound_chip_reset();                   // Reset the sound generator
+    dragon_reset();                       // Reset the Dragon/Tandy emulation
 
-  // -----------------------------------------------------------
-  // Timer 1 is used to time frame-to-frame of actual emulation
-  // -----------------------------------------------------------
-  TIMER1_CR = 0;
-  TIMER1_DATA=0;
-  TIMER1_CR=TIMER_ENABLE  | TIMER_DIV_1024;
+    // -----------------------------------------------------------
+    // Timer 1 is used to time frame-to-frame of actual emulation
+    // -----------------------------------------------------------
+    TIMER1_CR = 0;
+    TIMER1_DATA=0;
+    TIMER1_CR=TIMER_ENABLE  | TIMER_DIV_1024;
 
-  // -----------------------------------------------------------
-  // Timer 2 is used to time once per second events
-  // -----------------------------------------------------------
-  TIMER2_CR=0;
-  TIMER2_DATA=0;
-  TIMER2_CR=TIMER_ENABLE  | TIMER_DIV_1024;
-  timingFrames  = 0;
-  emuFps=0;
+    // -----------------------------------------------------------
+    // Timer 2 is used to time once per second events
+    // -----------------------------------------------------------
+    TIMER2_CR=0;
+    TIMER2_DATA=0;
+    TIMER2_CR=TIMER_ENABLE  | TIMER_DIV_1024;
+    timingFrames  = 0;
+    emuFps=0;
 
-  bFirstTime = 1;
-  bottom_screen = 0;
+    bFirstTime = 1;
+    bottom_screen = 0;
 
-  joy_x = joy_y = JOY_CENTER;
-  joy_dampen = 0;
+    joy_x = joy_y = JOY_CENTER;
+    joy_dampen = 0;
 }
 
 
@@ -481,64 +481,64 @@ void MiniMenuShow(bool bClearScreen, u8 sel)
 // ------------------------------------------------------------------------
 u8 MiniMenu(void)
 {
-  u8 retVal = MENU_CHOICE_NONE;
-  u8 menuSelection = 0;
+    u8 retVal = MENU_CHOICE_NONE;
+    u8 menuSelection = 0;
 
-  SoundPause();
-  while ((keysCurrent() & (KEY_TOUCH | KEY_LEFT | KEY_RIGHT | KEY_A ))!=0);
+    SoundPause();
+    while ((keysCurrent() & (KEY_TOUCH | KEY_LEFT | KEY_RIGHT | KEY_A ))!=0);
 
-  MiniMenuShow(true, menuSelection);
+    MiniMenuShow(true, menuSelection);
 
-  while (true)
-  {
-    nds_key = keysCurrent();
-    if (nds_key)
+    while (true)
     {
-        if (nds_key & KEY_UP)
+        nds_key = keysCurrent();
+        if (nds_key)
         {
-            menuSelection = (menuSelection > 0) ? (menuSelection-1):(mini_menu_items-1);
-            MiniMenuShow(false, menuSelection);
-        }
-        if (nds_key & KEY_DOWN)
-        {
-            menuSelection = (menuSelection+1) % mini_menu_items;
-            MiniMenuShow(false, menuSelection);
-        }
-        if (nds_key & KEY_A)
-        {
-            if      (menuSelection == 0) retVal = MENU_CHOICE_RESET_GAME;
-            else if (menuSelection == 1) retVal = MENU_CHOICE_END_GAME;
-            else if (menuSelection == 2) retVal = MENU_CHOICE_SAVE_GAME;
-            else if (menuSelection == 3) retVal = MENU_CHOICE_LOAD_GAME;
-            else if (menuSelection == 4) retVal = MENU_CHOICE_GAME_OPTION;
-            else if (menuSelection == 5) retVal = MENU_CHOICE_DEFINE_KEYS;
-            else if (menuSelection == 6) retVal = MENU_CHOICE_SWAP_DISK;
-            else if (menuSelection == 7) retVal = MENU_CHOICE_NONE;
-            else retVal = MENU_CHOICE_NONE;
-            break;
-        }
-        if (nds_key & KEY_B)
-        {
-            retVal = MENU_CHOICE_NONE;
-            break;
-        }
+            if (nds_key & KEY_UP)
+            {
+                menuSelection = (menuSelection > 0) ? (menuSelection-1):(mini_menu_items-1);
+                MiniMenuShow(false, menuSelection);
+            }
+            if (nds_key & KEY_DOWN)
+            {
+                menuSelection = (menuSelection+1) % mini_menu_items;
+                MiniMenuShow(false, menuSelection);
+            }
+            if (nds_key & KEY_A)
+            {
+                if      (menuSelection == 0) retVal = MENU_CHOICE_RESET_GAME;
+                else if (menuSelection == 1) retVal = MENU_CHOICE_END_GAME;
+                else if (menuSelection == 2) retVal = MENU_CHOICE_SAVE_GAME;
+                else if (menuSelection == 3) retVal = MENU_CHOICE_LOAD_GAME;
+                else if (menuSelection == 4) retVal = MENU_CHOICE_GAME_OPTION;
+                else if (menuSelection == 5) retVal = MENU_CHOICE_DEFINE_KEYS;
+                else if (menuSelection == 6) retVal = MENU_CHOICE_SWAP_DISK;
+                else if (menuSelection == 7) retVal = MENU_CHOICE_NONE;
+                else retVal = MENU_CHOICE_NONE;
+                break;
+            }
+            if (nds_key & KEY_B)
+            {
+                retVal = MENU_CHOICE_NONE;
+                break;
+            }
 
-        while ((keysCurrent() & (KEY_UP | KEY_DOWN | KEY_A ))!=0);
-        WAITVBL;WAITVBL;
+            while ((keysCurrent() & (KEY_UP | KEY_DOWN | KEY_A ))!=0);
+            WAITVBL;WAITVBL;
+        }
     }
-  }
 
-  while ((keysCurrent() & (KEY_UP | KEY_DOWN | KEY_A ))!=0);
-  WAITVBL;WAITVBL;
+    while ((keysCurrent() & (KEY_UP | KEY_DOWN | KEY_A ))!=0);
+    WAITVBL;WAITVBL;
 
-  if (retVal == MENU_CHOICE_NONE)
-  {
-    BottomScreenKeyboard();  // Could be generic or overlay...
-  }
+    if (retVal == MENU_CHOICE_NONE)
+    {
+        BottomScreenKeyboard();  // Could be generic or overlay...
+    }
 
-  SoundUnPause();
+    SoundUnPause();
 
-  return retVal;
+    return retVal;
 }
 
 
@@ -1238,13 +1238,13 @@ void DracoDS_main(void)
 // ----------------------------------------------------------------------------------------
 void useVRAM(void)
 {
-  vramSetBankB(VRAM_B_LCD);        // 128K VRAM used for snapshot DCAP buffer - but could be repurposed during emulation ...
-  vramSetBankD(VRAM_D_LCD);        // Not using this for video but 128K of faster RAM always useful!  Mapped at 0x06860000 -   Unused - reserved for future use
-  vramSetBankE(VRAM_E_LCD);        // Not using this for video but 64K of faster RAM always useful!   Mapped at 0x06880000 -   Unused - reserved for future use
-  vramSetBankF(VRAM_F_LCD);        // Not using this for video but 16K of faster RAM always useful!   Mapped at 0x06890000 -   Unused - reserved for future use
-  vramSetBankG(VRAM_G_LCD);        // Not using this for video but 16K of faster RAM always useful!   Mapped at 0x06894000 -   Unused - reserved for future use
-  vramSetBankH(VRAM_H_LCD);        // Not using this for video but 32K of faster RAM always useful!   Mapped at 0x06898000 -   Unused - reserved for future use
-  vramSetBankI(VRAM_I_LCD);        // Not using this for video but 16K of faster RAM always useful!   Mapped at 0x068A0000 -   Unused - reserved for future use
+    vramSetBankB(VRAM_B_LCD);        // 128K VRAM used for snapshot DCAP buffer - but could be repurposed during emulation ...
+    vramSetBankD(VRAM_D_LCD);        // Not using this for video but 128K of faster RAM always useful!  Mapped at 0x06860000 -   Unused - reserved for future use
+    vramSetBankE(VRAM_E_LCD);        // Not using this for video but 64K of faster RAM always useful!   Mapped at 0x06880000 -   Unused - reserved for future use
+    vramSetBankF(VRAM_F_LCD);        // Not using this for video but 16K of faster RAM always useful!   Mapped at 0x06890000 -   Unused - reserved for future use
+    vramSetBankG(VRAM_G_LCD);        // Not using this for video but 16K of faster RAM always useful!   Mapped at 0x06894000 -   Unused - reserved for future use
+    vramSetBankH(VRAM_H_LCD);        // Not using this for video but 32K of faster RAM always useful!   Mapped at 0x06898000 -   Unused - reserved for future use
+    vramSetBankI(VRAM_I_LCD);        // Not using this for video but 16K of faster RAM always useful!   Mapped at 0x068A0000 -   Unused - reserved for future use
 }
 
 /*********************************************************************************
@@ -1252,40 +1252,40 @@ void useVRAM(void)
  ********************************************************************************/
 void DracoDSInit(void)
 {
-  //  Init graphic mode (bitmap mode)
-  videoSetMode(MODE_0_2D | DISPLAY_BG0_ACTIVE);
-  videoSetModeSub(MODE_0_2D | DISPLAY_BG0_ACTIVE  | DISPLAY_BG1_ACTIVE | DISPLAY_SPR_1D_LAYOUT | DISPLAY_SPR_ACTIVE);
-  vramSetBankA(VRAM_A_MAIN_BG);
-  vramSetBankC(VRAM_C_SUB_BG);
-
-  //  Stop blending effect of intro
-  REG_BLDCNT=0; REG_BLDCNT_SUB=0; REG_BLDY=0; REG_BLDY_SUB=0;
-
-  //  Render the top screen
-  bg0 = bgInit(0, BgType_Text8bpp,  BgSize_T_256x512, 31,0);
-  bg1 = bgInit(1, BgType_Text8bpp,  BgSize_T_256x512, 29,0);
-  bgSetPriority(bg0,1);bgSetPriority(bg1,0);
-
-  if (myGlobalConfig.defMachine)
-  {
-      decompress(top_cocoTiles,  bgGetGfxPtr(bg0), LZ77Vram);
-      decompress(top_cocoMap,  (void*) bgGetMapPtr(bg0), LZ77Vram);
-      dmaCopy((void*) top_cocoPal,(void*)  BG_PALETTE,256*2);
-  }
-  else
-  {
-      decompress(top_dragonTiles,  bgGetGfxPtr(bg0), LZ77Vram);
-      decompress(top_dragonMap,  (void*) bgGetMapPtr(bg0), LZ77Vram);
-      dmaCopy((void*) top_dragonPal,(void*)  BG_PALETTE,256*2);
-  }
-  unsigned  short dmaVal =*(bgGetMapPtr(bg0)+51*32);
-  dmaFillWords(dmaVal | (dmaVal<<16),(void*)  bgGetMapPtr(bg1),32*24*2);
-
-  // Put up the options screen
-  BottomScreenOptions();
-
-  //  Find the files
-  DracoDSFindFiles(0);
+    //  Init graphic mode (bitmap mode)
+    videoSetMode(MODE_0_2D | DISPLAY_BG0_ACTIVE);
+    videoSetModeSub(MODE_0_2D | DISPLAY_BG0_ACTIVE  | DISPLAY_BG1_ACTIVE | DISPLAY_SPR_1D_LAYOUT | DISPLAY_SPR_ACTIVE);
+    vramSetBankA(VRAM_A_MAIN_BG);
+    vramSetBankC(VRAM_C_SUB_BG);
+   
+    //  Stop blending effect of intro
+    REG_BLDCNT=0; REG_BLDCNT_SUB=0; REG_BLDY=0; REG_BLDY_SUB=0;
+   
+    //  Render the top screen
+    bg0 = bgInit(0, BgType_Text8bpp,  BgSize_T_256x512, 31,0);
+    bg1 = bgInit(1, BgType_Text8bpp,  BgSize_T_256x512, 29,0);
+    bgSetPriority(bg0,1);bgSetPriority(bg1,0);
+   
+    if (myGlobalConfig.defMachine)
+    {
+        decompress(top_cocoTiles,  bgGetGfxPtr(bg0), LZ77Vram);
+        decompress(top_cocoMap,  (void*) bgGetMapPtr(bg0), LZ77Vram);
+        dmaCopy((void*) top_cocoPal,(void*)  BG_PALETTE,256*2);
+    }
+    else
+    {
+        decompress(top_dragonTiles,  bgGetGfxPtr(bg0), LZ77Vram);
+        decompress(top_dragonMap,  (void*) bgGetMapPtr(bg0), LZ77Vram);
+        dmaCopy((void*) top_dragonPal,(void*)  BG_PALETTE,256*2);
+    }
+    unsigned  short dmaVal =*(bgGetMapPtr(bg0)+51*32);
+    dmaFillWords(dmaVal | (dmaVal<<16),(void*)  bgGetMapPtr(bg1),32*24*2);
+   
+    // Put up the options screen
+    BottomScreenOptions();
+   
+    //  Find the files
+    DracoDSFindFiles(0);
 }
 
 void BottomScreenOptions(void)
