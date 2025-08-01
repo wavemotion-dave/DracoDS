@@ -544,12 +544,14 @@ u8 DracoDSLoadFile(u8 bDiskOnly)
     {
       if (gpFic[ucGameAct].uType != DIRECTORY)
       {
-        if (!bDiskOnly || (strcasecmp(strrchr(gpFic[ucGameAct].szName, '.'), ".dsk") == 0))
-        {
-            bDone=true;
-            ucGameChoice = ucGameAct;
-            WAITVBL;
-        }
+          u8 isDisk = strcasecmp(strrchr(gpFic[ucGameAct].szName, '.'), ".dsk");
+          u8 isCass = strcasecmp(strrchr(gpFic[ucGameAct].szName, '.'), ".cas");
+          if (!bDiskOnly || (isDisk == 0) || (isCass == 0))
+          {
+              bDone=true;
+              ucGameChoice = ucGameAct;
+              WAITVBL;
+          }
       }
       else
       {

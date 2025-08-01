@@ -472,7 +472,14 @@ void MiniMenuShow(bool bClearScreen, u8 sel)
     DSPrint(8,9+mini_menu_items,(sel==mini_menu_items)?2:0,  " LOAD   STATE  ");  mini_menu_items++;
     DSPrint(8,9+mini_menu_items,(sel==mini_menu_items)?2:0,  " GAME   OPTIONS");  mini_menu_items++;
     DSPrint(8,9+mini_menu_items,(sel==mini_menu_items)?2:0,  " DEFINE KEYS   ");  mini_menu_items++;
-    DSPrint(8,9+mini_menu_items,(sel==mini_menu_items)?2:0,  " SWAP   DISK   ");  mini_menu_items++;
+    if (draco_mode == MODE_CAS)
+    {
+        DSPrint(8,9+mini_menu_items,(sel==mini_menu_items)?2:0,  " SWAP   CASS   ");  mini_menu_items++;
+    }
+    else
+    {
+        DSPrint(8,9+mini_menu_items,(sel==mini_menu_items)?2:0,  " SWAP   DISK   ");  mini_menu_items++;
+    }
     DSPrint(8,9+mini_menu_items,(sel==mini_menu_items)?2:0,  " EXIT   MENU   ");  mini_menu_items++;
 }
 
@@ -697,9 +704,13 @@ u8 __attribute__((noinline)) handle_meta_key(u8 meta_key)
             DracoDSLoadFile(TRUE);
             if (ucGameChoice >= 0)
             {
-                ReadFileCarefully(gpFic[ucGameChoice].szName, TapeCartDiskBuffer, sizeof(TapeCartDiskBuffer), 0);
+                last_file_size = ReadFileCarefully(gpFic[ucGameChoice].szName, TapeCartDiskBuffer, sizeof(TapeCartDiskBuffer), 0);
                 strcpy(last_file, gpFic[ucGameChoice].szName);
                 fdc_reset(0);
+                
+                // if a .CAS file was loaded, reset those key vars
+                tape_pos = 0;
+                cas_eof = 0;
             }
             BottomScreenKeyboard();
             SoundUnPause();

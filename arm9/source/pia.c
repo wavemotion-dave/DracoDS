@@ -657,7 +657,7 @@ ITCM_CODE static uint8_t io_handler_pia0_crb(uint16_t address, uint8_t data, mem
 
 inline uint8_t loader_tape_fread(void)
 {
-    if (tape_pos > file_size)
+    if (tape_pos > last_file_size)
     {
         cas_eof = 1;
         return 0x00;
