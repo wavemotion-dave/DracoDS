@@ -147,21 +147,26 @@ void SoundUnPause(void)
 // We were using the normal ARM7 sound core but it sounded "scratchy" and so with the help
 // of FluBBa, we've swiched over to the maxmod sound core which performs much better.
 // --------------------------------------------------------------------------------------------
-#define sample_rate         (31400)    // To roughly match how many samples (2x per scanline x 262 scanlines x 60 frames... or 2x312x50 = 31200)
-#define buffer_size         (512+16)   // Enough buffer that we don't have to fill it too often. Must be multiple of 16.
+#define SAMPLE_RATE_NTSC    15580
+#define SAMPLE_RATE_PAL     15400
+u16     sample_rate = SAMPLE_RATE_NTSC;  // To roughly match how many samples (1x per scanline x 262 scanlines x 60 frames = 15720... or 312x50 = 15600). We purposely undershoot.
+
+#define buffer_size         (512+16)            // Enough buffer that we don't have to fill it too often. Must be multiple of 16.
 
 mm_ds_system sys   __attribute__((section(".dtcm")));
 mm_stream myStream __attribute__((section(".dtcm")));
 
-#define WAVE_DIRECT_BUF_SIZE 4095
+#define WAVE_DIRECT_BUF_SIZE 2047
 u16 mixer_read      __attribute__((section(".dtcm"))) = 0;
 u16 mixer_write     __attribute__((section(".dtcm"))) = 0;
 s16 mixer[WAVE_DIRECT_BUF_SIZE+1];
 
-
 // The games normally run at the proper 100% speed, but user can override from 80% to 130%
 u16 GAME_SPEED_PAL[]  __attribute__((section(".dtcm"))) = {655, 596, 547, 504, 728, 818 };
 u16 GAME_SPEED_NTSC[] __attribute__((section(".dtcm"))) = {546, 497, 455, 416, 420, 607 };
+
+u16 catch_up        __attribute__((section(".dtcm"))) = 0;
+u16 slow_down       __attribute__((section(".dtcm"))) = 0;
 
 // -------------------------------------------------------------------------------------------
 // maxmod will call this routine when the buffer is half-empty and requests that
@@ -189,11 +194,15 @@ ITCM_CODE mm_word OurSoundMixer(mm_word len, mm_addr dest, mm_stream_formats for
         {
             if (mixer_read == mixer_write)
             {
-                processDirectAudio();
+                // Just use the last_sample and ask processDirectAudio() to catch-up
+                catch_up = 255;
             }
-            last_sample = mixer[mixer_read];
+            else
+            {
+                last_sample = mixer[mixer_read];
+                mixer_read = (mixer_read + 1) & WAVE_DIRECT_BUF_SIZE;
+            }
             *p++ = last_sample;
-            mixer_read = (mixer_read + 1) & WAVE_DIRECT_BUF_SIZE;
         }
         if (breather) {breather -= (len*2); if (breather < 0) breather = 0;}
     }
@@ -204,22 +213,27 @@ ITCM_CODE mm_word OurSoundMixer(mm_word len, mm_addr dest, mm_stream_formats for
 // --------------------------------------------------------------------------------------------
 // This is called when we want to sample the audio directly - we grab 4x sound samples.
 // --------------------------------------------------------------------------------------------
-s16 mixbufAY[4]  __attribute__((section(".dtcm")));
+s16 mixbuf[4]    __attribute__((section(".dtcm")));
 s16 beeper_vol   __attribute__((section(".dtcm"))) = 0x0000;
 s16 last_dac     __attribute__((section(".dtcm"))) = 0;
 ITCM_CODE void processDirectAudio(void)
 {
-    for (u8 i=0; i<4; i++)
-    {
-        if (breather) {return;}
-        if (pia_is_audio_dac_enabled())
-        {
-            last_dac = dac_output*384;
-        }
+    u8 num_samples = 2;
+    
+    if (breather) return;
+    
+    if (catch_up) {catch_up--; num_samples=6;} // Queue nearly empty... catch up
 
+    if (pia_is_audio_dac_enabled())
+    {
+        last_dac = dac_output*384;
+    }
+    
+    for (u8 i=0; i<num_samples; i++)
+    {
         mixer[mixer_write] = beeper_vol + last_dac;
         mixer_write++; mixer_write &= WAVE_DIRECT_BUF_SIZE;
-        if (((mixer_write+1)&WAVE_DIRECT_BUF_SIZE) == mixer_read) {breather = 2048;}
+        if (((mixer_write+1)&WAVE_DIRECT_BUF_SIZE) == mixer_read) {breather = 1024; break;} // Let the buffer drain a bit...
     }
 }
 
@@ -228,17 +242,22 @@ ITCM_CODE void processDirectAudio(void)
 // than normal. We must adjust the MaxMode sample frequency to match or else we will not have the
 // proper number of samples in our sound buffer... this isn't perfect but it's reasonably good!
 // -----------------------------------------------------------------------------------------------
-static u8 last_game_speed = 0;
+static u8 last_game_speed = 99;
+static u8 last_machine = 99;
 static u32 sample_rate_adjust[] = {100, 110, 120, 130, 90, 80};
 void newStreamSampleRate(void)
 {
-    if (last_game_speed != myConfig.gameSpeed)
+    if ((last_game_speed != myConfig.gameSpeed) || (last_machine != myConfig.machine))
     {
         last_game_speed = myConfig.gameSpeed;
+        last_machine = myConfig.machine;
         mmStreamClose();
 
+        // Slightly different sample rates for Dragon vs CoCo
+        sample_rate = myConfig.machine ? SAMPLE_RATE_NTSC : SAMPLE_RATE_PAL;
+
         // Adjust the sample rate to match the core emulation speed... user can override from 80% to 130%
-        int new_sample_rate     = (sample_rate * sample_rate_adjust[myConfig.gameSpeed]) / 100;
+        int new_sample_rate = (sample_rate * sample_rate_adjust[myConfig.gameSpeed]) / 100;
         myStream.sampling_rate  = new_sample_rate;        // sample_rate to match the Dragon/Tandy scanline emulation
         myStream.buffer_length  = buffer_size;            // buffer length = (512+16)
         myStream.callback       = OurSoundMixer;          // set callback function
@@ -294,6 +313,8 @@ void sound_chip_reset()
     memset(mixer, 0x00, sizeof(mixer));
     mixer_read=0;
     mixer_write=0;
+    catch_up = 0;
+    breather = 0;
 }
 
 // -----------------------------------------------------------------------
@@ -1528,9 +1549,15 @@ int main(int argc, char **argv)
         {
             chdir("/roms");       // Try to start in roms area... doesn't matter if it fails
             if (myGlobalConfig.lastDir == 0)
+            {
               chdir("dragon");      // And try to start in the proper subdir. Doesn't really matter if it fails.
-            else
               chdir("coco");        // And try to start in the proper subdir. Doesn't really matter if it fails.
+            }
+            else
+            {
+              chdir("coco");        // And try to start in the proper subdir. Doesn't really matter if it fails.
+              chdir("dragon");      // And try to start in the proper subdir. Doesn't really matter if it fails.
+            }
         }
     }
    

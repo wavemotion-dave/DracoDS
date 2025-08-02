@@ -54,6 +54,9 @@ void dragon_reset(void)
     draco_special_key = 0;
     draco_scanline_counter = 0;
     draco_line = 0;
+    
+    // We might need to change the sample rate
+    newStreamSampleRate();
 
     // Initialize all of the peripherals
     mem_init();

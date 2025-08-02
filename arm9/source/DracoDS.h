@@ -78,6 +78,7 @@ extern void ReadFileCRCAndConfig(void);
 extern void DisplayStatusLine(void);
 extern void ResetDragonTandy(void);
 extern void processDirectAudio(void);
+extern void newStreamSampleRate(void);
 extern void debug_init();
 extern void debug_save();
 extern void debug_printf(const char * str, ...);
