@@ -262,6 +262,9 @@ And then move the soundbank.h file to the arm9/sources directory
 
 Versions :
 -----------------------
+1.4a: Cassette Swap added to mini-menu
+1.4b: Improved in-game sound (less dropouts, fewer glitches)
+
 V1.4: 31-July-2025 by wavemotion-dave
 * Improved DS color palette for better accuracy.
 * Fixed auto-fire joystick handling.
