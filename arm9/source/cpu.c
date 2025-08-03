@@ -1895,7 +1895,7 @@ inline __attribute__((always_inline)) uint8_t or(uint8_t acc, uint8_t byte)
  *  Logical OR condition-code register with operand.
  *
  */
-void orcc(uint8_t byte)
+inline __attribute__((always_inline)) void orcc(uint8_t byte)
 {
     uint8_t temp_cc;
 

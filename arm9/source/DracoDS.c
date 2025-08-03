@@ -147,9 +147,9 @@ void SoundUnPause(void)
 // We were using the normal ARM7 sound core but it sounded "scratchy" and so with the help
 // of FluBBa, we've swiched over to the maxmod sound core which performs much better.
 // --------------------------------------------------------------------------------------------
-#define SAMPLE_RATE_NTSC    15580
-#define SAMPLE_RATE_PAL     15400
-u16     sample_rate = SAMPLE_RATE_NTSC;  // To roughly match how many samples (1x per scanline x 262 scanlines x 60 frames = 15720... or 312x50 = 15600). We purposely undershoot.
+#define SAMPLE_RATE_NTSC    15580       // To roughly match how many samples (262 scanlines x 60 frames = 15720). We purposely undershoot to keep buffer full.
+#define SAMPLE_RATE_PAL     15400       // To roughly match how many samples (312 scanlines x 50 frames = 15600). We purposely undershoot to keep buffer full.
+u16     sample_rate = SAMPLE_RATE_NTSC;
 
 #define buffer_size         (512+16)            // Enough buffer that we don't have to fill it too often. Must be multiple of 16.
 
@@ -166,7 +166,6 @@ u16 GAME_SPEED_PAL[]  __attribute__((section(".dtcm"))) = {655, 596, 547, 504, 7
 u16 GAME_SPEED_NTSC[] __attribute__((section(".dtcm"))) = {546, 497, 455, 416, 420, 607 };
 
 u16 catch_up        __attribute__((section(".dtcm"))) = 0;
-u16 slow_down       __attribute__((section(".dtcm"))) = 0;
 
 // -------------------------------------------------------------------------------------------
 // maxmod will call this routine when the buffer is half-empty and requests that
@@ -1578,7 +1577,7 @@ int main(int argc, char **argv)
       // ---------------------------------------------------------------
       if (!bBIOS_found)
       {
-          DSPrint(2,10,0," ERROR: DRAGON32.ROM OR     ");
+          DSPrint(2,10,0," ERROR: DRAGON32.ROM AND/OR ");
           DSPrint(2,12,0," BAS12.ROM AND EXTBAS11.ROM ");
           DSPrint(2,14,0," NOT FOUND. PLACE THESE IN  ");
           DSPrint(2,15,0," /ROMS/BIOS OR WITH EMULATOR");
