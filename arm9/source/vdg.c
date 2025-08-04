@@ -383,6 +383,12 @@ ITCM_CODE void vdg_render(void)
             vdg_render_semi6(vdg_mem_base);
             break;
 
+        case SEMI_GRAPHICS_8:
+        case SEMI_GRAPHICS_12:
+        case SEMI_GRAPHICS_24:
+            vdg_render_semi_ext(current_mode, vdg_mem_base);
+            break;
+
         case GRAPHICS_1C:
         case GRAPHICS_2C:
         case GRAPHICS_3C:
@@ -403,12 +409,6 @@ ITCM_CODE void vdg_render(void)
             }
             else
                 vdg_render_artifacting(current_mode, vdg_mem_base);
-            break;
-
-        case SEMI_GRAPHICS_8:
-        case SEMI_GRAPHICS_12:
-        case SEMI_GRAPHICS_24:
-            vdg_render_semi_ext(current_mode, vdg_mem_base);
             break;
 
         case DMA:
@@ -1173,8 +1173,8 @@ video_mode_t vdg_get_mode(void)
     }
     else // Text Modes...
     {
-        if ( sam_video_mode == 0 &&
-             (pia_video_mode & 0x02) == 0 )
+        // TBD: Unsure why WATRFALL.DSK requires the check for bit 2 (0x04) to keep it in SG-4 (it wants to switch to SG-6)
+        if ( (sam_video_mode == 0) && ( ((pia_video_mode & 0x02) == 0) || ((pia_video_mode & 0x04) != 0) ) )
         {
             mode = ALPHA_INTERNAL;
             // Character bit.7 selects SEMI_GRAPHICS_4;
