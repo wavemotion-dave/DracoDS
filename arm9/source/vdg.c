@@ -95,6 +95,11 @@ uint8_t colors[] __attribute__((section(".dtcm"))) = {
         ARTIFACT_BLUE,
         ARTIFACT_ORANGE,
         ARTIFACT_GREEN,
+
+        FB_DKGRN,
+        FB_DKORG,
+        FB_LTGRN,
+        FB_LTORG,
 };
 
 uint16_t colors16[] __attribute__((section(".dtcm"))) = {
@@ -109,7 +114,8 @@ uint16_t colors16[] __attribute__((section(".dtcm"))) = {
         (FB_ORANGE<<8)  | FB_ORANGE,
 };
 
-uint32_t color_translation_32[9][16] __attribute__((section(".dtcm"))) = {0};
+uint32_t color_translation_32[16][16]  __attribute__((section(".dtcm"))) = {0};
+uint32_t color_translation_32a[16][16] __attribute__((section(".dtcm"))) = {0};
 
 uint32_t color_artifact_0[16]       __attribute__((section(".dtcm"))) = {0};
 uint32_t color_artifact_1[16]       __attribute__((section(".dtcm"))) = {0};
@@ -149,7 +155,8 @@ void vdg_init(void)
     // Pre-render the 2-color modes for fast look-up and 32-bit writes for speed
     // --------------------------------------------------------------------------
     memset(color_translation_32, 0x00, sizeof(color_translation_32));
-    for (int color = 1; color < 9; color++)
+    memset(color_translation_32a, 0x00, sizeof(color_translation_32a));
+    for (int color = 1; color < 16; color++)
     {
         for (int i=0; i<16; i++)
         {
@@ -174,6 +181,30 @@ void vdg_init(void)
                 case 0xF: color_translation_32[color][i] = (colors[color]<<0)  | (colors[color]<<8) | (colors[color]<<16) | (colors[color]<<24);    break;
             }
         }
+        
+        for (int i=0; i<16; i++)
+        {
+            switch (i)
+            {
+                case 0x0: color_translation_32a[color][i] = (FB_DKORG<<0)       | (FB_DKORG<<8)      | (FB_DKORG<<16)      | (FB_DKORG<<24);         break;
+                case 0x1: color_translation_32a[color][i] = (FB_DKORG<<0)       | (FB_DKORG<<8)      | (FB_DKORG<<16)      | (colors[color]<<24);    break;
+                case 0x2: color_translation_32a[color][i] = (FB_DKORG<<0)       | (FB_DKORG<<8)      | (colors[color]<<16) | (FB_DKORG<<24);         break;
+                case 0x3: color_translation_32a[color][i] = (FB_DKORG<<0)       | (FB_DKORG<<8)      | (colors[color]<<16) | (colors[color]<<24);    break;
+                case 0x4: color_translation_32a[color][i] = (FB_DKORG<<0)       | (colors[color]<<8) | (FB_DKORG<<16)      | (FB_DKORG<<24);         break;
+                case 0x5: color_translation_32a[color][i] = (FB_DKORG<<0)       | (colors[color]<<8) | (FB_DKORG<<16)      | (colors[color]<<24);    break;
+                case 0x6: color_translation_32a[color][i] = (FB_DKORG<<0)       | (colors[color]<<8) | (colors[color]<<16) | (FB_DKORG<<24);         break;
+                case 0x7: color_translation_32a[color][i] = (FB_DKORG<<0)       | (colors[color]<<8) | (colors[color]<<16) | (colors[color]<<24);    break;
+
+                case 0x8: color_translation_32a[color][i] = (colors[color]<<0)  | (FB_DKORG<<8)      | (FB_DKORG<<16)      | (FB_DKORG<<24);         break;
+                case 0x9: color_translation_32a[color][i] = (colors[color]<<0)  | (FB_DKORG<<8)      | (FB_DKORG<<16)      | (colors[color]<<24);    break;
+                case 0xA: color_translation_32a[color][i] = (colors[color]<<0)  | (FB_DKORG<<8)      | (colors[color]<<16) | (FB_DKORG<<24);         break;
+                case 0xB: color_translation_32a[color][i] = (colors[color]<<0)  | (FB_DKORG<<8)      | (colors[color]<<16) | (colors[color]<<24);    break;
+                case 0xC: color_translation_32a[color][i] = (colors[color]<<0)  | (colors[color]<<8) | (FB_DKORG<<16)      | (FB_DKORG<<24);         break;
+                case 0xD: color_translation_32a[color][i] = (colors[color]<<0)  | (colors[color]<<8) | (FB_DKORG<<16)      | (colors[color]<<24);    break;
+                case 0xE: color_translation_32a[color][i] = (colors[color]<<0)  | (colors[color]<<8) | (colors[color]<<16) | (FB_DKORG<<24);         break;
+                case 0xF: color_translation_32a[color][i] = (colors[color]<<0)  | (colors[color]<<8) | (colors[color]<<16) | (colors[color]<<24);    break;
+            }
+        }        
     }
 
     // ---------------------------------------------------------------------------------
@@ -500,9 +531,9 @@ ITCM_CODE void vdg_render_alpha_semi4(int vdg_mem_base)
     uint32_t    *screen_buffer = (uint32_t *)0x06000000;
 
     if ( pia_video_mode & PIA_COLOR_SET )
-        color_set = DEF_COLOR_CSS_1;
+        color_set = FB_LTORG;
     else
-        color_set = DEF_COLOR_CSS_0;
+        color_set = FB_GREEN;
 
     for ( row = 0; row < SCREEN_HEIGHT_CHAR; row++ )
     {
@@ -526,6 +557,11 @@ ITCM_CODE void vdg_render_alpha_semi4(int vdg_mem_base)
                     fg_color = 1+(((uint8_t)c & 0b01110000) >> 4);
                     char_index = (int)(((uint8_t) c) & SEMI_GRAPH4_MASK);
                     bit_pattern = semi_graph_4[char_index][font_row];
+
+                    /* Render a row of pixels directly to the screen buffer - 32-bit speed!
+                     */
+                    *screen_buffer++ = color_translation_32[fg_color][bit_pattern >> 4];
+                    *screen_buffer++ = color_translation_32[fg_color][bit_pattern & 0xF];
                 }
                 else
                 {
@@ -537,12 +573,20 @@ ITCM_CODE void vdg_render_alpha_semi4(int vdg_mem_base)
                     {
                         bit_pattern = ~bit_pattern;
                     }
+                    
+                    /* Render a row of pixels directly to the screen buffer - 32-bit speed!
+                     */
+                     if ( pia_video_mode & PIA_COLOR_SET )
+                     {
+                        *screen_buffer++ = color_translation_32a[fg_color][bit_pattern >> 4];
+                        *screen_buffer++ = color_translation_32a[fg_color][bit_pattern & 0xF];
+                     }
+                     else
+                     {
+                        *screen_buffer++ = color_translation_32[fg_color][bit_pattern >> 4];
+                        *screen_buffer++ = color_translation_32[fg_color][bit_pattern & 0xF];
+                     }
                 }
-
-                /* Render a row of pixels directly to the screen buffer - 32-bit speed!
-                 */
-                *screen_buffer++ = color_translation_32[fg_color][bit_pattern >> 4];
-                *screen_buffer++ = color_translation_32[fg_color][bit_pattern & 0xF];
             }
         }
     }

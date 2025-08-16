@@ -262,8 +262,13 @@ And then move the soundbank.h file to the arm9/sources directory
 
 Versions :
 -----------------------
-1.4a: Cassette Swap added to mini-menu
-1.4b: Improved in-game sound (less dropouts, fewer glitches)
+
+V1.5: 16-Aug-2025 by wavemotion-dave
+* Cassette Swap added to mini-menu
+* Improved in-game sound (less dropouts, fewer glitches)
+* Improvement for SG4 vs SG6 handling - WATERFALL now looks correct
+* Fixed text alternate color set (Black/Amber)
+* Fixed MUL instruction carry bit
 
 V1.4: 31-July-2025 by wavemotion-dave
 * Improved DS color palette for better accuracy.
