@@ -201,7 +201,6 @@ Pressing and holding the L/R shoulder buttons plus Y will create a screen snapsh
 
 Known Issues:
 -----------------------
-* Manic Miner (both Dragon and the CoCo port) will load but Willy just jumps constantly. Cause unknown.
 * Shamus loads but will not run correctly - freezes at first screen key/joystick input. Cause unknown (but likely related to non-cycle accurate interrupt timing).
 * Rocky's Boots two-disk version will not load. Cause unknown. Seek the 180K single-disk version which does work.
 
@@ -268,7 +267,7 @@ V1.5: 16-Aug-2025 by wavemotion-dave
 * Improved in-game sound (less dropouts, fewer glitches)
 * Improvement for SG4 vs SG6 handling - WATERFALL now looks correct
 * Fixed text alternate color set (Black/Amber)
-* Fixed MUL instruction carry bit
+* Fixed MUL instruction carry bit (fixes Manic Miner!)
 
 V1.4: 31-July-2025 by wavemotion-dave
 * Improved DS color palette for better accuracy.
