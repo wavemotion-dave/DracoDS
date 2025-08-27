@@ -262,6 +262,8 @@ And then move the soundbank.h file to the arm9/sources directory
 Versions :
 -----------------------
 
+V1.5a - hotfix for AlphaNumeric bg color which is not actually black but a dark green.
+
 V1.5: 16-Aug-2025 by wavemotion-dave
 * Cassette Swap added to mini-menu
 * Improved in-game sound (less dropouts, fewer glitches)

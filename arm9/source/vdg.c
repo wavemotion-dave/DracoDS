@@ -116,6 +116,7 @@ uint16_t colors16[] __attribute__((section(".dtcm"))) = {
 
 uint32_t color_translation_32[16][16]  __attribute__((section(".dtcm"))) = {0};
 uint32_t color_translation_32a[16][16] __attribute__((section(".dtcm"))) = {0};
+uint32_t color_translation_32b[16][16] __attribute__((section(".dtcm"))) = {0};
 
 uint32_t color_artifact_0[16]       __attribute__((section(".dtcm"))) = {0};
 uint32_t color_artifact_1[16]       __attribute__((section(".dtcm"))) = {0};
@@ -156,28 +157,29 @@ void vdg_init(void)
     // --------------------------------------------------------------------------
     memset(color_translation_32, 0x00, sizeof(color_translation_32));
     memset(color_translation_32a, 0x00, sizeof(color_translation_32a));
+    memset(color_translation_32b, 0x00, sizeof(color_translation_32a));
     for (int color = 1; color < 16; color++)
     {
         for (int i=0; i<16; i++)
         {
             switch (i)
             {
-                case 0x0: color_translation_32[color][i] = (FB_BLACK<<0)       | (FB_BLACK<<8)      | (FB_BLACK<<16)      | (FB_BLACK<<24);         break;
-                case 0x1: color_translation_32[color][i] = (FB_BLACK<<0)       | (FB_BLACK<<8)      | (FB_BLACK<<16)      | (colors[color]<<24);    break;
-                case 0x2: color_translation_32[color][i] = (FB_BLACK<<0)       | (FB_BLACK<<8)      | (colors[color]<<16) | (FB_BLACK<<24);         break;
-                case 0x3: color_translation_32[color][i] = (FB_BLACK<<0)       | (FB_BLACK<<8)      | (colors[color]<<16) | (colors[color]<<24);    break;
-                case 0x4: color_translation_32[color][i] = (FB_BLACK<<0)       | (colors[color]<<8) | (FB_BLACK<<16)      | (FB_BLACK<<24);         break;
-                case 0x5: color_translation_32[color][i] = (FB_BLACK<<0)       | (colors[color]<<8) | (FB_BLACK<<16)      | (colors[color]<<24);    break;
-                case 0x6: color_translation_32[color][i] = (FB_BLACK<<0)       | (colors[color]<<8) | (colors[color]<<16) | (FB_BLACK<<24);         break;
-                case 0x7: color_translation_32[color][i] = (FB_BLACK<<0)       | (colors[color]<<8) | (colors[color]<<16) | (colors[color]<<24);    break;
-                
-                case 0x8: color_translation_32[color][i] = (colors[color]<<0)  | (FB_BLACK<<8)      | (FB_BLACK<<16)      | (FB_BLACK<<24);         break;
-                case 0x9: color_translation_32[color][i] = (colors[color]<<0)  | (FB_BLACK<<8)      | (FB_BLACK<<16)      | (colors[color]<<24);    break;
-                case 0xA: color_translation_32[color][i] = (colors[color]<<0)  | (FB_BLACK<<8)      | (colors[color]<<16) | (FB_BLACK<<24);         break;
-                case 0xB: color_translation_32[color][i] = (colors[color]<<0)  | (FB_BLACK<<8)      | (colors[color]<<16) | (colors[color]<<24);    break;
-                case 0xC: color_translation_32[color][i] = (colors[color]<<0)  | (colors[color]<<8) | (FB_BLACK<<16)      | (FB_BLACK<<24);         break;
-                case 0xD: color_translation_32[color][i] = (colors[color]<<0)  | (colors[color]<<8) | (FB_BLACK<<16)      | (colors[color]<<24);    break;
-                case 0xE: color_translation_32[color][i] = (colors[color]<<0)  | (colors[color]<<8) | (colors[color]<<16) | (FB_BLACK<<24);         break;
+                case 0x0: color_translation_32[color][i] = (FB_DKGRN<<0)       | (FB_DKGRN<<8)      | (FB_DKGRN<<16)      | (FB_DKGRN<<24);         break;
+                case 0x1: color_translation_32[color][i] = (FB_DKGRN<<0)       | (FB_DKGRN<<8)      | (FB_DKGRN<<16)      | (colors[color]<<24);    break;
+                case 0x2: color_translation_32[color][i] = (FB_DKGRN<<0)       | (FB_DKGRN<<8)      | (colors[color]<<16) | (FB_DKGRN<<24);         break;
+                case 0x3: color_translation_32[color][i] = (FB_DKGRN<<0)       | (FB_DKGRN<<8)      | (colors[color]<<16) | (colors[color]<<24);    break;
+                case 0x4: color_translation_32[color][i] = (FB_DKGRN<<0)       | (colors[color]<<8) | (FB_DKGRN<<16)      | (FB_DKGRN<<24);         break;
+                case 0x5: color_translation_32[color][i] = (FB_DKGRN<<0)       | (colors[color]<<8) | (FB_DKGRN<<16)      | (colors[color]<<24);    break;
+                case 0x6: color_translation_32[color][i] = (FB_DKGRN<<0)       | (colors[color]<<8) | (colors[color]<<16) | (FB_DKGRN<<24);         break;
+                case 0x7: color_translation_32[color][i] = (FB_DKGRN<<0)       | (colors[color]<<8) | (colors[color]<<16) | (colors[color]<<24);    break;
+
+                case 0x8: color_translation_32[color][i] = (colors[color]<<0)  | (FB_DKGRN<<8)      | (FB_DKGRN<<16)      | (FB_DKGRN<<24);         break;
+                case 0x9: color_translation_32[color][i] = (colors[color]<<0)  | (FB_DKGRN<<8)      | (FB_DKGRN<<16)      | (colors[color]<<24);    break;
+                case 0xA: color_translation_32[color][i] = (colors[color]<<0)  | (FB_DKGRN<<8)      | (colors[color]<<16) | (FB_DKGRN<<24);         break;
+                case 0xB: color_translation_32[color][i] = (colors[color]<<0)  | (FB_DKGRN<<8)      | (colors[color]<<16) | (colors[color]<<24);    break;
+                case 0xC: color_translation_32[color][i] = (colors[color]<<0)  | (colors[color]<<8) | (FB_DKGRN<<16)      | (FB_DKGRN<<24);         break;
+                case 0xD: color_translation_32[color][i] = (colors[color]<<0)  | (colors[color]<<8) | (FB_DKGRN<<16)      | (colors[color]<<24);    break;
+                case 0xE: color_translation_32[color][i] = (colors[color]<<0)  | (colors[color]<<8) | (colors[color]<<16) | (FB_DKGRN<<24);         break;
                 case 0xF: color_translation_32[color][i] = (colors[color]<<0)  | (colors[color]<<8) | (colors[color]<<16) | (colors[color]<<24);    break;
             }
         }
@@ -203,6 +205,30 @@ void vdg_init(void)
                 case 0xD: color_translation_32a[color][i] = (colors[color]<<0)  | (colors[color]<<8) | (FB_DKORG<<16)      | (colors[color]<<24);    break;
                 case 0xE: color_translation_32a[color][i] = (colors[color]<<0)  | (colors[color]<<8) | (colors[color]<<16) | (FB_DKORG<<24);         break;
                 case 0xF: color_translation_32a[color][i] = (colors[color]<<0)  | (colors[color]<<8) | (colors[color]<<16) | (colors[color]<<24);    break;
+            }
+        }
+        
+        for (int i=0; i<16; i++)
+        {
+            switch (i)
+            {
+                case 0x0: color_translation_32b[color][i] = (FB_BLACK<<0)       | (FB_BLACK<<8)      | (FB_BLACK<<16)      | (FB_BLACK<<24);         break;
+                case 0x1: color_translation_32b[color][i] = (FB_BLACK<<0)       | (FB_BLACK<<8)      | (FB_BLACK<<16)      | (colors[color]<<24);    break;
+                case 0x2: color_translation_32b[color][i] = (FB_BLACK<<0)       | (FB_BLACK<<8)      | (colors[color]<<16) | (FB_BLACK<<24);         break;
+                case 0x3: color_translation_32b[color][i] = (FB_BLACK<<0)       | (FB_BLACK<<8)      | (colors[color]<<16) | (colors[color]<<24);    break;
+                case 0x4: color_translation_32b[color][i] = (FB_BLACK<<0)       | (colors[color]<<8) | (FB_BLACK<<16)      | (FB_BLACK<<24);         break;
+                case 0x5: color_translation_32b[color][i] = (FB_BLACK<<0)       | (colors[color]<<8) | (FB_BLACK<<16)      | (colors[color]<<24);    break;
+                case 0x6: color_translation_32b[color][i] = (FB_BLACK<<0)       | (colors[color]<<8) | (colors[color]<<16) | (FB_BLACK<<24);         break;
+                case 0x7: color_translation_32b[color][i] = (FB_BLACK<<0)       | (colors[color]<<8) | (colors[color]<<16) | (colors[color]<<24);    break;
+
+                case 0x8: color_translation_32b[color][i] = (colors[color]<<0)  | (FB_BLACK<<8)      | (FB_BLACK<<16)      | (FB_BLACK<<24);         break;
+                case 0x9: color_translation_32b[color][i] = (colors[color]<<0)  | (FB_BLACK<<8)      | (FB_BLACK<<16)      | (colors[color]<<24);    break;
+                case 0xA: color_translation_32b[color][i] = (colors[color]<<0)  | (FB_BLACK<<8)      | (colors[color]<<16) | (FB_BLACK<<24);         break;
+                case 0xB: color_translation_32b[color][i] = (colors[color]<<0)  | (FB_BLACK<<8)      | (colors[color]<<16) | (colors[color]<<24);    break;
+                case 0xC: color_translation_32b[color][i] = (colors[color]<<0)  | (colors[color]<<8) | (FB_BLACK<<16)      | (FB_BLACK<<24);         break;
+                case 0xD: color_translation_32b[color][i] = (colors[color]<<0)  | (colors[color]<<8) | (FB_BLACK<<16)      | (colors[color]<<24);    break;
+                case 0xE: color_translation_32b[color][i] = (colors[color]<<0)  | (colors[color]<<8) | (colors[color]<<16) | (FB_BLACK<<24);         break;
+                case 0xF: color_translation_32b[color][i] = (colors[color]<<0)  | (colors[color]<<8) | (colors[color]<<16) | (colors[color]<<24);    break;
             }
         }        
     }
@@ -533,7 +559,7 @@ ITCM_CODE void vdg_render_alpha_semi4(int vdg_mem_base)
     if ( pia_video_mode & PIA_COLOR_SET )
         color_set = FB_LTORG;
     else
-        color_set = FB_GREEN;
+        color_set = FB_LTGRN;
 
     for ( row = 0; row < SCREEN_HEIGHT_CHAR; row++ )
     {
@@ -560,8 +586,8 @@ ITCM_CODE void vdg_render_alpha_semi4(int vdg_mem_base)
 
                     /* Render a row of pixels directly to the screen buffer - 32-bit speed!
                      */
-                    *screen_buffer++ = color_translation_32[fg_color][bit_pattern >> 4];
-                    *screen_buffer++ = color_translation_32[fg_color][bit_pattern & 0xF];
+                    *screen_buffer++ = color_translation_32b[fg_color][bit_pattern >> 4];
+                    *screen_buffer++ = color_translation_32b[fg_color][bit_pattern & 0xF];
                 }
                 else
                 {
