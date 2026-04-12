@@ -95,7 +95,8 @@ uint8_t colors[] __attribute__((section(".dtcm"))) = {
         ARTIFACT_BLUE,
         ARTIFACT_ORANGE,
         ARTIFACT_GREEN,
-
+        
+        // The Alphanumeric mode is Dark Green on Light Green or Dark Orange on Light Orange
         FB_DKGRN,
         FB_DKORG,
         FB_LTGRN,
@@ -158,6 +159,8 @@ void vdg_init(void)
     memset(color_translation_32, 0x00, sizeof(color_translation_32));
     memset(color_translation_32a, 0x00, sizeof(color_translation_32a));
     memset(color_translation_32b, 0x00, sizeof(color_translation_32a));
+    
+    // Alphanumeric Dark Green Background
     for (int color = 1; color < 16; color++)
     {
         for (int i=0; i<16; i++)
@@ -184,6 +187,7 @@ void vdg_init(void)
             }
         }
         
+        // Alphanumeric Dark Orange Background
         for (int i=0; i<16; i++)
         {
             switch (i)
@@ -208,6 +212,7 @@ void vdg_init(void)
             }
         }
         
+        // Semigraphics uses a Black Background always
         for (int i=0; i<16; i++)
         {
             switch (i)
