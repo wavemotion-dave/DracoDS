@@ -13,6 +13,8 @@ support but it also works for the Dragon 32 and can be configured as such.
 
 ![image](./png/splash.png)
 
+DracoDS is free to download and use... but if you have found anything I've done to be useful, buy me a virtual coffee here: https://ko-fi.com/wavemotiondave
+
 Features :
 -----------------------
 * Tandy CoCo 2 support with 32K and 64K of RAM. Running at 60Hz NTSC.
