@@ -13,7 +13,11 @@ support but it also works for the Dragon 32 and can be configured as such.
 
 ![image](./png/splash.png)
 
-DracoDS is free to download and use... but if you have found anything I've done to be useful, buy me a virtual coffee here: https://ko-fi.com/wavemotiondave
+# Donations Welcome (but never required!)
+
+These hobby emulators have been a labor of love. An embarassing amount of development time has gone into it as I've strived to provide an enjoyable retro experience on the DS handheld. It's free to use and always will be, however if you feel inclined to buy me a virtual coffee for the effort, that would be beyond amazing!
+
+[<img src="https://github.com/user-attachments/assets/ab67686c-2168-46a3-b39f-77b5f5fef5d0">](https://ko-fi.com/wavemotiondave)
 
 Features :
 -----------------------
