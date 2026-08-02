@@ -127,7 +127,9 @@ const char szKeyName[MAX_KEY_OPTIONS][16] = {
   "TURN RIGHT",     // 65
   "TURN AROUND",
   "PULL LEFT ...",
-  "PULL RIGHT ..."  // 68
+  "PULL RIGHT ...",
+  "EXAMINE",
+  "LOOK"            // 70
 };
 
 
@@ -782,15 +784,15 @@ void SetDefaultGameConfig(void)
         myConfig.keymap[1]   = 66;   // NDS D-Pad mapped to TURN AROUND
         myConfig.keymap[2]   = 64;   // NDS D-Pad mapped to TURN LEFT
         myConfig.keymap[3]   = 65;   // NDS D-Pad mapped to TURN RIGHT
-        myConfig.keymap[4]   = 60;   // NDS A Button mapped ATTACK LEFT
+        myConfig.keymap[4]   = 61;   // NDS A Button mapped ATTACK RIGHT
 
         myConfig.keymap[5]   = 63;   // NDS B Button mapped to MOVE BACK
         myConfig.keymap[6]   = 49;   // NDS X Button mapped to SPACE
         myConfig.keymap[7]   = 48;   // NDS Y Button mapped to RETURN
         myConfig.keymap[8]   = 68;   // NDS R Button mapped to PULL RIGHT ...
         myConfig.keymap[9]   = 67;   // NDS L Button mapped to PULL LEFT ...
-        myConfig.keymap[10]  = 48;   // NDS START mapped to RETURN
-        myConfig.keymap[11]  = 49;   // NDS SELECT mapped to SPACE
+        myConfig.keymap[10]  = 69;   // NDS START mapped to EXAMINE
+        myConfig.keymap[11]  = 70;   // NDS SELECT mapped to LOOK
     }
     
     for (int i=0; i<strlen(initial_file); i++)
@@ -847,11 +849,13 @@ void LoadConfig(void)
         SetDefaultGameConfig();
         SetDefaultGlobalConfig();
         SaveConfig(FALSE);
-    }}
+    }
+}
 
 // -------------------------------------------------------------------------
 // Try to match our loaded game to a configuration my matching CRCs
 // -------------------------------------------------------------------------
+u8 clear_firq_immediate = 0;
 void FindConfig(void)
 {
     // -----------------------------------------------------------------
@@ -867,6 +871,12 @@ void FindConfig(void)
             memcpy(&myConfig, &AllConfigs[slot], sizeof(struct Config_t));
             break;
         }
+    }
+    
+    clear_firq_immediate = 0;
+    if (strstr(initial_file, "SHAMUS"))
+    {
+        clear_firq_immediate = 1;
     }
 }
 

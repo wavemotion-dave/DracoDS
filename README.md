@@ -93,6 +93,8 @@ on whether you are loading a Machine Code game (95% of the time this is true) or
 CLOADM
 EXEC
 
+or 
+
 CLOAD
 RUN
 ```
@@ -100,17 +102,23 @@ RUN
 You can press the START button to automatically issue the 'CLOADM' command. Note that you must wait for the Cassette to load after the CLOAD/CLOADM commands - the tape icon 
 should go from green (reading) to white and the OK prompt should appear on BASIC again before you type the EXEC/RUN command.
 
-Disks are the most complicated.  After loading you should do a DIR to see the contents of the disk. Then you issue a pair of commands as follows:
+Disks are the most complicated.  After loading you should do a DIR to see the contents of the disk. Then you issue a pair of commands as follows depending on if you are loading a .BIN or a .BAS file:
 
 ```
 LOADM "FILENAME"
 EXEC
+
+or
 
 LOAD "FILENAME"
 RUN
 ```
 
 Where FILENAME is the desired file as shown in the DIR command. You can press the START button right after starting the game to automatically list the contents of the disk via DIR.
+
+DOS Based Games :
+-----------------------
+Some games are bootable DOS images. These include anything OS-9 related and anything from Infocom (all the big text adventures). For these disks, you generally start them by entering the **DOS** command.
 
 Dragon vs Tandy Mode :
 -----------------------
@@ -207,7 +215,7 @@ Pressing and holding the L/R shoulder buttons plus Y will create a screen snapsh
 
 Known Issues:
 -----------------------
-* Shamus loads but will not run correctly - freezes at first screen key/joystick input. Cause unknown (but likely related to non-cycle accurate interrupt timing).
+* Shamus loads and runs but has no sound during gameplay. Cause unknown.
 * Rocky's Boots two-disk version will not load. Cause unknown. Seek the 180K single-disk version which does work.
 
 Recommended Games:

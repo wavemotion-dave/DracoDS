@@ -124,7 +124,7 @@ void dragon_reset(void)
     if (++draco_line == (myConfig.machine ? 262:312))
     {
         vdg_render();       // Draw the frame
-        pia_vsync_irq();    // Render the sync intterupt
+        pia_vsync_irq();    // Render the sync interrupt
         draco_line = 0;     // Back to the top
         cycles_this_scanline = 0;
         return 1; // End of frame

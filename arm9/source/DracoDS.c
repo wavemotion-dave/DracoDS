@@ -223,11 +223,6 @@ ITCM_CODE void processDirectAudio(void)
     
     if (catch_up) {catch_up--; num_samples=6;} // Queue nearly empty... catch up
 
-    if (pia_is_audio_dac_enabled())
-    {
-        last_dac = dac_output*384;
-    }
-    
     for (u8 i=0; i<num_samples; i++)
     {
         mixer[mixer_write] = beeper_vol + last_dac;
@@ -1107,7 +1102,7 @@ void DracoDS_main(void)
                                     BufferKey(24); BufferKey(49); BufferKey(16); BufferKey(48); BufferKey(255);  // TURN LEFT
                                     break;
                                   case 65:
-                                    BufferKey(24); BufferKey(49); BufferKey(22); BufferKey(48); BufferKey(255);  // TURN LEFT
+                                    BufferKey(24); BufferKey(49); BufferKey(22); BufferKey(48); BufferKey(255);  // TURN RIGHT
                                     break;
                                   case 66:
                                     BufferKey(24); BufferKey(49); BufferKey(5); BufferKey(48); BufferKey(255);  // TURN AROUND
@@ -1117,6 +1112,12 @@ void DracoDS_main(void)
                                     break;
                                   case 68:
                                     BufferKey(20); BufferKey(49); BufferKey(22); BufferKey(49); BufferKey(255); // PULL RIGHT ...
+                                    break;
+                                  case 69:
+                                    BufferKey(9); BufferKey(28); BufferKey(48); BufferKey(255); // EXAMINE
+                                    break;
+                                  case 70:
+                                    BufferKey(16); BufferKey(19); BufferKey(48); BufferKey(255); // LOOK
                                     break;
                               }
                           }

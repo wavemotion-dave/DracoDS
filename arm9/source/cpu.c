@@ -33,7 +33,7 @@
 #include    "mem.h"
 #include    "cpu.h"
 
-extern unsigned int debug[];
+extern u32 debug[0x10];
 
 #define CPU_CYCLES_PER_LINE             57
 #define CPU_CYCLES_PER_LINE_OVERCLOCK   (CPU_CYCLES_PER_LINE * 2)
@@ -421,6 +421,12 @@ ITCM_CODE void cpu_run(void)
                 cc.i = CC_FLAG_SET;
 
                 cpu.pc = (mem_read(VEC_FIRQ) << 8) + mem_read(VEC_FIRQ+1);
+                
+                extern u8 clear_firq_immediate;
+                if (clear_firq_immediate) // Shamus
+                {
+                    cpu_firq(0);
+                }
             }
             else if ( !(cc.i) && (intr_latch & INT_IRQ) )
             {

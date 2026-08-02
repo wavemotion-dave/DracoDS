@@ -76,7 +76,7 @@ static uint8_t io_handler_pia1_pb(uint16_t address, uint8_t data, mem_operation_
 static uint8_t io_handler_pia1_cra(uint16_t address, uint8_t data, mem_operation_t op);
 static uint8_t io_handler_pia1_crb(uint16_t address, uint8_t data, mem_operation_t op);
 
-ITCM_CODE uint8_t get_keyboard_row_scan(uint8_t data);
+static uint8_t get_keyboard_row_scan(uint8_t data);
 
 /* -----------------------------------------
    Module globals
@@ -96,6 +96,7 @@ int     bit_index              __attribute__((section(".dtcm"))) = 0;
 int     bit_timing_threshold   __attribute__((section(".dtcm"))) = 0;
 int     bit_timing_count       __attribute__((section(".dtcm"))) = 0;
 
+extern signed short int beeper_vol;
 
 /*
     Dragon keyboard map
@@ -326,10 +327,10 @@ void pia_init(void)
     mux_select           = 0x00; // The Comparator Mux
     cas_eof              = 0;    // End of Cassette File
 
-    pia0_ddr_a = PIA_DDR;        // Normal Data Register Map
-    pia0_ddr_b = PIA_DDR;        // Normal Data Register Map
-    pia1_ddr_a = PIA_DDR;        // Normal Data Register Map
-    pia1_ddr_b = PIA_DDR;        // Normal Data Register Map
+    pia0_ddr_a     = PIA_DDR;    // Data Direction Register
+    pia0_ddr_b     = PIA_DDR;    // Data Direction Register
+    pia1_ddr_a     = PIA_DDR;    // Data Direction Register
+    pia1_ddr_b     = PIA_DDR;    // Data Direction Register
 }
 
 /*------------------------------------------------
@@ -547,9 +548,56 @@ ITCM_CODE static uint8_t io_handler_pia0_pa(uint16_t address, uint8_t data, mem_
     }
     else // MEM_WRITE
     {
-        if (!pia0_ddr_a)
+        if (pia0_ddr_a == PIA_DDR) // Normal data register 
         {
+            
         }
+        else // We are Data Direction
+        {
+            
+        }
+    }
+
+    return data;
+}
+
+
+/*------------------------------------------------
+ * io_handler_pia0_cra()
+ *
+ *  IO call-back handler 0xFF01 PIA0-A Control register
+ *  responding the audio multiplexer select bits
+ *
+ *  param:  Call address, data byte for write operation, and operation type
+ *  return: Status or data byte
+ */
+ITCM_CODE static uint8_t io_handler_pia0_cra(uint16_t address, uint8_t data, mem_operation_t op)
+{
+    if ( op == MEM_WRITE )
+    {
+        if ( data & 0x08 )
+            mux_select |= 0x01;
+        else
+            mux_select &= ~0x01;
+
+        // When disabling the interrupt, we also clear it...
+        if (pia0_ca1_int_enabled && !(data & PIA_CR_INTR))
+        {
+            cpu_firq(0);
+            memory_IO[PIA0_CRA] &= ~PIA_CR_IRQ_STAT;
+        }
+        
+        pia0_ca1_int_enabled = (data & PIA_CR_INTR);
+        
+        pia0_ddr_a = (data & PIA_DDR); // 0 = DDR, PIA_DDR = Normal Data Register
+        
+        // These are read-only bits...
+        data &= 0x7F;
+        data |= (memory_IO[PIA0_CRA] & 0x80);
+    }
+    else
+    {
+
     }
 
     return data;
@@ -574,12 +622,13 @@ ITCM_CODE static uint8_t io_handler_pia0_pb(uint16_t address, uint8_t data, mem_
     {
         // The ROM is setting up to read the keyboard...
         // memory_IO[PIA0_PB] will light up a column and we can read the rows
-        if (!pia0_ddr_b)
+        if (pia0_ddr_b == PIA_DDR) // Normal data register
         {
-            //data = memory_IO[PIA0_PB];  // If we are not in write mode, return the old value
+            
         }
         else
         {
+            
         }
     }
     /* A read from the port address has the effect of resetting
@@ -594,35 +643,6 @@ ITCM_CODE static uint8_t io_handler_pia0_pb(uint16_t address, uint8_t data, mem_
     return data;
 }
 
-/*------------------------------------------------
- * io_handler_pia0_cra()
- *
- *  IO call-back handler 0xFF01 PIA0-A Control register
- *  responding the audio multiplexer select bits
- *
- *  param:  Call address, data byte for write operation, and operation type
- *  return: Status or data byte
- */
-ITCM_CODE static uint8_t io_handler_pia0_cra(uint16_t address, uint8_t data, mem_operation_t op)
-{
-    if ( op == MEM_WRITE )
-    {
-        if ( data & 0x08 )
-            mux_select |= 0x01;
-        else
-            mux_select &= ~0x01;
-
-        pia0_ca1_int_enabled = (data & PIA_CR_INTR);
-
-        pia0_ddr_a = (data & PIA_DDR);
-    }
-    else
-    {
-
-    }
-
-    return data;
-}
 
 /*------------------------------------------------
  * io_handler_pia0_crb()
@@ -644,7 +664,11 @@ ITCM_CODE static uint8_t io_handler_pia0_crb(uint16_t address, uint8_t data, mem
 
         pia0_cb1_int_enabled = (data & PIA_CR_INTR);
 
-        pia0_ddr_b = (data & PIA_DDR);
+        pia0_ddr_b = (data & PIA_DDR); // 0 = DDR, PIA_DDR = Normal Data Register
+
+        // These are read-only bits...
+        data &= 0x3F;
+        data |= (memory_IO[PIA0_CRB] & 0xC0);
     }
     else
     {
@@ -669,7 +693,7 @@ inline uint8_t loader_tape_fread(void)
  * io_handler_pia1_pa()
  *
  *  IO call-back handler 0xFF20 Dir PIA1-A output to 6-bit DAC
- *  Traps and handles writes to PA bit.2 to bit.7,
+ *  Traps and handles writes to PA bit.2 to bit.7 (DAC)
  *  and cassette tape input bit.
  *
  *  param:  Call address, data byte for write operation, and operation type
@@ -679,13 +703,20 @@ ITCM_CODE static uint8_t io_handler_pia1_pa(uint16_t address, uint8_t data, mem_
 {
     if ( op == MEM_WRITE )
     {
-        if (pia1_ddr_a) // Does the DDR tell us we are normal output?
+        if (pia1_ddr_a == PIA_DDR) // Does the DDR tell us we are normal data register output?
         {
             dac_output = (data >> 2) & 0x3f;
+            
+            // Set the last sound value if enabled...
+            if (pia_is_audio_dac_enabled())
+            {
+                extern s16 last_dac;
+                last_dac = dac_output*384;
+            }
         }
         else
         {
-
+            
         }
     }
     else
@@ -753,6 +784,55 @@ ITCM_CODE static uint8_t io_handler_pia1_pa(uint16_t address, uint8_t data, mem_
 }
 
 /*------------------------------------------------
+ * io_handler_pia1_cra()
+ *
+ *  IO call-back handler 0xFF21 PIA1-A Control register
+ *  responding the cassette motor on-off select bit CA2
+ *
+ *  Bit 7: CA2/CD FIRQ Flag (sets to 1 when an active transition occurs on the CA2/CD input pin). 
+ *  Bit 6: Interrupt Request 2 / Unused (CA2 control/status or N/A depending on configuration). 
+ *  Bit 5: CRA5 (normally hardwired/kept at 1 for specific CoCo routing modes). 
+ *  Bit 4: CRA4 (normally hardwired/kept at 1). 
+ *  Bit 3: Cassette Motor Control (0 = Motor Off, 1 = Motor On). 
+ *  Bit 2: Data Direction Control (0 = Access Data Direction Register at 0xFF20, 1 = Access Peripheral Data Register at 0xFF20). 
+ *  Bit 1: CA1/CD Polarity Control (0 = FIRQ on falling/high-to-low edge, 1 = FIRQ on rising/low-to-high edge). 
+ *  Bit 0: CA1/CD FIRQ Enable (0 = Disable CD/RS-232C FIRQ interrupt, 1= Enable FIRQ interrupt).
+ * 
+ *  param:  Call address, data byte for write operation, and operation type
+ *  return: Status or data byte
+ */
+ITCM_CODE static uint8_t io_handler_pia1_cra(uint16_t address, uint8_t data, mem_operation_t op)
+{
+    if ( op == MEM_WRITE )
+    {
+        if ( data & CA2_SET_CLR )
+        {
+            if ( data & MOTOR_ON )
+            {
+                tape_motor = 1;
+            }
+            else
+            {
+                tape_motor = 0;
+            }
+        }
+
+        pia1_ddr_a = (data & PIA_DDR); // 0 = DDR, PIA_DDR = Normal Data Register
+
+        // These are read-only bits...
+        data &= 0x7F;
+        data |= (memory_IO[PIA1_CRA] & 0x80);
+    }
+    else
+    {
+
+    }
+
+    return data;
+}
+
+
+/*------------------------------------------------
  * io_handler_pia1_pb()
  *
  *  IO call-back handler 0xFF22 Dir PIA1-B Data
@@ -775,16 +855,11 @@ ITCM_CODE static uint8_t io_handler_pia1_pb(uint16_t address, uint8_t data, mem_
     extern uint8_t pia_video_mode;
     if ( op == MEM_WRITE )
     {
-        if (pia1_ddr_b) // Does the DDR tell us we are normal output?
+        if (pia1_ddr_b) // Does the DDR tell us we are normal data output?
         {
             vdg_set_mode_pia(((data >> 3) & 0x1f));
-
-            extern signed short int beeper_vol;
-
-            if (data & 0x02) // Beeper Pulse
-            {
-                beeper_vol = (beeper_vol ? 0x000:0xFFF);
-            }
+            
+            beeper_vol = ((data & 0x02) ? 0xFFF:0x000);
         }
         else
         {
@@ -798,43 +873,9 @@ ITCM_CODE static uint8_t io_handler_pia1_pb(uint16_t address, uint8_t data, mem_
     {
         data = (pia_video_mode << 3);            // Also reports 32K/64K (0 for bit 2)
         data |= 1;                               // RS232 In/Printer Busy
+        if (beeper_vol) data |= 2;               // Reflect last driven beeper sound output bit
         memory_IO[PIA1_CRB] &= ~PIA_CR_IRQ_STAT; // Cart IRQ cleared
         cpu_firq(0);
-    }
-
-    return data;
-}
-
-/*------------------------------------------------
- * io_handler_pia1_cra()
- *
- *  IO call-back handler 0xFF21 PIA1-A Control register
- *  responding the cassette motor on-off select bit CA2
- *
- *  param:  Call address, data byte for write operation, and operation type
- *  return: Status or data byte
- */
-static uint8_t io_handler_pia1_cra(uint16_t address, uint8_t data, mem_operation_t op)
-{
-    if ( op == MEM_WRITE )
-    {
-        if ( data & CA2_SET_CLR )
-        {
-            if ( data & MOTOR_ON )
-            {
-                tape_motor = 1;
-            }
-            else
-            {
-                tape_motor = 0;
-            }
-        }
-
-        pia1_ddr_a = (data & PIA_DDR);
-    }
-    else
-    {
-
     }
 
     return data;
@@ -846,6 +887,15 @@ static uint8_t io_handler_pia1_cra(uint16_t address, uint8_t data, mem_operation
  *  IO call-back handler 0xFF23 PIA1-B Control register
  *  responding the audio multiplexer select bits, and
  *  PIA1-CRB1 interrupt enable/disable.
+ * 
+ * Bit 7 (Cartridge Interrupt Flag): Read-only status flag indicating if a transition on CART* has occurred (cleared by reading/writing associated data registers).
+ * Bit 6 (CB2 Interrupt Flag / Not Used): Unused or acts as a peripheral control flag depending on standard 6821 data sheet modes.
+ * Bit 5 (CB2 Control / Interrupt): Combined with bit 4 for CB2 configuration (set to 1 along with bit 4 for CoCo audio control).
+ * Bit 4 (CB2 Control / Direction): Combined with bit 5 to determine CB2 operation mode (set to 1 and 1 to make CB2 a software-driven output for sound/muting).
+ * Bit 3 (Sound Enable / CB2 Output Level): Controls the sound mute/enable line (CB2). When bits 4 and 5 are set to configure CB2 as an output, bit 3 directly controls the state of the line (0 = mute sound, 1 = enable sound).
+ * Bit 2 (Data/Direction Register Access): 0 = Access Data Direction Register at 0xFF22, 1 = Access Peripheral Data Register at 0xFF22 (normally 1).
+ * Bit 1 (Interrupt Polarity/Edge): 0 = Interrupt flag set on falling edge of CART*, 1 = set on rising edge of CART* (normally 1).
+ * Bit 0 (Cartridge Interrupt Control): 0 = Disable FIRQ* to CPU from cartridge (CART*), 1 = Enable FIRQ* to CPU.
  *
  *  param:  Call address, data byte for write operation, and operation type
  *  return: Status or data byte
@@ -861,7 +911,11 @@ ITCM_CODE static uint8_t io_handler_pia1_crb(uint16_t address, uint8_t data, mem
 
         sound_enable = (data & 0x08);
 
-        pia1_ddr_b = (data & PIA_DDR);
+        pia1_ddr_b = (data & PIA_DDR); // 0 = DDR, PIA_DDR = Normal Data Register
+       
+        // These are read-only bits...
+        data &= 0x3F;
+        data |= (memory_IO[PIA1_CRB] & 0xC0);
     }
     else
     {
@@ -880,7 +934,7 @@ ITCM_CODE static uint8_t io_handler_pia1_crb(uint16_t address, uint8_t data, mem
  *  param:  Row scan bit pattern
  *  return: Column scan bit pattern
  */
-ITCM_CODE uint8_t get_keyboard_row_scan(uint8_t row_scan)
+ITCM_CODE static uint8_t get_keyboard_row_scan(uint8_t row_scan)
 {
     uint8_t result = 0;
     uint8_t bit_position = 0x01;
