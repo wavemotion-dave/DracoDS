@@ -1,5 +1,5 @@
 // =====================================================================================
-// Copyright (c) 2025 Dave Bernazzani (wavemotion-dave)
+// Copyright (c) 2025-2026 Dave Bernazzani (wavemotion-dave)
 //
 // Copying and distribution of this emulator, its source code and associated
 // readme files, with or without modification, are permitted in any medium without
@@ -419,6 +419,10 @@ ITCM_CODE void vdg_render(void)
 {
     int     vdg_mem_base;
 
+    // ---------------------------------------------------
+    // If the cassette/tape is playing, reduce the frame
+    // rate to allow for more CPU processing of the tape.
+    // ---------------------------------------------------
     if (tape_motor)
     {
         if (++reduce_framerate_for_tape < 10) return;
@@ -1196,7 +1200,7 @@ ITCM_CODE void vdg_render_artifacting_mono(video_mode_t mode, int vdg_mem_base)
  * return: Video mode
  *
  */
-video_mode_t vdg_get_mode(void)
+ITCM_CODE video_mode_t vdg_get_mode(void)
 {
     video_mode_t mode = UNDEFINED;
 
@@ -1239,6 +1243,7 @@ video_mode_t vdg_get_mode(void)
                 break;
             case 0x0c:
                 mode = GRAPHICS_6C;
+                if (sam_video_mode == 0x04) mode = GRAPHICS_3C; // Bump down to 3K lower-rez mode
                 break;
             case 0x0e:
                 mode = GRAPHICS_6R;
@@ -1277,6 +1282,6 @@ video_mode_t vdg_get_mode(void)
             mode = SEMI_GRAPHICS_24;
         }
     }
-
+    
     return mode;
 }

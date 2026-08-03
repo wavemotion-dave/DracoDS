@@ -1,5 +1,5 @@
 // =====================================================================================
-// Copyright (c) 2025 Dave Bernazzani (wavemotion-dave)
+// Copyright (c) 2025-2026 Dave Bernazzani (wavemotion-dave)
 //
 // Copying and distribution of this emulator, its source code and associated
 // readme files, with or without modification, are permitted in any medium without
@@ -372,29 +372,29 @@ ITCM_CODE void cpu_run(void)
                 cycles_this_scanline += 20;
 
                 cpu.s--;
-                mem_write(cpu.s, cpu.pc & 0xff);
+                mem_write_fast(cpu.s, cpu.pc & 0xff);
                 cpu.s--;
-                mem_write(cpu.s, (cpu.pc >> 8) & 0xff);
+                mem_write_fast(cpu.s, (cpu.pc >> 8) & 0xff);
                 cpu.s--;
-                mem_write(cpu.s, cpu.u & 0xff);
+                mem_write_fast(cpu.s, cpu.u & 0xff);
                 cpu.s--;
-                mem_write(cpu.s, (cpu.u >> 8) & 0xff);
+                mem_write_fast(cpu.s, (cpu.u >> 8) & 0xff);
                 cpu.s--;
-                mem_write(cpu.s, cpu.y & 0xff);
+                mem_write_fast(cpu.s, cpu.y & 0xff);
                 cpu.s--;
-                mem_write(cpu.s, (cpu.y >> 8) & 0xff);
+                mem_write_fast(cpu.s, (cpu.y >> 8) & 0xff);
                 cpu.s--;
-                mem_write(cpu.s, cpu.x & 0xff);
+                mem_write_fast(cpu.s, cpu.x & 0xff);
                 cpu.s--;
-                mem_write(cpu.s, (cpu.x >> 8) & 0xff);
+                mem_write_fast(cpu.s, (cpu.x >> 8) & 0xff);
                 cpu.s--;
-                mem_write(cpu.s, cpu.dp);
+                mem_write_fast(cpu.s, cpu.dp);
                 cpu.s--;
-                mem_write(cpu.s, cpu.b);
+                mem_write_fast(cpu.s, cpu.b);
                 cpu.s--;
-                mem_write(cpu.s, cpu.a);
+                mem_write_fast(cpu.s, cpu.a);
                 cpu.s--;
-                mem_write(cpu.s, get_cc());
+                mem_write_fast(cpu.s, get_cc());
 
                 cpu.nmi_latched = 0;
                 intr_latch &= ~INT_NMI;
@@ -411,11 +411,11 @@ ITCM_CODE void cpu_run(void)
                 cycles_this_scanline += 10;
 
                 cpu.s--;
-                mem_write(cpu.s, cpu.pc & 0xff);
+                mem_write_fast(cpu.s, cpu.pc & 0xff);
                 cpu.s--;
-                mem_write(cpu.s, (cpu.pc >> 8) & 0xff);
+                mem_write_fast(cpu.s, (cpu.pc >> 8) & 0xff);
                 cpu.s--;
-                mem_write(cpu.s, get_cc());
+                mem_write_fast(cpu.s, get_cc());
 
                 cc.f = CC_FLAG_SET;
                 cc.i = CC_FLAG_SET;
@@ -423,7 +423,7 @@ ITCM_CODE void cpu_run(void)
                 cpu.pc = (mem_read(VEC_FIRQ) << 8) + mem_read(VEC_FIRQ+1);
                 
                 extern u8 clear_firq_immediate;
-                if (clear_firq_immediate) // Shamus
+                if (clear_firq_immediate) // Shamus hack
                 {
                     cpu_firq(0);
                 }
@@ -435,29 +435,29 @@ ITCM_CODE void cpu_run(void)
                 cycles_this_scanline += 20;
 
                 cpu.s--;
-                mem_write(cpu.s, cpu.pc & 0xff);
+                mem_write_fast(cpu.s, cpu.pc & 0xff);
                 cpu.s--;
-                mem_write(cpu.s, (cpu.pc >> 8) & 0xff);
+                mem_write_fast(cpu.s, (cpu.pc >> 8) & 0xff);
                 cpu.s--;
-                mem_write(cpu.s, cpu.u & 0xff);
+                mem_write_fast(cpu.s, cpu.u & 0xff);
                 cpu.s--;
-                mem_write(cpu.s, (cpu.u >> 8) & 0xff);
+                mem_write_fast(cpu.s, (cpu.u >> 8) & 0xff);
                 cpu.s--;
-                mem_write(cpu.s, cpu.y & 0xff);
+                mem_write_fast(cpu.s, cpu.y & 0xff);
                 cpu.s--;
-                mem_write(cpu.s, (cpu.y >> 8) & 0xff);
+                mem_write_fast(cpu.s, (cpu.y >> 8) & 0xff);
                 cpu.s--;
-                mem_write(cpu.s, cpu.x & 0xff);
+                mem_write_fast(cpu.s, cpu.x & 0xff);
                 cpu.s--;
-                mem_write(cpu.s, (cpu.x >> 8) & 0xff);
+                mem_write_fast(cpu.s, (cpu.x >> 8) & 0xff);
                 cpu.s--;
-                mem_write(cpu.s, cpu.dp);
+                mem_write_fast(cpu.s, cpu.dp);
                 cpu.s--;
-                mem_write(cpu.s, cpu.b);
+                mem_write_fast(cpu.s, cpu.b);
                 cpu.s--;
-                mem_write(cpu.s, cpu.a);
+                mem_write_fast(cpu.s, cpu.a);
                 cpu.s--;
-                mem_write(cpu.s, get_cc());
+                mem_write_fast(cpu.s, get_cc());
 
                 cc.i = CC_FLAG_SET;
 
@@ -496,9 +496,7 @@ ITCM_CODE void cpu_run(void)
                         case 0x93:
                         case 0xa3:
                         case 0xb3:
-                            operand8 = (uint8_t) mem_read(eff_addr);
-                            eff_addr++;
-                            operand16 = ((uint16_t) operand8 << 8) + (uint16_t) mem_read(eff_addr);
+                            operand16 = mem_read16(eff_addr);
                             cmp16(cpu.u, operand16);
                             break;
 
@@ -508,9 +506,7 @@ ITCM_CODE void cpu_run(void)
                         case 0x9c:
                         case 0xac:
                         case 0xbc:
-                            operand8 = (uint8_t) mem_read(eff_addr);
-                            eff_addr++;
-                            operand16 = ((uint16_t) operand8 << 8) + (uint16_t) mem_read(eff_addr);
+                            operand16 = mem_read16(eff_addr);
                             cmp16(cpu.s, operand16);
                             break;
 
@@ -545,9 +541,7 @@ ITCM_CODE void cpu_run(void)
                         case 0x93:
                         case 0xa3:
                         case 0xb3:
-                            operand8 = (uint8_t) mem_read(eff_addr);
-                            eff_addr++;
-                            operand16 = ((uint16_t) operand8 << 8) + (uint16_t) mem_read(eff_addr);
+                            operand16 = mem_read16(eff_addr);
                             cmp16(d, operand16);
                             break;
 
@@ -557,9 +551,7 @@ ITCM_CODE void cpu_run(void)
                         case 0x9c:
                         case 0xac:
                         case 0xbc:
-                            operand8 = (uint8_t) mem_read(eff_addr);
-                            eff_addr++;
-                            operand16 = ((uint16_t) operand8 << 8) + (uint16_t) mem_read(eff_addr);
+                            operand16 = mem_read16(eff_addr);
                             cmp16(cpu.y, operand16);
                             break;
 
@@ -569,9 +561,7 @@ ITCM_CODE void cpu_run(void)
                         case 0xde:
                         case 0xee:
                         case 0xfe:
-                            operand8 = (uint8_t) mem_read(eff_addr);
-                            eff_addr++;
-                            cpu.s = ((uint16_t) operand8 << 8) + (uint16_t) mem_read(eff_addr);
+                            cpu.s = mem_read16(eff_addr);
                             eval_cc_z16(cpu.s);
                             eval_cc_n16(cpu.s);
                             cc.v = CC_FLAG_CLR;
@@ -584,9 +574,7 @@ ITCM_CODE void cpu_run(void)
                         case 0x9e:
                         case 0xae:
                         case 0xbe:
-                            operand8 = (uint8_t) mem_read(eff_addr);
-                            eff_addr++;
-                            cpu.y = ((uint16_t) operand8 << 8) + (uint16_t) mem_read(eff_addr);
+                            cpu.y = mem_read16(eff_addr);
                             eval_cc_z16(cpu.y);
                             eval_cc_n16(cpu.y);
                             cc.v = CC_FLAG_CLR;
@@ -694,9 +682,7 @@ ITCM_CODE void cpu_run(void)
                 case 0xd3:
                 case 0xe3:
                 case 0xf3:
-                    operand8 = (uint8_t) mem_read(eff_addr);
-                    eff_addr++;
-                    operand16 = ((uint16_t) operand8 << 8) + (uint16_t) mem_read(eff_addr);
+                    operand16 = mem_read16(eff_addr);
                     addd(operand16);
                     break;
 
@@ -827,9 +813,7 @@ ITCM_CODE void cpu_run(void)
                 case 0x9c:
                 case 0xac:
                 case 0xbc:
-                    operand8 = (uint8_t) mem_read(eff_addr);
-                    eff_addr++;
-                    operand16 = ((uint16_t) operand8 << 8) + (uint16_t) mem_read(eff_addr);
+                    operand16 = mem_read16(eff_addr);
                     cmp16(cpu.x, operand16);
                     break;
 
@@ -942,9 +926,9 @@ ITCM_CODE void cpu_run(void)
                 case 0xad:
                 case 0xbd:
                     cpu.s--;
-                    mem_write(cpu.s, GET_REG_LOW(cpu.pc));
+                    mem_write_fast(cpu.s, GET_REG_LOW(cpu.pc));
                     cpu.s--;
-                    mem_write(cpu.s, GET_REG_HIGH(cpu.pc));
+                    mem_write_fast(cpu.s, GET_REG_HIGH(cpu.pc));
                     cpu.pc = eff_addr;
                     break;
 
@@ -979,8 +963,7 @@ ITCM_CODE void cpu_run(void)
                 case 0xec:
                 case 0xfc:
                     cpu.a = (uint8_t) mem_read(eff_addr);
-                    eff_addr++;
-                    cpu.b = (uint8_t) mem_read(eff_addr);
+                    cpu.b = (uint8_t) mem_read(eff_addr+1);
                     eval_cc_z16(d);
                     eval_cc_n16(d);
                     cc.v = CC_FLAG_CLR;
@@ -992,9 +975,7 @@ ITCM_CODE void cpu_run(void)
                 case 0xde:
                 case 0xee:
                 case 0xfe:
-                    operand8 = (uint8_t) mem_read(eff_addr);
-                    eff_addr++;
-                    cpu.u = ((uint16_t) operand8 << 8) + (uint16_t) mem_read(eff_addr);
+                    cpu.u = mem_read16(eff_addr);
                     eval_cc_z16(cpu.u);
                     eval_cc_n16(cpu.u);
                     cc.v = CC_FLAG_CLR;
@@ -1006,9 +987,7 @@ ITCM_CODE void cpu_run(void)
                 case 0x9e:
                 case 0xae:
                 case 0xbe:
-                    operand8 = (uint8_t) mem_read(eff_addr);
-                    eff_addr++;
-                    cpu.x = ((uint16_t) operand8 << 8) + (uint16_t) mem_read(eff_addr);
+                    cpu.x = mem_read16(eff_addr);
                     eval_cc_z16(cpu.x);
                     eval_cc_n16(cpu.x);
                     cc.v = CC_FLAG_CLR;
@@ -1307,9 +1286,7 @@ ITCM_CODE void cpu_run(void)
                 case 0x93:
                 case 0xa3:
                 case 0xb3:
-                    operand8 = (uint8_t) mem_read(eff_addr);
-                    eff_addr++;
-                    operand16 = ((uint16_t ) operand8 << 8) + (uint16_t) mem_read(eff_addr);
+                    operand16 = mem_read16(eff_addr);
                     subd(operand16);
                     break;
 
@@ -1375,9 +1352,9 @@ ITCM_CODE void cpu_run(void)
                 case 0x8d:
                 case 0x17:
                     cpu.s--;
-                    mem_write(cpu.s, GET_REG_LOW(cpu.pc));
+                    mem_write_fast(cpu.s, GET_REG_LOW(cpu.pc));
                     cpu.s--;
-                    mem_write(cpu.s, GET_REG_HIGH(cpu.pc));
+                    mem_write_fast(cpu.s, GET_REG_HIGH(cpu.pc));
                     cpu.pc = eff_addr;
                     break;
 
@@ -1690,29 +1667,29 @@ void cwai(uint8_t byte)
     set_cc(temp_cc);
 
     cpu.s--;
-    mem_write(cpu.s, cpu.pc & 0xff);
+    mem_write_fast(cpu.s, cpu.pc & 0xff);
     cpu.s--;
-    mem_write(cpu.s, (cpu.pc >> 8) & 0xff);
+    mem_write_fast(cpu.s, (cpu.pc >> 8) & 0xff);
     cpu.s--;
-    mem_write(cpu.s, cpu.u & 0xff);
+    mem_write_fast(cpu.s, cpu.u & 0xff);
     cpu.s--;
-    mem_write(cpu.s, (cpu.u >> 8) & 0xff);
+    mem_write_fast(cpu.s, (cpu.u >> 8) & 0xff);
     cpu.s--;
-    mem_write(cpu.s, cpu.y & 0xff);
+    mem_write_fast(cpu.s, cpu.y & 0xff);
     cpu.s--;
-    mem_write(cpu.s, (cpu.y >> 8) & 0xff);
+    mem_write_fast(cpu.s, (cpu.y >> 8) & 0xff);
     cpu.s--;
-    mem_write(cpu.s, cpu.x & 0xff);
+    mem_write_fast(cpu.s, cpu.x & 0xff);
     cpu.s--;
-    mem_write(cpu.s, (cpu.x >> 8) & 0xff);
+    mem_write_fast(cpu.s, (cpu.x >> 8) & 0xff);
     cpu.s--;
-    mem_write(cpu.s, cpu.dp);
+    mem_write_fast(cpu.s, cpu.dp);
     cpu.s--;
-    mem_write(cpu.s, cpu.b);
+    mem_write_fast(cpu.s, cpu.b);
     cpu.s--;
-    mem_write(cpu.s, cpu.a);
+    mem_write_fast(cpu.s, cpu.a);
     cpu.s--;
-    mem_write(cpu.s, temp_cc);
+    mem_write_fast(cpu.s, temp_cc);
 
     cpu.cpu_state = CPU_HALTED;
 }
@@ -1927,60 +1904,60 @@ void pshs(uint8_t push_list, int *cycles)
     {
         (*cycles)++;
         cpu.s--;
-        mem_write(cpu.s, cpu.pc & 0xff);
+        mem_write_fast(cpu.s, cpu.pc & 0xff);
         cpu.s--;
-        mem_write(cpu.s, (cpu.pc >> 8) & 0xff);
+        mem_write_fast(cpu.s, (cpu.pc >> 8) & 0xff);
     }
 
     if ( push_list & 0x40 )
     {
         (*cycles)++;
         cpu.s--;
-        mem_write(cpu.s, cpu.u & 0xff);
+        mem_write_fast(cpu.s, cpu.u & 0xff);
         cpu.s--;
-        mem_write(cpu.s, (cpu.u >> 8) & 0xff);
+        mem_write_fast(cpu.s, (cpu.u >> 8) & 0xff);
     }
 
     if ( push_list & 0x20 )
     {
         (*cycles)++;
         cpu.s--;
-        mem_write(cpu.s, cpu.y & 0xff);
+        mem_write_fast(cpu.s, cpu.y & 0xff);
         cpu.s--;
-        mem_write(cpu.s, (cpu.y >> 8) & 0xff);
+        mem_write_fast(cpu.s, (cpu.y >> 8) & 0xff);
     }
 
     if ( push_list & 0x10 )
     {
         (*cycles)++;
         cpu.s--;
-        mem_write(cpu.s, cpu.x & 0xff);
+        mem_write_fast(cpu.s, cpu.x & 0xff);
         cpu.s--;
-        mem_write(cpu.s, (cpu.x >> 8) & 0xff);
+        mem_write_fast(cpu.s, (cpu.x >> 8) & 0xff);
     }
 
     if ( push_list & 0x08 )
     {
         cpu.s--;
-        mem_write(cpu.s, cpu.dp);
+        mem_write_fast(cpu.s, cpu.dp);
     }
 
     if ( push_list & 0x04 )
     {
         cpu.s--;
-        mem_write(cpu.s, cpu.b);
+        mem_write_fast(cpu.s, cpu.b);
     }
 
     if ( push_list & 0x02 )
     {
         cpu.s--;
-        mem_write(cpu.s, cpu.a);
+        mem_write_fast(cpu.s, cpu.a);
     }
 
     if ( push_list & 0x01 )
     {
         cpu.s--;
-        mem_write(cpu.s, (int) get_cc());
+        mem_write_fast(cpu.s, (int) get_cc());
     }
 }
 
@@ -2432,29 +2409,29 @@ void swi(int swi_id)
     cc.e = CC_FLAG_SET;
 
     cpu.s--;
-    mem_write(cpu.s, cpu.pc & 0xff);
+    mem_write_fast(cpu.s, cpu.pc & 0xff);
     cpu.s--;
-    mem_write(cpu.s, (cpu.pc >> 8) & 0xff);
+    mem_write_fast(cpu.s, (cpu.pc >> 8) & 0xff);
     cpu.s--;
-    mem_write(cpu.s, cpu.u & 0xff);
+    mem_write_fast(cpu.s, cpu.u & 0xff);
     cpu.s--;
-    mem_write(cpu.s, (cpu.u >> 8) & 0xff);
+    mem_write_fast(cpu.s, (cpu.u >> 8) & 0xff);
     cpu.s--;
-    mem_write(cpu.s, cpu.y & 0xff);
+    mem_write_fast(cpu.s, cpu.y & 0xff);
     cpu.s--;
-    mem_write(cpu.s, (cpu.y >> 8) & 0xff);
+    mem_write_fast(cpu.s, (cpu.y >> 8) & 0xff);
     cpu.s--;
-    mem_write(cpu.s, cpu.x & 0xff);
+    mem_write_fast(cpu.s, cpu.x & 0xff);
     cpu.s--;
-    mem_write(cpu.s, (cpu.x >> 8) & 0xff);
+    mem_write_fast(cpu.s, (cpu.x >> 8) & 0xff);
     cpu.s--;
-    mem_write(cpu.s, cpu.dp);
+    mem_write_fast(cpu.s, cpu.dp);
     cpu.s--;
-    mem_write(cpu.s, cpu.b);
+    mem_write_fast(cpu.s, cpu.b);
     cpu.s--;
-    mem_write(cpu.s, cpu.a);
+    mem_write_fast(cpu.s, cpu.a);
     cpu.s--;
-    mem_write(cpu.s, get_cc());
+    mem_write_fast(cpu.s, get_cc());
 
     switch ( swi_id )
     {
@@ -2695,149 +2672,159 @@ inline __attribute__((always_inline)) int get_eff_addr(int mode)
             break;
 
         case ADDR_INDEXED:
-            uint16_t   *index_reg = 0;
-            operand = mem_read_pc(cpu.pc++);
-
-            switch ( operand & INDX_POST_REG )
             {
-                case 0x00:
-                    index_reg = &cpu.x;
-                    break;
+                uint16_t   *index_reg = 0;
+                uint8_t    postbyte;
+                uint8_t    mode;
+                uint8_t    indirect;
+                uint8_t    reg_select;
 
-                case 0x20:
-                    index_reg = &cpu.y;
-                    break;
+                postbyte = mem_read_pc(cpu.pc++);
+                mode = postbyte & INDX_POST_MODE;
+                indirect = (postbyte & INDX_POST_INDIRECT) ? 1 : 0;
+                reg_select = (uint8_t)((postbyte & INDX_POST_REG) >> 5);
 
-                case 0x40:
-                    index_reg = &cpu.u;
-                    break;
-
-                case 0x60:
-                    index_reg = &cpu.s;
-                    break;
-            }
-
-            if ( index_reg == 0 )
-            {
-                cpu.cpu_state = CPU_EXCEPTION;
-                break;
-            }
-
-            /* Check if 5-bit offset is in the post-byte
-             * then process more index address bytes if not.
-             */
-            if ( operand & INDX_POST_5BIT_OFF )
-            {
-                switch ( operand & INDX_POST_MODE )
+                switch ( reg_select )
                 {
-                    case 0: // EA = ,index+ Auto post-increment by 1
-                        effective_addr = *index_reg;
-                        (*index_reg) += 1;
-                        cycles_this_scanline += 2;
+                    case 0x00:
+                        index_reg = &cpu.x;
                         break;
 
-                    case 1: // EA = ,index++ Auto post-increment by 2
-                        effective_addr = *index_reg;
-                        (*index_reg) += 2;
-                        cycles_this_scanline += (operand & INDX_POST_INDIRECT) ? 6 : 3;
+                    case 0x01:
+                        index_reg = &cpu.y;
                         break;
 
-                    case 2: // EA = ,-index Auto pre-decrement by 1
-                        (*index_reg) -= 1;
-                        effective_addr = *index_reg;
-                        cycles_this_scanline += 2;
+                    case 0x02:
+                        index_reg = &cpu.u;
                         break;
 
-                    case 3: // EA = ,--index Auto pre-decrement by 2
-                        (*index_reg) -= 2;
-                        effective_addr = *index_reg;
-                        cycles_this_scanline += (operand & INDX_POST_INDIRECT) ? 6 : 3;
-                        break;
-
-                    case 4: // EA = 0,index Zero offset
-                        effective_addr = *index_reg;
-                        cycles_this_scanline += (operand & INDX_POST_INDIRECT) ? 3 : 0;
-                        break;
-
-                    case 5: // EA = B,index Acc-B with index
-                        effective_addr = *index_reg + SIG_EXTEND(cpu.b);
-                        cycles_this_scanline += (operand & INDX_POST_INDIRECT) ? 4 : 1;
-                        break;
-
-                    case 6: // EA = A,index Acc-A with index
-                        effective_addr = *index_reg + SIG_EXTEND(cpu.a);
-                        cycles_this_scanline += (operand & INDX_POST_INDIRECT) ? 4 : 1;
-                        break;
-
-                    case 8: // EA = 8-bit,index 8-bit offset
-                        effective_addr = SIG_EXTEND(mem_read(cpu.pc));
-                        cpu.pc++;
-                        effective_addr += *index_reg;
-                        cycles_this_scanline += (operand & INDX_POST_INDIRECT) ? 4 : 1;
-                        break;
-
-                    case 9: // EA = 16-bit,index 16-bit offset
-                        effective_addr = (mem_read(cpu.pc) << 8);
-                        cpu.pc++;
-                        effective_addr += mem_read(cpu.pc);
-                        cpu.pc++;
-                        effective_addr += *index_reg;
-                        cycles_this_scanline += (operand & INDX_POST_INDIRECT) ? 7 : 4;
-                        break;
-
-                    case 11: // EA = D,index Acc-D with index
-                        effective_addr = *index_reg + d;
-                        cycles_this_scanline += (operand & INDX_POST_INDIRECT) ? 7 : 4;
-                        break;
-
-                    case 12: // EA = 8-bit,pc PC relative
-                        effective_addr = SIG_EXTEND(mem_read(cpu.pc));
-                        cpu.pc++;
-                        effective_addr += cpu.pc;
-                        cycles_this_scanline += (operand & INDX_POST_INDIRECT) ? 4 : 1;
-                        break;
-
-                    case 13: // EA = 16-bit,pc PC relative
-                        effective_addr = (mem_read(cpu.pc) << 8);
-                        cpu.pc++;
-                        effective_addr += mem_read(cpu.pc);
-                        cpu.pc++;
-                        effective_addr += cpu.pc;
-                        cycles_this_scanline += (operand & INDX_POST_INDIRECT) ? 8 : 5;
-                        break;
-
-                    case 15: // EA = [addr] Extended Indirect will always be indirect.
-                        effective_addr = (mem_read(cpu.pc) << 8);
-                        cpu.pc++;
-                        effective_addr += mem_read(cpu.pc);
-                        cpu.pc++;
-                        cycles_this_scanline += 5;
+                    case 0x03:
+                        index_reg = &cpu.s;
                         break;
 
                     default:
-                        /* Exception: Illegal indexing mode get_eff_addr()
-                         */
                         cpu.cpu_state = CPU_EXCEPTION;
+                        return effective_addr;
                 }
 
-                /* Resolve indirect addresses
-                 * Rely on assembler-generated code to reliably include the indirect bit
-                 * i.e. not for auto inc/dec by one.
+                /* Check if 5-bit offset is in the post-byte
+                 * then process more index address bytes if not.
                  */
-                if ( operand & INDX_POST_INDIRECT )
+                if ( postbyte & INDX_POST_5BIT_OFF )
                 {
-                    effective_addr = (mem_read(effective_addr) << 8) + mem_read(effective_addr + 1);
+                    switch ( mode )
+                    {
+                        case 0: // EA = ,index+ Auto post-increment by 1
+                            effective_addr = *index_reg;
+                            (*index_reg) += 1;
+                            cycles_this_scanline += 2;
+                            break;
+
+                        case 1: // EA = ,index++ Auto post-increment by 2
+                            effective_addr = *index_reg;
+                            (*index_reg) += 2;
+                            cycles_this_scanline += indirect ? 6 : 3;
+                            break;
+
+                        case 2: // EA = ,-index Auto pre-decrement by 1
+                            (*index_reg) -= 1;
+                            effective_addr = *index_reg;
+                            cycles_this_scanline += 2;
+                            break;
+
+                        case 3: // EA = ,--index Auto pre-decrement by 2
+                            (*index_reg) -= 2;
+                            effective_addr = *index_reg;
+                            cycles_this_scanline += indirect ? 6 : 3;
+                            break;
+
+                        case 4: // EA = 0,index Zero offset
+                            effective_addr = *index_reg;
+                            cycles_this_scanline += indirect ? 3 : 0;
+                            break;
+
+                        case 5: // EA = B,index Acc-B with index
+                            effective_addr = *index_reg + SIG_EXTEND(cpu.b);
+                            cycles_this_scanline += indirect ? 4 : 1;
+                            break;
+
+                        case 6: // EA = A,index Acc-A with index
+                            effective_addr = *index_reg + SIG_EXTEND(cpu.a);
+                            cycles_this_scanline += indirect ? 4 : 1;
+                            break;
+
+                        case 8: // EA = 8-bit,index 8-bit offset
+                            effective_addr = SIG_EXTEND(mem_read(cpu.pc));
+                            cpu.pc++;
+                            effective_addr += *index_reg;
+                            cycles_this_scanline += indirect ? 4 : 1;
+                            break;
+
+                        case 9: // EA = 16-bit,index 16-bit offset
+                            effective_addr = (mem_read(cpu.pc) << 8);
+                            cpu.pc++;
+                            effective_addr += mem_read(cpu.pc);
+                            cpu.pc++;
+                            effective_addr += *index_reg;
+                            cycles_this_scanline += indirect ? 7 : 4;
+                            break;
+
+                        case 11: // EA = D,index Acc-D with index
+                            effective_addr = *index_reg + d;
+                            cycles_this_scanline += indirect ? 7 : 4;
+                            break;
+
+                        case 12: // EA = 8-bit,pc PC relative
+                            effective_addr = SIG_EXTEND(mem_read(cpu.pc));
+                            cpu.pc++;
+                            effective_addr += cpu.pc;
+                            cycles_this_scanline += indirect ? 4 : 1;
+                            break;
+
+                        case 13: // EA = 16-bit,pc PC relative
+                            effective_addr = (mem_read(cpu.pc) << 8);
+                            cpu.pc++;
+                            effective_addr += mem_read(cpu.pc);
+                            cpu.pc++;
+                            effective_addr += cpu.pc;
+                            cycles_this_scanline += indirect ? 8 : 5;
+                            break;
+
+                        case 15: // EA = [addr] Extended Indirect will always be indirect.
+                            effective_addr = (mem_read(cpu.pc) << 8);
+                            cpu.pc++;
+                            effective_addr += mem_read(cpu.pc);
+                            cpu.pc++;
+                            cycles_this_scanline += 5;
+                            break;
+
+                        default:
+                            /* Exception: Illegal indexing mode get_eff_addr()
+                             */
+                            cpu.cpu_state = CPU_EXCEPTION;
+                    }
+
+                    /* Resolve indirect addresses
+                     * Rely on assembler-generated code to reliably include the indirect bit
+                     * i.e. not for auto inc/dec by one.
+                     */
+                    if ( indirect )
+                    {
+                        effective_addr = (mem_read(effective_addr) << 8) + mem_read(effective_addr + 1);
+                    }
                 }
-            }
-            /* 5-bit offset is in the post-bytes
-             */
-            else
-            {
-                operand &= 0x001f;
-                if ( operand & 0x0010 )
-                    operand |= 0xfff0;  // Extend the sign of the 5-bit offset into 16-bit
-                effective_addr = *index_reg + operand;
-                cycles_this_scanline++;
+                /* 5-bit offset is in the post-bytes
+                 */
+                else
+                {
+                    operand = postbyte & 0x001f;
+                    if ( operand & 0x0010 )
+                    {
+                        operand |= 0xfff0;  // Extend the sign of the 5-bit offset into 16-bit
+                    }
+                    effective_addr = *index_reg + operand;
+                    cycles_this_scanline++;
+                }
             }
             break;
 

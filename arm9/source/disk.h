@@ -16,5 +16,6 @@ extern uint8_t halt_flag;
 
 void disk_init(void);
 void disk_io_interrupt(void);
+char *disk_get_filename(void);
 
 #endif  /* __DISK_H__ */

@@ -39,7 +39,7 @@ Features :
 
 Copyright :  
 -----------------------
-DracoDS is Copyright (c) 2025 Dave Bernazzani (wavemotion-dave)
+DracoDS is Copyright (c) 2025-2026 Dave Bernazzani (wavemotion-dave)
 
 This is a derivitive work of Dragon 32 Emu Copyright (c) 2018 Eyal Abraham (eyalabraham)
 which can be found on github:
@@ -215,7 +215,8 @@ Pressing and holding the L/R shoulder buttons plus Y will create a screen snapsh
 
 Known Issues:
 -----------------------
-* Shamus loads and runs but has no sound during gameplay. Cause unknown.
+* Shamus loads and runs but has no sound during gameplay. Cause unknown (but likely PIA emulation inaccuracies).
+* Oodles loads but freezes after startup. Cause unknown (but likely PIA emulation inaccuracies).
 * Rocky's Boots two-disk version will not load. Cause unknown. Seek the 180K single-disk version which does work.
 
 Recommended Games:
@@ -275,6 +276,12 @@ And then move the soundbank.h file to the arm9/sources directory
 
 Versions :
 -----------------------
+
+V1.6: 02-Aug-2026 by wavemotion-dave
+* Shamus now runs but there is no sound.
+* Improved accuracy on PIA handling - sound and keyboard reading more robust.
+* Improved Dungeons of Daggorath key mapping.
+* Minor cleanups and commenting as time permitted.
 
 V1.5a - hotfix for AlphaNumeric bg color which is not actually black but a dark green.
 

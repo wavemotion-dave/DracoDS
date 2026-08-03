@@ -1,5 +1,5 @@
 // =====================================================================================
-// Copyright (c) 2025 Dave Bernazzani (wavemotion-dave)
+// Copyright (c) 2025-2026 Dave Bernazzani (wavemotion-dave)
 //
 // Copying and distribution of this emulator, its source code and associated
 // readme files, with or without modification, are permitted in any medium without
@@ -35,6 +35,7 @@
 #include "screenshot.h"
 #include "cpu.h"
 #include "pia.h"
+#include "disk.h"
 #include "sam.h"
 #include "fdc.h"
 #include "printf.h"
@@ -69,7 +70,9 @@ char last_file[MAX_FILENAME_LEN]    = "";
 // A few housekeeping vars to help with emulation...
 // --------------------------------------------------
 u8 bFirstTime        = 1;
+u8 bFirstTimeSelect  = 1;
 u8 bottom_screen     = 0;
+u8 probably_basic    = 0;
 
 // ---------------------------------------------------------------------------
 // Some timing and frame rate comutations to keep the emulation on pace...
@@ -105,6 +108,7 @@ u8 kbd_keys[12]      __attribute__((section(".dtcm")));           // Up to 12 po
 u8 bStartSoundEngine = 0;      // Set to true to unmute sound after 1 frame of rendering...
 int bg0, bg1, bg0b, bg1b;      // Some vars for NDS background screen handling
 u16 vusCptVBL = 0;             // We use this as a basic timer for the Mario sprite... could be removed if another timer can be utilized
+volatile u16 ds_vsync = 0;     // To sync output and reduce tearing...
 u8 touch_debounce = 0;         // A bit of touch-screen debounce
 u8 key_debounce = 0;           // A bit of key debounce to ensure the key is held pressed for a minimum amount of time
 
@@ -354,6 +358,8 @@ void ResetDragonTandy(void)
     emuFps=0;
 
     bFirstTime = 1;
+    probably_basic = 0;
+    bFirstTimeSelect = 1;
     bottom_screen = 0;
 
     joy_x = joy_y = JOY_CENTER;
@@ -735,6 +741,17 @@ u8 __attribute__((noinline)) handle_meta_key(u8 meta_key)
     return 0;
 }
 
+// -------------------------------------------------------------
+// Only used for basic timing of splash screen fade-out
+// -------------------------------------------------------------
+ITCM_CODE void irqVBlank(void)
+{
+    // Manage time
+    vusCptVBL++;
+    ds_vsync++;
+}
+
+
 // ----------------------------------------------------------------------------
 // Slide-n-Glide D-pad keeps moving in the last known direction for a few more
 // frames to help make those hairpin turns up and off ladders much easier...
@@ -747,6 +764,19 @@ u8 slide_n_glide_key_right  __attribute__((section(".dtcm"))) = 0;
 s8 digital_offset_x         __attribute__((section(".dtcm"))) = 0;
 s8 digital_offset_y         __attribute__((section(".dtcm"))) = 0;
 
+char *check_filename_for_file(void)
+{
+    for (int i=0; i<strlen(initial_file)-2; i++)
+    {
+        if ((initial_file[i] == '[') && (initial_file[i+1] == '['))
+        {
+            return (char *)&initial_file[i+2];
+        }
+    }
+    
+    return NULL;
+}
+
 // ------------------------------------------------------------------------
 // The main emulation loop is here... call into the Z80 and render frame
 // ------------------------------------------------------------------------
@@ -756,6 +786,7 @@ void DracoDS_main(void)
   u32 ucDEUX = 0x0000;
   static u8 dampenClick = 0;
   u8 meta_key = 0;
+  u16 last_ds_vsync = 99;
 
   // Setup the debug buffer for DSi use
   debug_init();
@@ -784,7 +815,14 @@ void DracoDS_main(void)
   bStartSoundEngine = 10;
 
   bFirstTime = 1;
+  bFirstTimeSelect = 1;
+  probably_basic = 0;
 
+  irqDisable(IRQ_VBLANK);
+  SetYtrigger(190); //trigger 2 lines before vblank
+  irqSet(IRQ_VBLANK,  irqVBlank);
+  irqEnable(IRQ_VBLANK);
+  
   // -----------------------------------------------------------
   // Stay in this loop running the game until the user exits...
   // -----------------------------------------------------------
@@ -841,10 +879,22 @@ void DracoDS_main(void)
         //
         // This is how we time frame-to frame to keep the game running at 50FPS
         // ----------------------------------------------------------------------
-        while (TIMER2_DATA < (myConfig.machine ? GAME_SPEED_NTSC[myConfig.gameSpeed] : GAME_SPEED_PAL[myConfig.gameSpeed]) *(timingFrames+1))
+        if (myConfig.machine) // NTSC uses DS sync
         {
-            if (myGlobalConfig.showFPS == 2) break;   // If Full Speed, break out...
-            if (tape_motor) break; // If running TAPE go full speed
+            while (ds_vsync == last_ds_vsync)
+            {
+                if (myGlobalConfig.showFPS == 2) break; // If Full Speed, break out...
+                if (tape_motor) break;                  // If running TAPE go full speed
+            }
+            last_ds_vsync = ds_vsync;
+        }
+        else // PAL
+        {
+            while (TIMER2_DATA < (GAME_SPEED_PAL[myConfig.gameSpeed]) *(timingFrames+1))
+            {
+                if (myGlobalConfig.showFPS == 2) break; // If Full Speed, break out...
+                if (tape_motor) break;                  // If running TAPE go full speed
+            }
         }
 
 
@@ -902,18 +952,140 @@ void DracoDS_main(void)
             }
             else if (draco_mode == MODE_DSK)
             {
-                // START key is also special...
+                // START key is also special for disks
                 if (keys_current & KEY_START)
                 {
                     bFirstTime = 0;
-                    BufferKey(8);     // D
-                    BufferKey(13);    // I
-                    BufferKey(22);    // R
-                    BufferKey(48);    // ENTER
+                    char *fn = disk_get_filename();
+                    
+                    if (!fn) // No files found... maybe DOS disk...
+                    {
+                        BufferKey(8);     // D
+                        BufferKey(19);    // O
+                        BufferKey(23);    // S
+                        BufferKey(48);    // ENTER
+                    }
+                    else // At least one filename found...
+                    {
+                        BufferKey(16);    // L
+                        BufferKey(19);    // O
+                        BufferKey(5) ;    // A
+                        BufferKey(8);     // D
+                        
+                        char *filename_fn = check_filename_for_file();
+                        
+                        if (filename_fn)
+                        {
+                            if (strstr(filename_fn, ".BAS"))
+                            {
+                                probably_basic = 1;
+                            }
+                            else
+                            {
+                                BufferKey(17);    // M
+                            }
+                        }
+                        else
+                        {
+                            if (fn)
+                            {
+                                if (fn[9] == 'I') // BIN file
+                                {
+                                    BufferKey(17);    // M
+                                }
+                                else
+                                {
+                                    probably_basic = 1;
+                                }
+                            }
+                            else
+                            {
+                                BufferKey(17);    // M
+                            }
+                        }
+                        BufferKey(49);    // Space
+                        BufferKey(55);    // Shift
+                        BufferKey(32);    // '2' for double quote
+                        
+                        if (filename_fn)
+                        {
+                            int i = 0;
+                            while ((filename_fn[i] != '.') && (filename_fn[i] != ']') && (filename_fn[i] != 0))
+                            {
+                                if (filename_fn[i] != ' ')
+                                {
+                                    if (filename_fn[i] == '0')
+                                        BufferKey(40);
+                                    else if ((filename_fn[i] >= '1') && (filename_fn[i] <= '9'))
+                                        BufferKey(31 + (filename_fn[i] - '1'));
+                                    else 
+                                        BufferKey(5 + (filename_fn[i] - 'A'));
+                                }
+                                i++;
+                            }
+                            
+                            BufferKey(48);    // ENTER
+
+                        }
+                        else
+                        {
+                            if (fn)
+                            {
+                                for (u8 i=0; i<8; i++)
+                                {
+                                    if (fn[i] != ' ')
+                                    {
+                                        if (fn[i] == '0')
+                                            BufferKey(40);
+                                        else if ((fn[i] >= '1') && (fn[i] <= '9'))
+                                            BufferKey(31 + (fn[i] - '1'));
+                                        else 
+                                            BufferKey(5 + (fn[i] - 'A'));
+                                    }
+                                }
+                                
+                                BufferKey(48);    // ENTER
+                            }
+                        }
+                    }
+                    
                     BufferKey(255);   // END
                 }
             }
         }
+
+        if (bFirstTimeSelect && myConfig.autoLoad)
+        {
+            if (draco_mode == MODE_DSK)
+            {
+                // SELECT key is special for disks
+                if (keys_current & KEY_SELECT)
+                {
+                    if (bFirstTimeSelect)
+                    {
+                        bFirstTimeSelect = 0;
+                        
+                        if (probably_basic)
+                        {
+                            BufferKey(22);    // R
+                            BufferKey(25);    // U
+                            BufferKey(18);    // N
+                        }
+                        else
+                        {
+                            BufferKey(9) ;    // E
+                            BufferKey(28);    // X
+                            BufferKey(9) ;    // E
+                            BufferKey(7);     // C
+                        }
+                        
+                        BufferKey(48);    // ENTER
+                        BufferKey(255);   // END
+                    }
+                }
+            }
+        }
+
 
       // --------------------------------------------------------------
       // Hold the key press for a brief instant... To allow the
@@ -978,6 +1150,8 @@ void DracoDS_main(void)
                                  mmEffect(SFX_KEYCLICK);  // Play short key click for feedback...
                             }
                             last_kbd_key = kbd_key;
+                            bFirstTimeSelect = 0;
+                            bFirstTime = 0;                            
                         }
                     }
                   }
@@ -1241,11 +1415,11 @@ void DracoDS_main(void)
             break;
 
           case 7:  // Digital Offset
-            joy_x = JOY_CENTER + digital_offset_x; // Self-centering... almost
-            joy_y = JOY_CENTER + digital_offset_y; // Self-centering... almost
+            joy_x = JOY_CENTER + digital_offset_x; // Self-centering... with slight bias
+            joy_y = JOY_CENTER + digital_offset_y; // Self-centering... with slight bias
 
-            if ( JoyState & JST_UP )    {joy_y = 0;   digital_offset_y = -1;  digital_offset_x = 0;}
-            if ( JoyState & JST_DOWN)   {joy_y = 64;  digital_offset_y = +1;  digital_offset_x = 0;}
+            if ( JoyState & JST_UP )    {joy_y = 0;   digital_offset_y = -1;}
+            if ( JoyState & JST_DOWN)   {joy_y = 64;  digital_offset_y = +1;}
 
             if ( JoyState & JST_LEFT )  {joy_x = 0;   digital_offset_x = -1;  digital_offset_y = 0;}
             if ( JoyState & JST_RIGHT ) {joy_x = 64;  digital_offset_x = +1;  digital_offset_y = 0;}
@@ -1401,14 +1575,6 @@ void DracoDSInitCPU(void)
     BottomScreenKeyboard();
 }
 
-// -------------------------------------------------------------
-// Only used for basic timing of splash screen fade-out
-// -------------------------------------------------------------
-ITCM_CODE void irqVBlank(void)
-{
-    // Manage time
-    vusCptVBL++;
-}
 
 // ------------------------------
 // Look for the BIOS/BASIC files
@@ -1507,7 +1673,6 @@ int main(int argc, char **argv)
     intro_logo();
    
     SetYtrigger(190); //trigger 2 lines before vblank
-   
     irqSet(IRQ_VBLANK,  irqVBlank);
     irqEnable(IRQ_VBLANK);
    

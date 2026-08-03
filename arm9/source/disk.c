@@ -1,5 +1,5 @@
 // =====================================================================================
-// Copyright (c) 2025 Dave Bernazzani (wavemotion-dave)
+// Copyright (c) 2025-2026 Dave Bernazzani (wavemotion-dave)
 //
 // Copying and distribution of this emulator, its source code and associated
 // readme files, with or without modification, are permitted in any medium without
@@ -29,6 +29,7 @@
 
 #include    <stdint.h>
 #include    <string.h>
+#include    <ctype.h>
 
 #include    "DracoDS.h"
 #include    "DracoUtils.h"
@@ -139,4 +140,14 @@ void disk_intrq(void)
     {
         cpu_nmi_trigger();
     }
+}
+
+char *disk_get_filename(void)
+{
+    if (isprint(TapeCartDiskBuffer[0x13400]) && (TapeCartDiskBuffer[0x13408] == 'B'))
+    {
+        return (char *)&TapeCartDiskBuffer[0x13400];
+    }
+    
+    return NULL;
 }

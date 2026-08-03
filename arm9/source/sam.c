@@ -1,5 +1,5 @@
 // =====================================================================================
-// Copyright (c) 2025 Dave Bernazzani (wavemotion-dave)
+// Copyright (c) 2025-2026 Dave Bernazzani (wavemotion-dave)
 //
 // Copying and distribution of this emulator, its source code and associated
 // readme files, with or without modification, are permitted in any medium without
@@ -191,6 +191,8 @@ ITCM_CODE uint8_t io_handler_sam_write(uint16_t address, uint8_t data, mem_opera
                 sam_registers.vdg_display_offset |= 0x40;
                 break;
 
+            /* CPU Clock Rate
+             */
             case 0x16:
                 sam_registers.mpu_rate &= ~0x01;
                 break;
@@ -272,7 +274,7 @@ static uint8_t io_page_one(uint16_t address, uint8_t data, mem_operation_t op)
     {
         sam_registers.map_upper_to_lower = (sam_registers.memory_map_type ? 0x8000 : 0x0000);
         sam_registers.page = 1;
-
+        
         return data;
     }
 

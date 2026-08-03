@@ -1,5 +1,5 @@
 // =====================================================================================
-// Copyright (c) 2025 Dave Bernazzani (wavemotion-dave)
+// Copyright (c) 2025-2026 Dave Bernazzani (wavemotion-dave)
 //
 // Copying and distribution of this emulator, its source code and associated
 // readme files, with or without modification, are permitted in any medium without
@@ -56,28 +56,6 @@ void mem_init(void)
 
 
 /*------------------------------------------------
- * mem_write()
- *
- *  Write to memory address
- *
- *  param:  Memory address and data to write
- *  return: Nothing
- */
-ITCM_CODE void mem_write(int address, int data)
-{
-    if ((address & 0xFF00) == 0xFF00)
-    {
-        memory_IO[address] = callback_io[address]((uint16_t) address, (uint8_t)data, MEM_WRITE);
-    }
-    else
-    {
-        if ( sam_registers.memory_map_type & address ) return; // Check for ROMs... else fall through and write below (in 64K mode)
-        memory_RAM[sam_registers.map_upper_to_lower | address] = (uint8_t) data;
-    }    
-}
-
-
-/*------------------------------------------------
  * mem_define_io()
  *
  *  Define IO device address range and optional callback handler
@@ -126,3 +104,13 @@ static uint8_t do_nothing_io_handler(uint16_t address, uint8_t data, mem_operati
     return 0xFF;
 }
 
+// I'm not sure this is even possible... but we don't inline it as I'm never really expecting it to be called...
+__attribute__((noinline)) uint16_t io_read16(uint16_t address)
+{
+    /* An attempt to read an IO address will trigger
+     * the callback that may return an alternative value.
+     */
+    memory_IO[address] = callback_io[address]((uint16_t) address, memory_IO[address], MEM_READ);
+    memory_IO[address+1] = callback_io[address+1]((uint16_t) address+1, memory_IO[address+1], MEM_READ);
+    return (memory_IO[address] << 8) | memory_IO[address+1];
+}
