@@ -76,8 +76,7 @@ inline __attribute__((always_inline)) uint8_t mem_read(int address)
         return memory_ROM[address];
     }
     
-    // This handles Page #1 where upper RAM is mapped to lower address space
-    return memory_RAM[sam_registers.map_upper_to_lower | address];
+    return memory_RAM[address];
 }
 
 extern uint16_t io_read16(uint16_t address);
@@ -92,8 +91,6 @@ inline __attribute__((always_inline)) uint16_t mem_read16(int address)
         return (memory_ROM[address] << 8) | memory_ROM[address+1];
     }
     
-    // This handles Page #1 where upper RAM is mapped to lower address space
-    address = sam_registers.map_upper_to_lower | address;
     return (memory_RAM[address] << 8) | memory_RAM[address+1];
 }
 
@@ -109,8 +106,7 @@ inline __attribute__((always_inline)) uint8_t mem_read_pc(int address)
         return memory_ROM[address];
     }
     
-    // This handles Page #1 where upper RAM is mapped to lower address space
-    return memory_RAM[sam_registers.map_upper_to_lower | address];
+    return memory_RAM[address];
 }
 
 inline __attribute__((always_inline)) void mem_write(int address, int data)
@@ -121,15 +117,25 @@ inline __attribute__((always_inline)) void mem_write(int address, int data)
     }
     else
     {
-        // In theory we should trap for ROM write, but since we wouldn't have much 
-        // recourse anyway, we simply allow the write to take place into the 64K RAM
-        // memory - it would be in an area that would have ROM mapped anyway so no harm.
-        memory_RAM[sam_registers.map_upper_to_lower | address] = (uint8_t) data;
+        // We trap here for ROM writes and don't allow the write to take place
+        if (!(sam_registers.memory_map_type & address))
+        {
+            memory_RAM[address] = (uint8_t) data;
+        }
     }    
 }
 
+// For stack writes... we don't bother to trap on ROM writes. We're screwed
+// if someone  abused this anyway and we need the extra speed...
 inline __attribute__((always_inline)) void mem_write_fast(int address, uint8_t data)
 {
-    memory_RAM[sam_registers.map_upper_to_lower | address] = data;
+    if (!(~address & 0xFF00))
+    {
+        memory_IO[address] = callback_io[address]((uint16_t) address, (uint8_t)data, MEM_WRITE);
+    }
+    else
+    {
+        memory_RAM[address] = data;
+    }
 }
 #endif  /* __MEM_H__ */

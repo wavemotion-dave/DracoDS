@@ -38,9 +38,6 @@ static uint8_t io_handler_sam_write(uint16_t address, uint8_t data, mem_operatio
 static uint8_t io_rom_mode(uint16_t address, uint8_t data, mem_operation_t op);
 static uint8_t io_ram_mode(uint16_t address, uint8_t data, mem_operation_t op);
 
-static uint8_t io_page_zero(uint16_t address, uint8_t data, mem_operation_t op);
-static uint8_t io_page_one(uint16_t address, uint8_t data, mem_operation_t op);
-
 /* -----------------------------------------
    Module vars
 ----------------------------------------- */
@@ -58,14 +55,11 @@ uint32_t sam_64k_mode_counter   __attribute__((section(".dtcm"))) = 0;
  */
 void sam_init(void)
 {
-    mem_define_io(0xfff0, 0xffff, io_handler_vector_redirect);
-    mem_define_io(0xffc0, 0xffdf, io_handler_sam_write);
+    mem_define_io(0xfff2, 0xffff, io_handler_vector_redirect);
+    mem_define_io(0xffc0, 0xffdd, io_handler_sam_write);
 
     mem_define_io(0xffde, 0xffde, io_rom_mode);     // RAM/ROM (type 0 map)
     mem_define_io(0xffdf, 0xffdf, io_ram_mode);     // ALL-RAM (type 1 map)
-
-    mem_define_io(0xffd4, 0xffd4, io_page_zero);    // Normal mapping
-    mem_define_io(0xffd5, 0xffd5, io_page_one);     // Mapping upper RAM into lower 32K
 
     sam_registers.vdg_mode = 0;                     // Alphanumeric mode
     sam_registers.vdg_display_offset = 2;           // Dragon/Tandy computer text page 0x0400
@@ -73,7 +67,7 @@ void sam_init(void)
     sam_registers.mpu_rate = 0;                     // Default is 0.89MHz but can be overclocked to 1.78MHz
     sam_registers.memory_size = 2;                  // Fixed to 32K/64K
     sam_registers.memory_map_type = 0x8000;         // 0x8000=ROMs in place (32K mode), 0x0000=ALL RAM mode 64K
-    sam_registers.map_upper_to_lower = 0x0000;      // No SAM offset to memory
+    sam_registers.map_upper_to_lower = 0x0000;      // No SAM swap of memory pages (not used on CoCo)
 
     sam_64k_mode_counter = 0;                       // Used to track if we've switched to 64K (so even if we switch back to 32K temporarily, we can show '64K' on the screen)
 }
@@ -219,13 +213,13 @@ ITCM_CODE uint8_t io_handler_sam_write(uint16_t address, uint8_t data, mem_opera
         return data;
     }
 
-    return 0x00; // SAM registers are write-only... return 0x00
+    return 0xFF; // SAM registers are write-only... return 0xFF as the  bus would reflect the high-byte of the fetch address
 }
 
 // -----------------------------------------------------------------------
 // 64K Emulation - mainly to allow swap of RAM/ROM mode for ALL-RAM mode
 // as I'm unaware of any games that use the 'Page 1' mapping of upper
-// RAM to the lower address space... but in theory that's handled as well.
+// RAM to the lower address space... so that's not handled.
 // -----------------------------------------------------------------------
 
 static uint8_t io_rom_mode(uint16_t address, uint8_t data, mem_operation_t op)
@@ -233,50 +227,21 @@ static uint8_t io_rom_mode(uint16_t address, uint8_t data, mem_operation_t op)
     if ( op == MEM_WRITE )
     {
         sam_registers.memory_map_type = 0x8000;
-        sam_registers.map_upper_to_lower = (sam_registers.page ? 0x8000:0x0000);
-
         return data;
     }
 
-    return 0x00; // SAM registers are write-only... return 0x00
+    return 0xFF; // SAM registers are write-only... return 0xFF as the  bus would reflect the high-byte of the fetch address
 }
 
 static uint8_t io_ram_mode(uint16_t address, uint8_t data, mem_operation_t op)
 {
     if ( op == MEM_WRITE )
     {
-        sam_registers.memory_map_type = 0;
-        sam_registers.map_upper_to_lower = 0x0000;
+        sam_registers.memory_map_type = 0x0000;
         sam_64k_mode_counter++;
 
         return data;
     }
 
-    return 0x00; // SAM registers are write-only... return 0x00
-}
-
-static uint8_t io_page_zero(uint16_t address, uint8_t data, mem_operation_t op)
-{
-    if ( op == MEM_WRITE )
-    {
-        sam_registers.map_upper_to_lower = 0x0000;
-        sam_registers.page = 0;
-
-        return data;
-    }
-
-    return 0x00; // SAM registers are write-only... return 0x00
-}
-
-static uint8_t io_page_one(uint16_t address, uint8_t data, mem_operation_t op)
-{
-    if ( op == MEM_WRITE )
-    {
-        sam_registers.map_upper_to_lower = (sam_registers.memory_map_type ? 0x8000 : 0x0000);
-        sam_registers.page = 1;
-        
-        return data;
-    }
-
-    return 0x00; // SAM registers are write-only... return 0x00
+    return 0xFF; // SAM registers are write-only... return 0xFF as the  bus would reflect the high-byte of the fetch address
 }

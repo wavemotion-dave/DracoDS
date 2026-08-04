@@ -921,7 +921,7 @@ void SetDefaultGameConfig(void)
     }
 
     // These games generally want the 'Digital plus Offset' handling
-    if (strstr(initial_file, "BANDITO") || strstr(initial_file, "NERBLE"))
+    if (strstr(initial_file, "BANDITO") || strstr(initial_file, "NERBLE") || strstr(initial_file, "AVENGER") || strstr(initial_file, "SHOCK"))
     {
         myConfig.joyType = 7;
     }
@@ -1002,7 +1002,7 @@ void FindConfig(void)
     clear_firq_immediate = 0;
     if (strstr(initial_file, "SHAMUS"))
     {
-        clear_firq_immediate = 0;
+        clear_firq_immediate = 1;
     }
 }
 

@@ -163,7 +163,7 @@ mm_stream myStream __attribute__((section(".dtcm")));
 #define WAVE_DIRECT_BUF_SIZE 2047
 u16 mixer_read      __attribute__((section(".dtcm"))) = 0;
 u16 mixer_write     __attribute__((section(".dtcm"))) = 0;
-s16 mixer[WAVE_DIRECT_BUF_SIZE+1];
+s16 mixer[WAVE_DIRECT_BUF_SIZE+1] __attribute__((section(".dtcm")));
 
 // The games normally run at the proper 100% speed, but user can override from 80% to 130%
 u16 GAME_SPEED_PAL[]  __attribute__((section(".dtcm"))) = {655, 596, 547, 504, 728, 818 };
@@ -1056,7 +1056,24 @@ void DracoDS_main(void)
 
         if (bFirstTimeSelect && myConfig.autoLoad)
         {
-            if (draco_mode == MODE_DSK)
+            if (draco_mode == MODE_CAS)
+            {
+                // SELECT key is special for disks
+                if (keys_current & KEY_SELECT)
+                {
+                    if (bFirstTimeSelect)
+                    {
+                        bFirstTimeSelect = 0;
+                        BufferKey(22);    // R
+                        BufferKey(25);    // U
+                        BufferKey(18);    // N
+                        
+                        BufferKey(48);    // ENTER
+                        BufferKey(255);   // END
+                    }
+                }
+            }
+            else if (draco_mode == MODE_DSK)
             {
                 // SELECT key is special for disks
                 if (keys_current & KEY_SELECT)

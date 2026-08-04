@@ -101,7 +101,8 @@ void mem_load_rom(int addr_start, const uint8_t *buffer, int length)
  */
 static uint8_t do_nothing_io_handler(uint16_t address, uint8_t data, mem_operation_t op)
 {
-    return 0xFF;
+    if (op == MEM_WRITE) return data;
+    return (uint8_t)(address >> 8);
 }
 
 // I'm not sure this is even possible... but we don't inline it as I'm never really expecting it to be called...

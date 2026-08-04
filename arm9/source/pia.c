@@ -327,10 +327,10 @@ void pia_init(void)
     mux_select           = 0x00; // The Comparator Mux
     cas_eof              = 0;    // End of Cassette File
 
-    pia0_ddr_a     = PIA_DDR;    // Data Direction Register
-    pia0_ddr_b     = PIA_DDR;    // Data Direction Register
-    pia1_ddr_a     = PIA_DDR;    // Data Direction Register
-    pia1_ddr_b     = PIA_DDR;    // Data Direction Register
+    pia0_ddr_a     = PIA_DDR;    // Data Direction Register (normal data selected)
+    pia0_ddr_b     = PIA_DDR;    // Data Direction Register (normal data selected)
+    pia1_ddr_a     = PIA_DDR;    // Data Direction Register (normal data selected)
+    pia1_ddr_b     = PIA_DDR;    // Data Direction Register (normal data selected)
 }
 
 /*------------------------------------------------
@@ -486,36 +486,37 @@ ITCM_CODE static uint8_t io_handler_pia0_pa(uint16_t address, uint8_t data, mem_
                 last_comparator = 0x00;
             }
 
-            if (!kbd_key)
+            // Pressing a joystick trigger grounds the whole row...
+            if ( JoyState & JST_FIRE )
             {
-                if ( JoyState & JST_FIRE )
-                {
-                    data &= ~0x01;
-                }
-                else
-                {
-                    data |= 0x01;
-                }
+                data &= ~0x01;
+            }
 
-                if ( JoyState & JST_FIRE2 )
-                {
-                    data &= ~0x02;
-                }
-                else
-                {
-                    data |= 0x02;
-                }
+            if ( JoyState & JST_FIRE2 )
+            {
+                data &= ~0x02;
             }
         }
         else // Left Joystick
         {
-            if (mux_select == MUX_LEFT_Y) // Up-Down axis
+            if (mux_select == MUX_LEFT_Y) // Up-Down axis for left joystick
             {
                 input = joy_y;
             }
-            else if (mux_select == MUX_LEFT_X) // Left-Right axis
+            else if (mux_select == MUX_LEFT_X) // Left-Right axis for left joystick
             {
                 input = joy_x;
+            }
+            // The following two checks are for Lucifer's Kingdom which uses the Left Joystick
+            // for movement but when reading the joystick fire button, selects the Right Joystick
+            // which wouldn't be connected... we fake that here. Seems to have no effect on other games.
+            else if (mux_select == MUX_RIGHT_Y) // Up-Down axis
+            {
+                input = 999;
+            }
+            else if (mux_select == MUX_RIGHT_X) // Left-Right axis
+            {
+                input = 999;
             }
 
             if (input >= dac_output)
@@ -529,16 +530,15 @@ ITCM_CODE static uint8_t io_handler_pia0_pa(uint16_t address, uint8_t data, mem_
                 last_comparator = 0x00;
             }
 
-            if (!kbd_key)
+            // Pressing a joystick trigger grounds the whole row...
+            if ( JoyState & JST_FIRE )
             {
-                if ( JoyState & JST_FIRE )
-                {
-                    data &= ~0x02;
-                }
-                else
-                {
-                    data |= 0x02;
-                }
+                data &= ~0x02;
+            }
+
+            if ( JoyState & JST_FIRE2 )
+            {
+                data &= ~0x01;
             }
         }
 
@@ -624,11 +624,11 @@ ITCM_CODE static uint8_t io_handler_pia0_pb(uint16_t address, uint8_t data, mem_
         // memory_IO[PIA0_PB] will light up a column and we can read the rows
         if (pia0_ddr_b == PIA_DDR) // Normal data register
         {
-            
+
         }
         else
         {
-            
+
         }
     }
     /* A read from the port address has the effect of resetting
