@@ -921,7 +921,8 @@ void SetDefaultGameConfig(void)
     }
 
     // These games generally want the 'Digital plus Offset' handling
-    if (strstr(initial_file, "BANDITO") || strstr(initial_file, "NERBLE") || strstr(initial_file, "AVENGER") || strstr(initial_file, "SHOCK"))
+    if (strstr(initial_file, "BANDITO") || strstr(initial_file, "NERBLE") || strstr(initial_file, "AVENGER") || 
+        strstr(initial_file, "SHOCK")   || strstr(initial_file, "FANGMAN"))
     {
         myConfig.joyType = 7;
     }
@@ -930,10 +931,15 @@ void SetDefaultGameConfig(void)
     {
         myConfig.dpad = DPAD_SLIDE_N_GLIDE;
     }
+
+    if (strstr(initial_file, "GALACTIC"))
+    {
+        myConfig.forceCSS = 1;
+    }
     
     if (strstr(initial_file, "BUZZARD"))
     {
-        myConfig.keymap[4]   = 59;  // For some reason needs swap on buttons
+        //myConfig.keymap[4]   = 59;  // For some reason needs swap on buttons
     }
 
     if (strstr(initial_file, "POLARIS"))

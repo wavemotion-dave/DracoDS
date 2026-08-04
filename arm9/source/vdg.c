@@ -432,6 +432,13 @@ ITCM_CODE void vdg_render(void)
     /* VDG/SAM mode settings
      */
     current_mode = vdg_get_mode();
+    
+    // If we are forcing the palette
+    if (myConfig.forceCSS)
+    {
+        if (myConfig.forceCSS == 1) pia_video_mode &= 0xFE;
+        else  pia_video_mode |= 1;
+    }
 
     /* Render screen content to frame buffer
      */
@@ -540,11 +547,6 @@ void vdg_set_mode_sam(int sam_mode)
 void vdg_set_mode_pia(uint8_t pia_mode)
 {
     pia_video_mode = pia_mode;
-    if (myConfig.forceCSS)
-    {
-        if (myConfig.forceCSS == 1) pia_video_mode &= 0xFE;
-        else  pia_video_mode |= 1;
-    }
 }
 
 /*------------------------------------------------
