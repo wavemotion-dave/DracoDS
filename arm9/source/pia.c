@@ -311,7 +311,7 @@ void pia_init(void)
 {
     /* Link IO call-backs
      */
-    memory_IO[PIA0_PA] = 0x7f;
+    memory_RAM[PIA0_PA] = 0x7f;
 
     // Handle all mirrors of the PIA across the IO range of memory
     for (int mirror = 0; mirror < 32; mirror += 4)
@@ -363,7 +363,7 @@ void pia_vsync_irq(void)
 {
     /* Set the VSYNC 'on' bit - turns off when port read
      */
-    memory_IO[PIA0_CRB] |= PIA_CR_IRQ_STAT;
+    memory_RAM[PIA0_CRB] |= PIA_CR_IRQ_STAT;
 
     /* Assert vsync interrupt if enabled
      */
@@ -387,7 +387,7 @@ void pia_hsync_firq(void)
 {
     /* Set the HSYNC 'on' bit - turns off on next port read
      */
-    memory_IO[PIA0_CRA] |= PIA_CR_IRQ_STAT;
+    memory_RAM[PIA0_CRA] |= PIA_CR_IRQ_STAT;
 
     /* Assert hsync interrupt if enabled
      */
@@ -411,7 +411,7 @@ void pia_cart_firq(void)
 {
     /* Set the cart FIRQ status bit - turns off on next port read
      */
-    memory_IO[PIA1_CRB] |= PIA_CR_IRQ_STAT;
+    memory_RAM[PIA1_CRB] |= PIA_CR_IRQ_STAT;
 
     /* Assert interrupt if enabled
      */
@@ -561,13 +561,13 @@ ITCM_CODE static uint8_t io_handler_pia0_pa(uint16_t address, uint8_t data, mem_
             }
 
             // A read from this port clears the HSync FIRQ
-            memory_IO[PIA0_CRA] &= ~PIA_CR_IRQ_STAT;
+            memory_RAM[PIA0_CRA] &= ~PIA_CR_IRQ_STAT;
             cpu_firq(0);
 
             data &= ~pia0_ddr_a_mask;
             data |= (pia0_a_output_latch & pia0_ddr_a_mask);
             
-            memory_IO[PIA0_PA] = data;
+            memory_RAM[PIA0_PA] = data;
         }
         else // return the DDR register
         {
@@ -615,7 +615,7 @@ ITCM_CODE static uint8_t io_handler_pia0_cra(uint16_t address, uint8_t data, mem
         if (pia0_ca1_int_enabled && !(data & PIA_CR_INTR))
         {
             cpu_firq(0);
-            memory_IO[PIA0_CRA] &= ~PIA_CR_IRQ_STAT;
+            memory_RAM[PIA0_CRA] &= ~PIA_CR_IRQ_STAT;
         }
 
         pia0_ca1_int_enabled = (data & PIA_CR_INTR);
@@ -624,13 +624,13 @@ ITCM_CODE static uint8_t io_handler_pia0_cra(uint16_t address, uint8_t data, mem
 
         // These are read-only bits...
         data &= 0x7F;
-        data |= (memory_IO[PIA0_CRA] & 0x80);
+        data |= (memory_RAM[PIA0_CRA] & 0x80);
 
-        memory_IO[PIA0_CRA] = data;
+        memory_RAM[PIA0_CRA] = data;
     }
     else
     {
-        data = memory_IO[PIA0_CRA];
+        data = memory_RAM[PIA0_CRA];
     }
 
     return data;
@@ -654,7 +654,7 @@ ITCM_CODE static uint8_t io_handler_pia0_pb(uint16_t address, uint8_t data, mem_
     if ( op == MEM_WRITE )
     {
         // The ROM is setting up to read the keyboard...
-        // memory_IO[PIA0_PB] will light up a column and we can read the rows
+        // memory_RAM[PIA0_PB] will light up a column and we can read the rows
         if (pia0_ddr_b) // Normal data register
         {
             data &= pia0_ddr_b_mask;
@@ -673,12 +673,12 @@ ITCM_CODE static uint8_t io_handler_pia0_pb(uint16_t address, uint8_t data, mem_
     {
         if (pia0_ddr_b)
         {
-            memory_IO[PIA0_CRB] &= ~PIA_CR_IRQ_STAT;  // VSYNC IRQ
+            memory_RAM[PIA0_CRB] &= ~PIA_CR_IRQ_STAT;  // VSYNC IRQ
             cpu_irq(0);
             
             data &= ~pia0_ddr_b_mask;
             data |= (pia0_b_output_latch & pia0_ddr_b_mask);
-            memory_IO[PIA0_PB] = data;
+            memory_RAM[PIA0_PB] = data;
         }
         else
         {
@@ -714,13 +714,13 @@ ITCM_CODE static uint8_t io_handler_pia0_crb(uint16_t address, uint8_t data, mem
 
         // These are read-only bits...
         data &= 0x3F;
-        data |= (memory_IO[PIA0_CRB] & 0xC0);
+        data |= (memory_RAM[PIA0_CRB] & 0xC0);
 
-        memory_IO[PIA0_CRB] = data;
+        memory_RAM[PIA0_CRB] = data;
     }
     else
     {
-        data = memory_IO[PIA0_CRB];
+        data = memory_RAM[PIA0_CRB];
     }
 
     return data;
@@ -834,7 +834,7 @@ ITCM_CODE static uint8_t io_handler_pia1_pa(uint16_t address, uint8_t data, mem_
             
             data &= ~pia1_ddr_a_mask;
             data |= (pia1_a_output_latch & pia1_ddr_a_mask);
-            memory_IO[PIA1_PA] = data;            
+            memory_RAM[PIA1_PA] = data;            
         }
         else
         {
@@ -883,13 +883,13 @@ ITCM_CODE static uint8_t io_handler_pia1_cra(uint16_t address, uint8_t data, mem
 
         // These are read-only bits...
         data &= 0x7F;
-        data |= (memory_IO[PIA1_CRA] & 0x80);
+        data |= (memory_RAM[PIA1_CRA] & 0x80);
 
-        memory_IO[PIA1_CRA] = data;
+        memory_RAM[PIA1_CRA] = data;
     }
     else
     {
-        data = memory_IO[PIA1_CRA];
+        data = memory_RAM[PIA1_CRA];
     }
 
     return data;
@@ -916,7 +916,6 @@ ITCM_CODE static uint8_t io_handler_pia1_cra(uint16_t address, uint8_t data, mem
  */
 ITCM_CODE static uint8_t io_handler_pia1_pb(uint16_t address, uint8_t data, mem_operation_t op)
 {
-    extern uint8_t pia_video_mode;
     if ( op == MEM_WRITE )
     {
         if (pia1_ddr_b) // Does the DDR tell us we are normal data output?
@@ -941,16 +940,15 @@ ITCM_CODE static uint8_t io_handler_pia1_pb(uint16_t address, uint8_t data, mem_
     {
         if (pia1_ddr_b) // Does the DDR tell us we are normal data input?
         {
-            data = (pia_video_mode << 3);            // Also reports 32K/64K (0 for bit 2)
-            data |= 1;                               // RS232 In/Printer Busy
-            if (beeper_vol) data |= 2;               // Reflect last driven beeper sound output bit
+            data |= 1;                                // RS232 In/Printer Busy
             
-            memory_IO[PIA1_CRB] &= ~PIA_CR_IRQ_STAT; // Cart IRQ cleared
+            memory_RAM[PIA1_CRB] &= ~PIA_CR_IRQ_STAT; // Cart IRQ cleared
             cpu_firq(0);
             
+            // Report output bits
             data &= ~pia1_ddr_b_mask;
             data |= (pia1_b_output_latch & pia1_ddr_b_mask);
-            memory_IO[PIA1_PB] = data;
+            memory_RAM[PIA1_PB] = data;
         }
         else
         {
@@ -995,13 +993,13 @@ ITCM_CODE static uint8_t io_handler_pia1_crb(uint16_t address, uint8_t data, mem
 
         // These are read-only bits...
         data &= 0x3F;
-        data |= (memory_IO[PIA1_CRB] & 0xC0);
+        data |= (memory_RAM[PIA1_CRB] & 0xC0);
 
-        memory_IO[PIA1_CRB] = data;
+        memory_RAM[PIA1_CRB] = data;
     }
     else
     {
-        data = memory_IO[PIA1_CRB];
+        data = memory_RAM[PIA1_CRB];
     }
 
     return data;

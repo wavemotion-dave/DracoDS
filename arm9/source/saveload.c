@@ -134,9 +134,6 @@ void DracoSaveState()
     // And some spare bytes we can eat into as needed without bumping the SAVE version
     if (retVal) retVal = fwrite(spare,                    16,                               1, handle);    
     
-    // IO Memory Space
-    if (retVal) retVal = fwrite(memory_IO+0xFF00,         0x100,                            1, handle);
-    
     // -----------------------------------------------------------------------
     // Compress the 64K RAM data using 'high' compression ratio... it's
     // still quite fast for such small memory buffers and gets us under 32K
@@ -276,9 +273,6 @@ void DracoLoadState()
         
         // And some spare bytes we can eat into as needed without bumping the SAVE version
         if (retVal) retVal = fread(spare,                    16,                               1, handle);    
-
-        // IO Memory Space
-        if (retVal) retVal = fread(memory_IO+0xFF00,         0x100,                            1, handle);
 
         // Restore Main RAM memory
         int comp_len = 0;

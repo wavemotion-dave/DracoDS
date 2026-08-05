@@ -31,9 +31,8 @@ static uint8_t do_nothing_io_handler(uint16_t address, uint8_t data, mem_operati
    Module globals
 ----------------------------------------- */
 io_handler_callback callback_io[MEMORY_SIZE];  // IO Handler - we only really use the back-end 256 entries here but space is not an issue
-uint8_t  memory_RAM[MEMORY_SIZE];              // 64K of RAM
+uint8_t  memory_RAM[MEMORY_SIZE];              // 64K of RAM - the last 256 bytes here served as IO space
 uint8_t  memory_ROM[MEMORY_SIZE];              // 64K of ROM but only the upper 32K is ever mapped/used
-uint8_t  memory_IO[MEMORY_SIZE];               // 256 bytes of IO Space (but we allocate the full map so we don't have to mask)
 
 /*------------------------------------------------
  * mem_init()
@@ -49,7 +48,6 @@ void mem_init(void)
     {
         memory_RAM[i] = 0x00;
         memory_ROM[i] = 0xFF;
-        memory_IO[i]  = 0x00;
         callback_io[i] = do_nothing_io_handler;
     }
 }
@@ -102,7 +100,7 @@ void mem_load_rom(int addr_start, const uint8_t *buffer, int length)
 static uint8_t do_nothing_io_handler(uint16_t address, uint8_t data, mem_operation_t op)
 {
     if (op == MEM_WRITE) return data;
-    return (uint8_t)(address >> 8);
+    return (uint8_t)(address >> 8); // Generally non-connected IO will return high byte of the address
 }
 
 // I'm not sure this is even possible... but we don't inline it as I'm never really expecting it to be called...
@@ -111,7 +109,7 @@ __attribute__((noinline)) uint16_t io_read16(uint16_t address)
     /* An attempt to read an IO address will trigger
      * the callback that may return an alternative value.
      */
-    memory_IO[address] = callback_io[address]((uint16_t) address, memory_IO[address], MEM_READ);
-    memory_IO[address+1] = callback_io[address+1]((uint16_t) address+1, memory_IO[address+1], MEM_READ);
-    return (memory_IO[address] << 8) | memory_IO[address+1];
+    memory_RAM[address] = callback_io[address]((uint16_t) address, memory_RAM[address], MEM_READ);
+    memory_RAM[address+1] = callback_io[address+1]((uint16_t) address+1, memory_RAM[address+1], MEM_READ);
+    return (memory_RAM[address] << 8) | memory_RAM[address+1];
 }

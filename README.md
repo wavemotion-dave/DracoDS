@@ -84,9 +84,17 @@ Loading Games :
 -----------------------
 There are three kinds of files supported: Cartridges, Cassettes and Disks.
 
-Cartridges are the easiest... simply pick the .ccc (or .rom) filename from the Load Game menu and as soon as you start the emulation, the cartridge should auto-boot.
+The emulator does it's best to identify the type of game you have loaded. Generally Cartridges auto-boot - you just pick the .ccc (or .rom) filename from
+the Load Game menu and as soon as you start the emulation, the cartridge should auto-boot.
 
-Cassettes work differently... you must load them up from the BASIC intepreter. So picking a .cas filename from the Load Game menu and starting the emulation
+For disks (.DSK) and cassettes (.CAS) you can usually get by with loading the file and pressing:
+
+* START key - load the file into memory
+* SELECT key - run the file (once loaded)
+
+If this doesn't work, you will have to load the file manually. Here are some tips:
+
+Cassettes: you must load them up from the BASIC intepreter. So picking a .cas filename from the Load Game menu and starting the emulation
 running should place you into the BASIC of your choice (Tandy CoCo BASIC or Dragon BASIC). From there, you type one of the following pairs of commands depending
 on whether you are loading a Machine Code game (95% of the time this is true) or a BASIC game:
 ```
@@ -102,7 +110,7 @@ RUN
 You can press the START button to automatically issue the 'CLOADM' command. Note that you must wait for the Cassette to load after the CLOAD/CLOADM commands - the tape icon 
 should go from green (reading) to white and the OK prompt should appear on BASIC again before you type the EXEC/RUN command.
 
-Disks are the most complicated.  After loading you should do a DIR to see the contents of the disk. Then you issue a pair of commands as follows depending on if you are loading a .BIN or a .BAS file:
+Disks: After loading you should do a DIR to see the contents of the disk. Then you issue a pair of commands as follows depending on if you are loading a .BIN or a .BAS file:
 
 ```
 LOADM "FILENAME"
@@ -114,7 +122,7 @@ LOAD "FILENAME"
 RUN
 ```
 
-Where FILENAME is the desired file as shown in the DIR command. You can press the START button right after starting the game to automatically list the contents of the disk via DIR.
+Where FILENAME is the desired file as shown in the DIR command.
 
 DOS Based Games :
 -----------------------
@@ -279,9 +287,14 @@ Versions :
 
 V1.6: 02-Aug-2026 by wavemotion-dave
 * Shamus now runs but there is no sound.
-* Improved accuracy on PIA handling - sound and keyboard reading more robust.
+* Improved accuracy on PIA handling (DDR and masking supported) - sound and keyboard reading more robust. More games read keys/joystick more correctly.
+* Lucifer's Kingdom (CoCo Port) now running correctly.
+* Massively improved .DSK and .CAS type detection and loading. Use START to load game... SELECT to run after loading.
+* Optimizations to improve emulation speed by 5-10% depending on the game. Tape loading slightly faster.
+* Dragon32 games default to Black/White vs Artifacting to reflect PAL vs NTSC.
+* Tandy Coco (NTSC) games now sync to the DS frame drawing to reduce tearing when emulating any games.
 * Improved Dungeons of Daggorath key mapping.
-* Minor cleanups and commenting as time permitted.
+* Lots of cleanups and commenting as time permitted.
 
 V1.5a - hotfix for AlphaNumeric bg color which is not actually black but a dark green.
 

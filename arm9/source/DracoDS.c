@@ -777,6 +777,61 @@ char *check_filename_for_file(void)
     return NULL;
 }
 
+void InjectKey(char ch)
+{
+    if (ch == '0')
+    {
+        BufferKey(40);
+    }
+    else if (ch == '*')
+    {
+        BufferKey(55);  // Shift
+        BufferKey(44);  // ':'
+    }
+    else if (ch == '+')
+    {
+        BufferKey(55);  // Shift
+        BufferKey(45);  // ';'
+    }
+    else if (ch == '!')
+    {
+        BufferKey(55);  // Shift
+        BufferKey(31);  // '1'
+    }
+    else if (ch == '#')
+    {
+        BufferKey(55);  // Shift
+        BufferKey(33);  // '3'
+    }
+    else if (ch == '$')
+    {
+        BufferKey(55);  // Shift
+        BufferKey(34);  // '4'
+    }
+    else if (ch == '%')
+    {
+        BufferKey(55);  // Shift
+        BufferKey(35);  // '5'
+    }
+    else if (ch == '=')
+    {
+        BufferKey(55);  // Shift
+        BufferKey(41);  // '-'
+    }
+    else if (ch == '-')
+    {
+        BufferKey(41);  // '-'
+    }
+    else if ((ch >= '1') && (ch <= '9'))
+    {
+        BufferKey(31 + (ch - '1'));
+    }
+    else 
+    {
+        BufferKey(5 + (ch - 'A'));
+    }
+}
+
 // ------------------------------------------------------------------------
 // The main emulation loop is here... call into the Z80 and render frame
 // ------------------------------------------------------------------------
@@ -1014,12 +1069,7 @@ void DracoDS_main(void)
                             {
                                 if (filename_fn[i] != ' ')
                                 {
-                                    if (filename_fn[i] == '0')
-                                        BufferKey(40);
-                                    else if ((filename_fn[i] >= '1') && (filename_fn[i] <= '9'))
-                                        BufferKey(31 + (filename_fn[i] - '1'));
-                                    else 
-                                        BufferKey(5 + (filename_fn[i] - 'A'));
+                                    InjectKey(filename_fn[i]);
                                 }
                                 i++;
                             }
@@ -1035,12 +1085,7 @@ void DracoDS_main(void)
                                 {
                                     if (fn[i] != ' ')
                                     {
-                                        if (fn[i] == '0')
-                                            BufferKey(40);
-                                        else if ((fn[i] >= '1') && (fn[i] <= '9'))
-                                            BufferKey(31 + (fn[i] - '1'));
-                                        else 
-                                            BufferKey(5 + (fn[i] - 'A'));
+                                        InjectKey(fn[i]);
                                     }
                                 }
                                 
