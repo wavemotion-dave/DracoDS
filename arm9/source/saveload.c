@@ -31,7 +31,7 @@
 
 #include "lzav.h"
 
-#define DRACO_SAVE_VER   0x0005       // Change this if the basic format of the .SAV file changes. Invalidates older .sav files.
+#define DRACO_SAVE_VER   0x0006       // Change this if the basic format of the .SAV file changes. Invalidates older .sav files.
 
 u8 CompressBuffer[128*1024];
 
@@ -102,6 +102,10 @@ void DracoSaveState()
     if (retVal) retVal = fwrite(&pia0_ddr_b,            sizeof(pia0_ddr_b),             1, handle);
     if (retVal) retVal = fwrite(&pia1_ddr_a,            sizeof(pia1_ddr_a),             1, handle);
     if (retVal) retVal = fwrite(&pia1_ddr_b,            sizeof(pia1_ddr_b),             1, handle);
+    if (retVal) retVal = fwrite(&pia0_ddr_a_mask,       sizeof(pia0_ddr_a_mask),        1, handle);
+    if (retVal) retVal = fwrite(&pia0_ddr_b_mask,       sizeof(pia0_ddr_b_mask),        1, handle);
+    if (retVal) retVal = fwrite(&pia0_a_output_latch,   sizeof(pia0_a_output_latch),    1, handle);
+    if (retVal) retVal = fwrite(&pia0_b_output_latch,   sizeof(pia0_b_output_latch),    1, handle);
     
     // Write VDG vars
     if (retVal) retVal = fwrite(&video_ram_offset,      sizeof(video_ram_offset),       1, handle);
@@ -237,6 +241,10 @@ void DracoLoadState()
         if (retVal) retVal = fread(&pia0_ddr_b,            sizeof(pia0_ddr_b),             1, handle);
         if (retVal) retVal = fread(&pia1_ddr_a,            sizeof(pia1_ddr_a),             1, handle);
         if (retVal) retVal = fread(&pia1_ddr_b,            sizeof(pia1_ddr_b),             1, handle);
+        if (retVal) retVal = fread(&pia0_ddr_a_mask,       sizeof(pia0_ddr_a_mask),        1, handle);
+        if (retVal) retVal = fread(&pia0_ddr_b_mask,       sizeof(pia0_ddr_b_mask),        1, handle);
+        if (retVal) retVal = fread(&pia0_a_output_latch,   sizeof(pia0_a_output_latch),    1, handle);
+        if (retVal) retVal = fread(&pia0_b_output_latch,   sizeof(pia0_b_output_latch),    1, handle);
 
         // Restore VDG vars
         if (retVal) retVal = fread(&video_ram_offset,      sizeof(video_ram_offset),       1, handle);

@@ -39,6 +39,11 @@ extern uint8_t   pia0_ddr_b;
 extern uint8_t   pia1_ddr_a;
 extern uint8_t   pia1_ddr_b;
 
+extern uint8_t   pia0_ddr_a_mask;
+extern uint8_t   pia0_a_output_latch; 
+extern uint8_t   pia0_ddr_b_mask;
+extern uint8_t   pia0_b_output_latch;
+
 void pia_init(void);
 void pia_vsync_irq(void);
 void pia_cart_firq(void);

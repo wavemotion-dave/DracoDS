@@ -63,6 +63,12 @@ uint8_t  pia0_ddr_b __attribute__((section(".dtcm"))) = PIA_DDR;
 uint8_t  pia1_ddr_a __attribute__((section(".dtcm"))) = PIA_DDR;
 uint8_t  pia1_ddr_b __attribute__((section(".dtcm"))) = PIA_DDR;
 
+uint8_t  pia0_ddr_a_mask       __attribute__((section(".dtcm"))) = 0xFF;
+uint8_t  pia0_a_output_latch   __attribute__((section(".dtcm"))) = 0x00;
+
+uint8_t  pia0_ddr_b_mask       __attribute__((section(".dtcm"))) = 0xFF;
+uint8_t  pia0_b_output_latch   __attribute__((section(".dtcm"))) = 0x00;
+
 /* -----------------------------------------
    Module static functions
 ----------------------------------------- */
@@ -331,6 +337,12 @@ void pia_init(void)
     pia0_ddr_b     = PIA_DDR;    // Data Direction Register (normal data selected)
     pia1_ddr_a     = PIA_DDR;    // Data Direction Register (normal data selected)
     pia1_ddr_b     = PIA_DDR;    // Data Direction Register (normal data selected)
+    
+    pia0_ddr_a_mask      = 0xFF;
+    pia0_a_output_latch  = 0x00;    
+    
+    pia0_ddr_b_mask      = 0xFF;
+    pia0_b_output_latch  = 0x00;    
 }
 
 /*------------------------------------------------
@@ -404,7 +416,6 @@ void pia_cart_firq(void)
     }
 }
 
-
 /*------------------------------------------------
  * io_handler_pia0_pa()
  *
@@ -435,126 +446,140 @@ ITCM_CODE static uint8_t io_handler_pia0_pa(uint16_t address, uint8_t data, mem_
 
     if ( op == MEM_READ )
     {
-        /* We are reading the keyboard... plus the comparator bit 7  */
-
-        memset(keyboard_rows, 255, sizeof(keyboard_rows));
-
-        for (int i=0; i<kbd_keys_pressed; i++)
+        if (pia0_ddr_a) // Normal data register
         {
-            scan_code = (uint8_t) kbd_keys[i];
+            /* We are reading the keyboard... plus the comparator bit 7  */
 
-            /* Sanity check
-             */
-            if ( (row_index = (myConfig.machine ? kbd_scan_coco[(scan_code & 0x7f)][1] : kbd_scan_dragon[(scan_code & 0x7f)][1])) != 255 )
+            memset(keyboard_rows, 255, sizeof(keyboard_rows));
+
+            for (int i=0; i<kbd_keys_pressed; i++)
             {
-                /* Generate row bit patterns emulating row key closures
-                 * and match to 'make' or 'break' codes (bit.7 of scan code)
+                scan_code = (uint8_t) kbd_keys[i];
+
+                /* Sanity check
                  */
-                row_switch_bits = (myConfig.machine ? kbd_scan_coco[(scan_code & 0x7f)][0] : kbd_scan_dragon[(scan_code & 0x7f)][0]);
+                if ( (row_index = (myConfig.machine ? kbd_scan_coco[(scan_code & 0x7f)][1] : kbd_scan_dragon[(scan_code & 0x7f)][1])) != 255 )
+                {
+                    /* Generate row bit patterns emulating row key closures
+                     * and match to 'make' or 'break' codes (bit.7 of scan code)
+                     */
+                    row_switch_bits = (myConfig.machine ? kbd_scan_coco[(scan_code & 0x7f)][0] : kbd_scan_dragon[(scan_code & 0x7f)][0]);
 
-                keyboard_rows[row_index] &= row_switch_bits;
+                    keyboard_rows[row_index] &= row_switch_bits;
+                }
             }
+
+            /* Store the appropriate row bit value for PIA0_PA bit pattern
+             */
+            row_switch_bits = get_keyboard_row_scan(pia0_b_output_latch);
+            mem_write(PIA0_PA, (int) row_switch_bits);
+
+            data = row_switch_bits;
+
+            uint16_t input = 31+myConfig.analogCenter;
+            if (myConfig.joystick == 0) // Right Joystick
+            {
+                if (mux_select == MUX_RIGHT_Y) // Up-Down axis
+                {
+                    input = joy_y;
+                }
+                else if (mux_select == MUX_RIGHT_X) // Left-Right axis
+                {
+                    input = joy_x;
+                }
+
+                if (input >= dac_output)
+                {
+                    data |= 0x80;
+                    last_comparator = 0x80;
+                }
+                else
+                {
+                    data &= 0x7f;
+                    last_comparator = 0x00;
+                }
+
+                // Pressing a joystick trigger grounds the whole row...
+                if ( JoyState & JST_FIRE )
+                {
+                    data &= ~0x01;
+                }
+
+                if ( JoyState & JST_FIRE2 )
+                {
+                    data &= ~0x02;
+                }
+            }
+            else // Left Joystick
+            {
+                if (mux_select == MUX_LEFT_Y) // Up-Down axis for left joystick
+                {
+                    input = joy_y;
+                }
+                else if (mux_select == MUX_LEFT_X) // Left-Right axis for left joystick
+                {
+                    input = joy_x;
+                }
+                // The following two checks are for Lucifer's Kingdom which uses the Left Joystick
+                // for movement but when reading the joystick fire button, selects the Right Joystick
+                // which wouldn't be connected... we fake that here. Seems to have no effect on other games.
+                else if (mux_select == MUX_RIGHT_Y) // Up-Down axis
+                {
+                    input = 999;
+                }
+                else if (mux_select == MUX_RIGHT_X) // Left-Right axis
+                {
+                    input = 999;
+                }
+
+                if (input >= dac_output)
+                {
+                    data |= 0x80;
+                    last_comparator = 0x80;
+                }
+                else
+                {
+                    data &= 0x7f;
+                    last_comparator = 0x00;
+                }
+
+                // Pressing a joystick trigger grounds the whole row...
+                if ( JoyState & JST_FIRE )
+                {
+                    data &= ~0x02;
+                }
+
+                if ( JoyState & JST_FIRE2 )
+                {
+                    data &= ~0x01;
+                }
+            }
+
+            // A read from this port clears the HSync FIRQ
+            memory_IO[PIA0_CRA] &= ~PIA_CR_IRQ_STAT;
+            cpu_firq(0);
+
+            data &= ~pia0_ddr_a_mask;
+            data |= (pia0_a_output_latch & pia0_ddr_a_mask);
+            memory_IO[PIA0_PA] = data;
         }
-
-        /* Store the appropriate row bit value for PIA0_PA bit pattern
-         */
-        row_switch_bits = get_keyboard_row_scan(memory_IO[PIA0_PB]);
-        mem_write(PIA0_PA, (int) row_switch_bits);
-
-        data = row_switch_bits;
-
-        uint16_t input = 31+myConfig.analogCenter;
-        if (myConfig.joystick == 0) // Right Joystick
-        {            
-            if (mux_select == MUX_RIGHT_Y) // Up-Down axis
-            {
-                input = joy_y;
-            }
-            else if (mux_select == MUX_RIGHT_X) // Left-Right axis
-            {
-                input = joy_x;
-            }
-
-            if (input >= dac_output)
-            {
-                data |= 0x80;
-                last_comparator = 0x80;
-            }
-            else
-            {
-                data &= 0x7f;
-                last_comparator = 0x00;
-            }
-
-            // Pressing a joystick trigger grounds the whole row...
-            if ( JoyState & JST_FIRE )
-            {
-                data &= ~0x01;
-            }
-
-            if ( JoyState & JST_FIRE2 )
-            {
-                data &= ~0x02;
-            }
-        }
-        else // Left Joystick
+        else // return the DDR register
         {
-            if (mux_select == MUX_LEFT_Y) // Up-Down axis for left joystick
-            {
-                input = joy_y;
-            }
-            else if (mux_select == MUX_LEFT_X) // Left-Right axis for left joystick
-            {
-                input = joy_x;
-            }
-            // The following two checks are for Lucifer's Kingdom which uses the Left Joystick
-            // for movement but when reading the joystick fire button, selects the Right Joystick
-            // which wouldn't be connected... we fake that here. Seems to have no effect on other games.
-            else if (mux_select == MUX_RIGHT_Y) // Up-Down axis
-            {
-                input = 999;
-            }
-            else if (mux_select == MUX_RIGHT_X) // Left-Right axis
-            {
-                input = 999;
-            }
-
-            if (input >= dac_output)
-            {
-                data |= 0x80;
-                last_comparator = 0x80;
-            }
-            else
-            {
-                data &= 0x7f;
-                last_comparator = 0x00;
-            }
-
-            // Pressing a joystick trigger grounds the whole row...
-            if ( JoyState & JST_FIRE )
-            {
-                data &= ~0x02;
-            }
-
-            if ( JoyState & JST_FIRE2 )
-            {
-                data &= ~0x01;
-            }
+            return pia0_ddr_a_mask;
         }
-
-        // A read from this port clears the HSync FIRQ
-        memory_IO[PIA0_CRA] &= ~PIA_CR_IRQ_STAT;
-        cpu_firq(0);
     }
     else // MEM_WRITE
     {
-        if (pia0_ddr_a == PIA_DDR) // Normal data register 
+        if (pia0_ddr_a) // Normal data register
         {
-            
+            data &= pia0_ddr_a_mask;
+            data |= (pia0_a_output_latch & ~pia0_ddr_a_mask);
+            pia0_a_output_latch = data;
         }
         else // We are Data Direction
         {
-            
+            // We assume this key IO register is always an input...
+            pia0_ddr_a_mask = data;
         }
     }
 
@@ -586,18 +611,20 @@ ITCM_CODE static uint8_t io_handler_pia0_cra(uint16_t address, uint8_t data, mem
             cpu_firq(0);
             memory_IO[PIA0_CRA] &= ~PIA_CR_IRQ_STAT;
         }
-        
+
         pia0_ca1_int_enabled = (data & PIA_CR_INTR);
-        
+
         pia0_ddr_a = (data & PIA_DDR); // 0 = DDR, PIA_DDR = Normal Data Register
-        
+
         // These are read-only bits...
         data &= 0x7F;
         data |= (memory_IO[PIA0_CRA] & 0x80);
+
+        memory_IO[PIA0_CRA] = data;
     }
     else
     {
-
+        data = memory_IO[PIA0_CRA];
     }
 
     return data;
@@ -622,22 +649,35 @@ ITCM_CODE static uint8_t io_handler_pia0_pb(uint16_t address, uint8_t data, mem_
     {
         // The ROM is setting up to read the keyboard...
         // memory_IO[PIA0_PB] will light up a column and we can read the rows
-        if (pia0_ddr_b == PIA_DDR) // Normal data register
+        if (pia0_ddr_b) // Normal data register
         {
-
+            data &= pia0_ddr_b_mask;
+            data |= (pia0_b_output_latch & ~pia0_ddr_b_mask);
+            pia0_b_output_latch = data;
         }
         else
         {
-
+            pia0_ddr_b_mask = data;
         }
     }
     /* A read from the port address has the effect of resetting
      * the IRQ status line
      */
-    else
+    else // MEM_READ
     {
-        memory_IO[PIA0_CRB] &= ~PIA_CR_IRQ_STAT;  // VSYNC IRQ
-        cpu_irq(0);
+        if (pia0_ddr_b)
+        {
+            memory_IO[PIA0_CRB] &= ~PIA_CR_IRQ_STAT;  // VSYNC IRQ
+            cpu_irq(0);
+            
+            data &= ~pia0_ddr_b_mask;
+            data |= (pia0_b_output_latch & pia0_ddr_b_mask);
+            memory_IO[PIA0_PB] = data;
+        }
+        else
+        {
+            return pia0_ddr_b_mask;
+        }
     }
 
     return data;
@@ -669,15 +709,16 @@ ITCM_CODE static uint8_t io_handler_pia0_crb(uint16_t address, uint8_t data, mem
         // These are read-only bits...
         data &= 0x3F;
         data |= (memory_IO[PIA0_CRB] & 0xC0);
+
+        memory_IO[PIA0_CRB] = data;
     }
     else
     {
-
+        data = memory_IO[PIA0_CRB];
     }
 
     return data;
 }
-
 
 inline uint8_t loader_tape_fread(void)
 {
@@ -937,22 +978,15 @@ ITCM_CODE static uint8_t io_handler_pia1_crb(uint16_t address, uint8_t data, mem
 ITCM_CODE static uint8_t get_keyboard_row_scan(uint8_t row_scan)
 {
     uint8_t result = 0;
-    uint8_t bit_position = 0x01;
-    uint8_t test;
-    int     row;
 
-    for ( row = 0; row < KBD_ROWS; row++ )
-    {
-        test = (~row_scan) & keyboard_rows[row];
-
-        if ( test == (uint8_t)(~row_scan) )
-        {
-            result |= bit_position;
-        }
-
-        bit_position = bit_position << 1;
-    }
+    /* Unrolled form keeps this hot path cheap and predictable for ARM9 */
+    if ((keyboard_rows[0] | row_scan) == 0xff)  result |= 0x01;
+    if ((keyboard_rows[1] | row_scan) == 0xff)  result |= 0x02;
+    if ((keyboard_rows[2] | row_scan) == 0xff)  result |= 0x04;
+    if ((keyboard_rows[3] | row_scan) == 0xff)  result |= 0x08;
+    if ((keyboard_rows[4] | row_scan) == 0xff)  result |= 0x10;
+    if ((keyboard_rows[5] | row_scan) == 0xff)  result |= 0x20;
+    if ((keyboard_rows[6] | row_scan) == 0xff)  result |= 0x40;
 
     return result;
 }
-
