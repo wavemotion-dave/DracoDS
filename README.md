@@ -287,12 +287,14 @@ Versions :
 
 V1.6: 05-Aug-2026 by wavemotion-dave
 * Improved accuracy on PIA handling (DDR and masking supported) - sound and keyboard reading more robust. More games read keys/joystick more correctly.
-* Lucifer's Kingdom (CoCo Port) now running correctly.
-* Shamus now runs but there is no sound.
 * Massively improved .DSK and .CAS type detection and loading. Use START to load game... SELECT to run after loading.
 * Optimizations to improve emulation speed by 5-10% depending on the game. Tape loading slightly faster.
 * Dragon32 games default to Black/White vs Artifacting to reflect PAL vs NTSC.
 * Tandy Coco (NTSC) games now sync to the DS frame drawing to reduce tearing when emulating any games.
+* Lucifer's Kingdom (CoCo Port) now running correctly.
+* Katipiller II now runs correctly.
+* Shamus now runs but there is no sound.
+* Galactic Attack no longer switches into odd video mode.
 * Improved Dungeons of Daggorath key mapping.
 * Lots of cleanups and commenting as time permitted.
 

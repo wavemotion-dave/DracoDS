@@ -965,8 +965,16 @@ void SetDefaultGameConfig(void)
         myConfig.artifacts = 2; // Default to Black/White if the machine is PAL Dragon32
     }
 
-    // Now some special overrides for known games that need it
-    if ((file_crc == 0x6f1e913a) || (file_crc == 0x3ee6ed00))  // Dragonfire (cart and cassette)
+    // Now some special overrides for known games that need it - all these games use Left Joystick
+    if ((file_crc == 0x6f1e913a) || (file_crc == 0x3ee6ed00) || (file_crc == 0xEF6D0774) || (file_crc == 0x2ADF1579) || 
+        (file_crc == 0xA50F46B1) || (file_crc == 0xE14BF7F6) || (file_crc == 0xF4F2B0A0) || (file_crc == 0x7D1CAC0E) ||
+        (file_crc == 0x8CD56308) || (file_crc == 0xAC4DE2DA) || (file_crc == 0xEDA97D6F) || (file_crc == 0x044605D2) || 
+        (file_crc == 0xF4700120) || (file_crc == 0x0AD7855B) || (file_crc == 0x65EDB45C) || (file_crc == 0x984EE0D9) ||
+        (file_crc == 0xAB96914A) || (file_crc == 0xACC9F6AD) || (file_crc == 0x644CEF62) || (file_crc == 0x7FBD7156) ||
+        (file_crc == 0xD2C69D4A) || (file_crc == 0xA8BD5404) || (file_crc == 0x8A36614A) || (file_crc == 0xF14F7494) || 
+        (file_crc == 0x2E93509C) || (file_crc == 0x849C3DD6) || (file_crc == 0x9316AE56) || (file_crc == 0xFA0BBE42) ||
+        (file_crc == 0xB740AB41) || (file_crc == 0xDD632BF8) || (file_crc == 0xF659A608) || (file_crc == 0x195BA0F8) || 
+        (file_crc == 0x7A6D6D5F) || (file_crc == 0x7F1C75F7))    
     {
         myConfig.joystick = 1;   // Uses Left Joystick
     }
@@ -1089,7 +1097,7 @@ void FindConfig(void)
     clear_firq_immediate = 0;
     if (strstr(initial_file, "SHAMUS"))
     {
-        clear_firq_immediate = 0;
+        clear_firq_immediate = 1;
     }
 }
 
