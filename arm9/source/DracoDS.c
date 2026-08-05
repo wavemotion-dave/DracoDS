@@ -38,6 +38,7 @@
 #include "disk.h"
 #include "sam.h"
 #include "fdc.h"
+#include "vdg.h"
 #include "printf.h"
 
 // -----------------------------------------------------------------
@@ -376,6 +377,15 @@ void ShowDebugger(void)
         sprintf(tmp, "D%d %-7ld %04lX  D%d %-7ld %04lX", i, (s32)debug[i], (debug[i] < 0xFFFF ? debug[i]:0xFFFF), 4+i, (s32)debug[4+i], (debug[4+i] < 0xFFFF ? debug[4+i]:0xFFFF));
         DSPrint(0, idx++, 0, tmp);
     }
+    
+    idx++;
+    sprintf(tmp, "SVM=%02X X%d PVM=%02X CM=%02X   PC=%04X", sam_video_mode, sam_2x_rez, pia_video_mode, current_mode, cpu.pc);
+    DSPrint(0, idx++, 0, tmp);
+    
+    sprintf(tmp, "DDR=%d%d%d%d  MSK=%02X %02X %02X %02X  ST=%d", (pia0_ddr_a ? 1:0), (pia0_ddr_b ? 1:0), (pia1_ddr_a ? 1:0), (pia1_ddr_b ? 1:0), pia0_ddr_a_mask, pia0_ddr_b_mask, pia1_ddr_a_mask, pia1_ddr_b_mask, cpu.cpu_state);
+    DSPrint(0, idx++, 0, tmp);
+    sprintf(tmp, "          OUT=%02X %02X %02X %02X  LA=%02X", pia0_a_output_latch, pia0_b_output_latch, pia1_a_output_latch, pia1_b_output_latch, cpu.irq_asserted | cpu.firq_asserted | cpu.nmi_latched);
+    DSPrint(0, idx++, 0, tmp);
 }
 
 

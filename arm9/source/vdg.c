@@ -1249,7 +1249,17 @@ ITCM_CODE video_mode_t vdg_get_mode(void)
                 break;
             case 0x0e:
                 mode = GRAPHICS_6R;
-                if (sam_video_mode == 0x04) sam_2x_rez = 2;     // Essentially 256x96 using 3K
+                if (sam_video_mode == 0x04)
+                {
+                    if (force_vdg_mismatch_lower)
+                    {
+                        mode = GRAPHICS_3C; // Bump down to 3K lower-rez mode
+                    }
+                    else
+                    {
+                        sam_2x_rez = 2;     // Essentially 256x96 using 3K
+                    }
+                }
                 break;
         }
     }
@@ -1261,25 +1271,21 @@ ITCM_CODE video_mode_t vdg_get_mode(void)
             mode = ALPHA_INTERNAL;
             // Character bit.7 selects SEMI_GRAPHICS_4;
         }
-        else if ( sam_video_mode == 0 &&
-                (pia_video_mode & 0x02) )
+        else if ( sam_video_mode == 0 && (pia_video_mode & 0x02) )
         {
             mode = SEMI_GRAPHICS_6;
             // Character bit.7=0 selects ALPHA_EXTERNAL;
             // Character bit.7=1 selects SEMI_GRAPHICS_6;
         }
-        else if ( sam_video_mode == 2 &&
-                (pia_video_mode & 0x02) == 0 )
+        else if ( sam_video_mode == 2 && (pia_video_mode & 0x02) == 0 )
         {
             mode = SEMI_GRAPHICS_8;
         }
-        else if ( sam_video_mode == 4 &&
-                (pia_video_mode & 0x02) == 0 )
+        else if ( sam_video_mode == 4 && (pia_video_mode & 0x02) == 0 )
         {
             mode = SEMI_GRAPHICS_12;
         }
-        else if ( sam_video_mode == 6 &&
-                (pia_video_mode & 0x02) == 0 )
+        else if ( sam_video_mode == 6 && (pia_video_mode & 0x02) == 0 )
         {
             mode = SEMI_GRAPHICS_24;
         }

@@ -611,11 +611,14 @@ ITCM_CODE static uint8_t io_handler_pia0_cra(uint16_t address, uint8_t data, mem
         else
             mux_select &= ~0x01;
 
-        // When disabling the interrupt, we also clear it...
-        if (pia0_ca1_int_enabled && !(data & PIA_CR_INTR))
+        // When enabling the interrupt, if we have interrupt pending, fire it!
+        if (!pia0_ca1_int_enabled && (data & PIA_CR_INTR))
         {
-            cpu_firq(0);
-            memory_RAM[PIA0_CRA] &= ~PIA_CR_IRQ_STAT;
+            if (memory_RAM[PIA0_CRA] & PIA_CR_IRQ_STAT)
+            {
+                pia0_ca1_int_enabled = (data & PIA_CR_INTR);
+                cpu_firq(INT_FIRQ);
+            }
         }
 
         pia0_ca1_int_enabled = (data & PIA_CR_INTR);
@@ -708,7 +711,18 @@ ITCM_CODE static uint8_t io_handler_pia0_crb(uint16_t address, uint8_t data, mem
         else
             mux_select &= ~0x02;
 
+        // When enabling the interrupt, if we have interrupt pending, fire it!
+        if (!pia0_cb1_int_enabled && (data & PIA_CR_INTR))
+        {
+            if (memory_RAM[PIA0_CRB] & PIA_CR_IRQ_STAT)
+            {
+                pia0_cb1_int_enabled = (data & PIA_CR_INTR);
+                cpu_irq(INT_IRQ);
+            }
+        }
+        
         pia0_cb1_int_enabled = (data & PIA_CR_INTR);
+        
 
         pia0_ddr_b = (data & PIA_DDR); // 0 = DDR, PIA_DDR = Normal Data Register
 
@@ -948,7 +962,6 @@ ITCM_CODE static uint8_t io_handler_pia1_pb(uint16_t address, uint8_t data, mem_
             // Report output bits
             data &= ~pia1_ddr_b_mask;
             data |= (pia1_b_output_latch & pia1_ddr_b_mask);
-            memory_RAM[PIA1_PB] = data;
         }
         else
         {

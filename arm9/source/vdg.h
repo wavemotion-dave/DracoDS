@@ -75,23 +75,23 @@
 
 typedef enum
 {                       // Colors   Res.     Bytes BASIC
-    ALPHA_INTERNAL = 0, // 2 color  32x16    512   Default
-    ALPHA_EXTERNAL,     // 4 color  32x16    512
-    SEMI_GRAPHICS_4,    // 8 color  64x32    512
-    SEMI_GRAPHICS_6,    // 8 color  64x48    512
-    SEMI_GRAPHICS_8,    // 8 color  64x64   2048
-    SEMI_GRAPHICS_12,   // 8 color  64x96   3072
-    SEMI_GRAPHICS_24,   // 8 color  64x192  6144
-    GRAPHICS_1C,        // 4 color  64x64   1024
-    GRAPHICS_1R,        // 2 color  128x64  1024
-    GRAPHICS_2C,        // 4 color  128x64  1536
-    GRAPHICS_2R,        // 2 color  128x96  1536   PMODE0
-    GRAPHICS_3C,        // 4 color  128x96  3072   PMODE1
-    GRAPHICS_3R,        // 2 color  128x192 3072   PMODE2
-    GRAPHICS_6C,        // 4 color  128x192 6144   PMODE3
-    GRAPHICS_6R,        // 2 color  256x192 6144   PMODE4
-    DMA,                // 2 color  256x192 6144
-    UNDEFINED,          // Undefined
+    /*0 */  ALPHA_INTERNAL = 0, // 2 color  32x16    512   Default
+    /*1 */  ALPHA_EXTERNAL,     // 4 color  32x16    512
+    /*2 */  SEMI_GRAPHICS_4,    // 8 color  64x32    512
+    /*3 */  SEMI_GRAPHICS_6,    // 8 color  64x48    512
+    /*4 */  SEMI_GRAPHICS_8,    // 8 color  64x64   2048
+    /*5 */  SEMI_GRAPHICS_12,   // 8 color  64x96   3072
+    /*6 */  SEMI_GRAPHICS_24,   // 8 color  64x192  6144
+    /*7 */  GRAPHICS_1C,        // 4 color  64x64   1024
+    /*8 */  GRAPHICS_1R,        // 2 color  128x64  1024
+    /*9 */  GRAPHICS_2C,        // 4 color  128x64  1536
+    /*10*/  GRAPHICS_2R,        // 2 color  128x96  1536   PMODE0
+    /*11*/  GRAPHICS_3C,        // 4 color  128x96  3072   PMODE1
+    /*12*/  GRAPHICS_3R,        // 2 color  128x192 3072   PMODE2
+    /*13*/  GRAPHICS_6C,        // 4 color  128x192 6144   PMODE3
+    /*14*/  GRAPHICS_6R,        // 2 color  256x192 6144   PMODE4
+    /*15*/  DMA,                // 2 color  256x192 6144
+    /*16*/  UNDEFINED,          // Undefined
 } video_mode_t;
 
 

@@ -285,10 +285,10 @@ And then move the soundbank.h file to the arm9/sources directory
 Versions :
 -----------------------
 
-V1.6: 02-Aug-2026 by wavemotion-dave
-* Shamus now runs but there is no sound.
+V1.6: 05-Aug-2026 by wavemotion-dave
 * Improved accuracy on PIA handling (DDR and masking supported) - sound and keyboard reading more robust. More games read keys/joystick more correctly.
 * Lucifer's Kingdom (CoCo Port) now running correctly.
+* Shamus now runs but there is no sound.
 * Massively improved .DSK and .CAS type detection and loading. Use START to load game... SELECT to run after loading.
 * Optimizations to improve emulation speed by 5-10% depending on the game. Tape loading slightly faster.
 * Dragon32 games default to Black/White vs Artifacting to reflect PAL vs NTSC.

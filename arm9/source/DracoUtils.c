@@ -50,6 +50,7 @@ u32 file_crc __attribute__((section(".dtcm")))  = 0x00000000;  // Our global fil
 u16 JoyState   __attribute__((section(".dtcm"))) = 0;           // Joystick State and Key Bits
 
 u8 option_table=0;
+u8 force_vdg_mismatch_lower = 0;
 
 const char szKeyName[MAX_KEY_OPTIONS][16] = {
   "JOYSTICK UP",
@@ -1006,9 +1007,10 @@ void SetDefaultGameConfig(void)
         Cursors();
     }
 
-    if (strstr(initial_file, "GALACTIC"))
+    force_vdg_mismatch_lower = 0;
+    if (strstr(initial_file, "GALACTICAT") || strstr(initial_file, "GALACTIC AT"))
     {
-        myConfig.forceCSS = 1;
+        force_vdg_mismatch_lower = 1;
     }
     
     if (strstr(initial_file, "BUZZARD"))
@@ -1087,7 +1089,7 @@ void FindConfig(void)
     clear_firq_immediate = 0;
     if (strstr(initial_file, "SHAMUS"))
     {
-        clear_firq_immediate = 1;
+        clear_firq_immediate = 0;
     }
 }
 
