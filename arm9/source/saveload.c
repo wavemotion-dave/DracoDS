@@ -104,8 +104,12 @@ void DracoSaveState()
     if (retVal) retVal = fwrite(&pia1_ddr_b,            sizeof(pia1_ddr_b),             1, handle);
     if (retVal) retVal = fwrite(&pia0_ddr_a_mask,       sizeof(pia0_ddr_a_mask),        1, handle);
     if (retVal) retVal = fwrite(&pia0_ddr_b_mask,       sizeof(pia0_ddr_b_mask),        1, handle);
+    if (retVal) retVal = fwrite(&pia1_ddr_a_mask,       sizeof(pia1_ddr_a_mask),        1, handle);
+    if (retVal) retVal = fwrite(&pia1_ddr_b_mask,       sizeof(pia1_ddr_b_mask),        1, handle);
     if (retVal) retVal = fwrite(&pia0_a_output_latch,   sizeof(pia0_a_output_latch),    1, handle);
     if (retVal) retVal = fwrite(&pia0_b_output_latch,   sizeof(pia0_b_output_latch),    1, handle);
+    if (retVal) retVal = fwrite(&pia1_a_output_latch,   sizeof(pia1_a_output_latch),    1, handle);
+    if (retVal) retVal = fwrite(&pia1_b_output_latch,   sizeof(pia1_b_output_latch),    1, handle);
     
     // Write VDG vars
     if (retVal) retVal = fwrite(&video_ram_offset,      sizeof(video_ram_offset),       1, handle);
@@ -243,8 +247,12 @@ void DracoLoadState()
         if (retVal) retVal = fread(&pia1_ddr_b,            sizeof(pia1_ddr_b),             1, handle);
         if (retVal) retVal = fread(&pia0_ddr_a_mask,       sizeof(pia0_ddr_a_mask),        1, handle);
         if (retVal) retVal = fread(&pia0_ddr_b_mask,       sizeof(pia0_ddr_b_mask),        1, handle);
+        if (retVal) retVal = fread(&pia1_ddr_a_mask,       sizeof(pia1_ddr_a_mask),        1, handle);
+        if (retVal) retVal = fread(&pia1_ddr_b_mask,       sizeof(pia1_ddr_b_mask),        1, handle);
         if (retVal) retVal = fread(&pia0_a_output_latch,   sizeof(pia0_a_output_latch),    1, handle);
         if (retVal) retVal = fread(&pia0_b_output_latch,   sizeof(pia0_b_output_latch),    1, handle);
+        if (retVal) retVal = fread(&pia1_a_output_latch,   sizeof(pia1_a_output_latch),    1, handle);
+        if (retVal) retVal = fread(&pia1_b_output_latch,   sizeof(pia1_b_output_latch),    1, handle);
 
         // Restore VDG vars
         if (retVal) retVal = fread(&video_ram_offset,      sizeof(video_ram_offset),       1, handle);

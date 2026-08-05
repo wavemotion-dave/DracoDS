@@ -1666,7 +1666,7 @@ void DracoDSChangeOptions(void)
 //*****************************************************************************
 // Displays a message on the screen
 //*****************************************************************************
-ITCM_CODE void DSPrint(int iX,int iY,int iScr,char *szMessage)
+void DSPrint(int iX,int iY,int iScr,char *szMessage)
 {
   u16 *pusScreen,*pusMap;
   u16 usCharac;

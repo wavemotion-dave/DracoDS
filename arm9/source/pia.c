@@ -63,11 +63,16 @@ uint8_t  pia0_ddr_b __attribute__((section(".dtcm"))) = PIA_DDR;
 uint8_t  pia1_ddr_a __attribute__((section(".dtcm"))) = PIA_DDR;
 uint8_t  pia1_ddr_b __attribute__((section(".dtcm"))) = PIA_DDR;
 
-uint8_t  pia0_ddr_a_mask       __attribute__((section(".dtcm"))) = 0xFF;
-uint8_t  pia0_a_output_latch   __attribute__((section(".dtcm"))) = 0x00;
+uint8_t  pia0_ddr_a_mask __attribute__((section(".dtcm"))) = 0xFF;
+uint8_t  pia0_ddr_b_mask __attribute__((section(".dtcm"))) = 0xFF;
+uint8_t  pia1_ddr_a_mask __attribute__((section(".dtcm"))) = 0xFF;
+uint8_t  pia1_ddr_b_mask __attribute__((section(".dtcm"))) = 0xFF;
 
-uint8_t  pia0_ddr_b_mask       __attribute__((section(".dtcm"))) = 0xFF;
-uint8_t  pia0_b_output_latch   __attribute__((section(".dtcm"))) = 0x00;
+uint8_t  pia0_a_output_latch  __attribute__((section(".dtcm"))) = 0x00;
+uint8_t  pia0_b_output_latch  __attribute__((section(".dtcm"))) = 0x00;
+uint8_t  pia1_a_output_latch  __attribute__((section(".dtcm"))) = 0x00;
+uint8_t  pia1_b_output_latch  __attribute__((section(".dtcm"))) = 0x00;
+
 
 /* -----------------------------------------
    Module static functions
@@ -561,6 +566,7 @@ ITCM_CODE static uint8_t io_handler_pia0_pa(uint16_t address, uint8_t data, mem_
 
             data &= ~pia0_ddr_a_mask;
             data |= (pia0_a_output_latch & pia0_ddr_a_mask);
+            
             memory_IO[PIA0_PA] = data;
         }
         else // return the DDR register
@@ -744,10 +750,14 @@ ITCM_CODE static uint8_t io_handler_pia1_pa(uint16_t address, uint8_t data, mem_
 {
     if ( op == MEM_WRITE )
     {
-        if (pia1_ddr_a == PIA_DDR) // Does the DDR tell us we are normal data register output?
+        if (pia1_ddr_a) // Does the DDR tell us we are normal data register output?
         {
+            data &= pia1_ddr_a_mask;
+            data |= (pia1_a_output_latch & ~pia1_ddr_a_mask);
+            pia1_a_output_latch = data;
+
             dac_output = (data >> 2) & 0x3f;
-            
+
             // Set the last sound value if enabled...
             if (pia_is_audio_dac_enabled())
             {
@@ -757,68 +767,79 @@ ITCM_CODE static uint8_t io_handler_pia1_pa(uint16_t address, uint8_t data, mem_
         }
         else
         {
-            
+            pia1_ddr_a_mask = data;
         }
     }
-    else
+    else // MEM_READ
     {
-        /* Reading the cassette tape input bit PIA1-PA0:
-         * 1) Bits are fed into PA0 with LSB first
-         * 2) a '1' bit toggles PA0 to '0' then '1' for BIT_THRESHOLD_HI/2 reads of PA0
-         * 3) a '0' bit toggles PA0 to '0' then '1' for BIT_THRESHOLD_LO/2 reads of PA0
-         * 4) The read count threshold of PA0 that determines the bit state is 18
-         *    according to the Dragon ROM listing
-         * 5) The normal PA0 state is '0'
-         *
-         * This process fakes the bit stream coming from the cassette tape interface
-         * with the advantage that it can synchronize on the bit reads. The interface
-         * can be hacked to speed up the load time by changing the threshold of 18
-         * in Dragon RAM location 0x0092 to a lower number.
-         *
-         */
-        if ( bit_index == 0 )
+        if (pia1_ddr_a) // Does the DDR tell us we are normal data input?
         {
-            tape_byte = loader_tape_fread();
-
-            bit_index = 9;
-            bit_timing_threshold = 0;
-            bit_timing_count = 0;
-
-            /* Force sync/fill bytes just in case.
+            /* Reading the cassette tape input bit PIA1-PA0:
+             * 1) Bits are fed into PA0 with LSB first
+             * 2) a '1' bit toggles PA0 to '0' then '1' for BIT_THRESHOLD_HI/2 reads of PA0
+             * 3) a '0' bit toggles PA0 to '0' then '1' for BIT_THRESHOLD_LO/2 reads of PA0
+             * 4) The read count threshold of PA0 that determines the bit state is 18
+             *    according to the Dragon ROM listing
+             * 5) The normal PA0 state is '0'
+             *
+             * This process fakes the bit stream coming from the cassette tape interface
+             * with the advantage that it can synchronize on the bit reads. The interface
+             * can be hacked to speed up the load time by changing the threshold of 18
+             * in Dragon RAM location 0x0092 to a lower number.
+             *
              */
-            if ( cas_eof )
+            if ( bit_index == 0 )
             {
-                tape_byte = 0x55;
-            }
-        }
+                tape_byte = loader_tape_fread();
 
-        if ( bit_timing_count == bit_timing_threshold )
-        {
-            if ( tape_byte & 0b00000001 )
+                bit_index = 9;
+                bit_timing_threshold = 0;
+                bit_timing_count = 0;
+
+                /* Force sync/fill bytes just in case.
+                 */
+                if ( cas_eof )
+                {
+                    tape_byte = 0x55;
+                }
+            }
+
+            if ( bit_timing_count == bit_timing_threshold )
             {
-                bit_timing_threshold = BIT_THRESHOLD_HI;
+                if ( tape_byte & 0b00000001 )
+                {
+                    bit_timing_threshold = BIT_THRESHOLD_HI;
+                }
+                else
+                {
+                    bit_timing_threshold = BIT_THRESHOLD_LO;
+                }
+
+                bit_timing_count = 0;
+
+                tape_byte = tape_byte >> 1;
+                bit_index--;
+            }
+
+            if ( bit_timing_count < (bit_timing_threshold / 2) )
+            {
+                data &= 0b11111110;
             }
             else
             {
-                bit_timing_threshold = BIT_THRESHOLD_LO;
+                data |= 0b00000001;
             }
 
-            bit_timing_count = 0;
-
-            tape_byte = tape_byte >> 1;
-            bit_index--;
-        }
-
-        if ( bit_timing_count < (bit_timing_threshold / 2) )
-        {
-            data &= 0b11111110;
+            bit_timing_count++;
+            
+            data &= ~pia1_ddr_a_mask;
+            data |= (pia1_a_output_latch & pia1_ddr_a_mask);
+            memory_IO[PIA1_PA] = data;            
         }
         else
         {
-            data |= 0b00000001;
+            return pia1_ddr_a_mask;
         }
-
-        bit_timing_count++;
     }
 
     return data;
@@ -830,15 +851,15 @@ ITCM_CODE static uint8_t io_handler_pia1_pa(uint16_t address, uint8_t data, mem_
  *  IO call-back handler 0xFF21 PIA1-A Control register
  *  responding the cassette motor on-off select bit CA2
  *
- *  Bit 7: CA2/CD FIRQ Flag (sets to 1 when an active transition occurs on the CA2/CD input pin). 
- *  Bit 6: Interrupt Request 2 / Unused (CA2 control/status or N/A depending on configuration). 
- *  Bit 5: CRA5 (normally hardwired/kept at 1 for specific CoCo routing modes). 
- *  Bit 4: CRA4 (normally hardwired/kept at 1). 
- *  Bit 3: Cassette Motor Control (0 = Motor Off, 1 = Motor On). 
- *  Bit 2: Data Direction Control (0 = Access Data Direction Register at 0xFF20, 1 = Access Peripheral Data Register at 0xFF20). 
- *  Bit 1: CA1/CD Polarity Control (0 = FIRQ on falling/high-to-low edge, 1 = FIRQ on rising/low-to-high edge). 
+ *  Bit 7: CA2/CD FIRQ Flag (sets to 1 when an active transition occurs on the CA2/CD input pin).
+ *  Bit 6: Interrupt Request 2 / Unused (CA2 control/status or N/A depending on configuration).
+ *  Bit 5: CRA5 (normally hardwired/kept at 1 for specific CoCo routing modes).
+ *  Bit 4: CRA4 (normally hardwired/kept at 1).
+ *  Bit 3: Cassette Motor Control (0 = Motor Off, 1 = Motor On).
+ *  Bit 2: Data Direction Control (0 = Access Data Direction Register at 0xFF20, 1 = Access Peripheral Data Register at 0xFF20).
+ *  Bit 1: CA1/CD Polarity Control (0 = FIRQ on falling/high-to-low edge, 1 = FIRQ on rising/low-to-high edge).
  *  Bit 0: CA1/CD FIRQ Enable (0 = Disable CD/RS-232C FIRQ interrupt, 1= Enable FIRQ interrupt).
- * 
+ *
  *  param:  Call address, data byte for write operation, and operation type
  *  return: Status or data byte
  */
@@ -863,10 +884,12 @@ ITCM_CODE static uint8_t io_handler_pia1_cra(uint16_t address, uint8_t data, mem
         // These are read-only bits...
         data &= 0x7F;
         data |= (memory_IO[PIA1_CRA] & 0x80);
+
+        memory_IO[PIA1_CRA] = data;
     }
     else
     {
-
+        data = memory_IO[PIA1_CRA];
     }
 
     return data;
@@ -898,13 +921,17 @@ ITCM_CODE static uint8_t io_handler_pia1_pb(uint16_t address, uint8_t data, mem_
     {
         if (pia1_ddr_b) // Does the DDR tell us we are normal data output?
         {
+            data &= pia1_ddr_b_mask;
+            data |= (pia1_b_output_latch & ~pia1_ddr_b_mask);
+            pia1_b_output_latch = data;
+
             vdg_set_mode_pia(((data >> 3) & 0x1f));
-            
+
             beeper_vol = ((data & 0x02) ? 0xFFF:0x000);
         }
         else
         {
-            
+            pia1_ddr_b_mask = data;
         }
     }
     /* A read from the port address has the effect of resetting
@@ -912,11 +939,23 @@ ITCM_CODE static uint8_t io_handler_pia1_pb(uint16_t address, uint8_t data, mem_
      */
     else
     {
-        data = (pia_video_mode << 3);            // Also reports 32K/64K (0 for bit 2)
-        data |= 1;                               // RS232 In/Printer Busy
-        if (beeper_vol) data |= 2;               // Reflect last driven beeper sound output bit
-        memory_IO[PIA1_CRB] &= ~PIA_CR_IRQ_STAT; // Cart IRQ cleared
-        cpu_firq(0);
+        if (pia1_ddr_b) // Does the DDR tell us we are normal data input?
+        {
+            data = (pia_video_mode << 3);            // Also reports 32K/64K (0 for bit 2)
+            data |= 1;                               // RS232 In/Printer Busy
+            if (beeper_vol) data |= 2;               // Reflect last driven beeper sound output bit
+            
+            memory_IO[PIA1_CRB] &= ~PIA_CR_IRQ_STAT; // Cart IRQ cleared
+            cpu_firq(0);
+            
+            data &= ~pia1_ddr_b_mask;
+            data |= (pia1_b_output_latch & pia1_ddr_b_mask);
+            memory_IO[PIA1_PB] = data;
+        }
+        else
+        {
+            return pia1_ddr_b_mask;
+        }
     }
 
     return data;
@@ -928,7 +967,7 @@ ITCM_CODE static uint8_t io_handler_pia1_pb(uint16_t address, uint8_t data, mem_
  *  IO call-back handler 0xFF23 PIA1-B Control register
  *  responding the audio multiplexer select bits, and
  *  PIA1-CRB1 interrupt enable/disable.
- * 
+ *
  * Bit 7 (Cartridge Interrupt Flag): Read-only status flag indicating if a transition on CART* has occurred (cleared by reading/writing associated data registers).
  * Bit 6 (CB2 Interrupt Flag / Not Used): Unused or acts as a peripheral control flag depending on standard 6821 data sheet modes.
  * Bit 5 (CB2 Control / Interrupt): Combined with bit 4 for CB2 configuration (set to 1 along with bit 4 for CoCo audio control).
@@ -953,14 +992,16 @@ ITCM_CODE static uint8_t io_handler_pia1_crb(uint16_t address, uint8_t data, mem
         sound_enable = (data & 0x08);
 
         pia1_ddr_b = (data & PIA_DDR); // 0 = DDR, PIA_DDR = Normal Data Register
-       
+
         // These are read-only bits...
         data &= 0x3F;
         data |= (memory_IO[PIA1_CRB] & 0xC0);
+
+        memory_IO[PIA1_CRB] = data;
     }
     else
     {
-
+        data = memory_IO[PIA1_CRB];
     }
 
     return data;
