@@ -944,7 +944,7 @@ void DracoDS_main(void)
         //
         // This is how we time frame-to frame to keep the game running at 50FPS
         // ----------------------------------------------------------------------
-        if (myConfig.machine) // NTSC uses DS sync
+        if (myConfig.machine && (myConfig.gameSpeed == 0)) // NTSC at 100% can use DS sync for a tear-free experience
         {
             while (ds_vsync == last_ds_vsync)
             {
@@ -953,9 +953,9 @@ void DracoDS_main(void)
             }
             last_ds_vsync = ds_vsync;
         }
-        else // PAL
+        else // PAL or NTSC at non-100% speed...
         {
-            while (TIMER2_DATA < (GAME_SPEED_PAL[myConfig.gameSpeed]) *(timingFrames+1))
+            while (TIMER2_DATA < (myConfig.machine ? GAME_SPEED_NTSC[myConfig.gameSpeed] : GAME_SPEED_PAL[myConfig.gameSpeed]) *(timingFrames+1))
             {
                 if (myGlobalConfig.showFPS == 2) break; // If Full Speed, break out...
                 if (tape_motor) break;                  // If running TAPE go full speed
