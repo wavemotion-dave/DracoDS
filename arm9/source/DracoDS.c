@@ -168,7 +168,7 @@ s16 mixer[WAVE_DIRECT_BUF_SIZE+1] __attribute__((section(".dtcm")));
 
 // The games normally run at the proper 100% speed, but user can override from 80% to 130%
 u16 GAME_SPEED_PAL[]  __attribute__((section(".dtcm"))) = {655, 596, 547, 504, 728, 818 };
-u16 GAME_SPEED_NTSC[] __attribute__((section(".dtcm"))) = {546, 497, 455, 416, 420, 607 };
+u16 GAME_SPEED_NTSC[] __attribute__((section(".dtcm"))) = {546, 497, 455, 416, 607, 686 };
 
 u16 catch_up        __attribute__((section(".dtcm"))) = 0;
 
@@ -384,7 +384,7 @@ void ShowDebugger(void)
     
     sprintf(tmp, "DDR=%d%d%d%d  MSK=%02X %02X %02X %02X  ST=%d", (pia0_ddr_a ? 1:0), (pia0_ddr_b ? 1:0), (pia1_ddr_a ? 1:0), (pia1_ddr_b ? 1:0), pia0_ddr_a_mask, pia0_ddr_b_mask, pia1_ddr_a_mask, pia1_ddr_b_mask, cpu.cpu_state);
     DSPrint(0, idx++, 0, tmp);
-    sprintf(tmp, "          OUT=%02X %02X %02X %02X  LA=%02X", pia0_a_output_latch, pia0_b_output_latch, pia1_a_output_latch, pia1_b_output_latch, cpu.irq_asserted | cpu.firq_asserted | cpu.nmi_latched);
+    sprintf(tmp, "MPU=%d     OUT=%02X %02X %02X %02X  LA=%02X", sam_registers.mpu_rate, pia0_a_output_latch, pia0_b_output_latch, pia1_a_output_latch, pia1_b_output_latch, cpu.irq_asserted | cpu.firq_asserted | cpu.nmi_latched);
     DSPrint(0, idx++, 0, tmp);
 }
 
