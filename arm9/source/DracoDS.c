@@ -223,9 +223,9 @@ s16 last_dac     __attribute__((section(".dtcm"))) = 0;
 ITCM_CODE void processDirectAudio(void)
 {
     u8 num_samples = 2;
-    
+
     if (breather) return;
-    
+
     if (catch_up) {catch_up--; num_samples=6;} // Queue nearly empty... catch up
 
     for (u8 i=0; i<num_samples; i++)
@@ -372,19 +372,20 @@ void ResetDragonTandy(void)
 void ShowDebugger(void)
 {
     u8 idx = 1;
+
     for (u8 i=0; i<4; i++)
     {
         sprintf(tmp, "D%d %-7ld %04lX  D%d %-7ld %04lX", i, (s32)debug[i], (debug[i] < 0xFFFF ? debug[i]:0xFFFF), 4+i, (s32)debug[4+i], (debug[4+i] < 0xFFFF ? debug[4+i]:0xFFFF));
         DSPrint(0, idx++, 0, tmp);
     }
-    
+
     idx++;
     sprintf(tmp, "SVM=%02X X%d PVM=%02X CM=%02X   PC=%04X", sam_video_mode, sam_2x_rez, pia_video_mode, current_mode, cpu.pc);
     DSPrint(0, idx++, 0, tmp);
-    
-    sprintf(tmp, "DDR=%d%d%d%d  MSK=%02X %02X %02X %02X  ST=%d", (pia0_ddr_a ? 1:0), (pia0_ddr_b ? 1:0), (pia1_ddr_a ? 1:0), (pia1_ddr_b ? 1:0), pia0_ddr_a_mask, pia0_ddr_b_mask, pia1_ddr_a_mask, pia1_ddr_b_mask, cpu.cpu_state);
+
+    sprintf(tmp, "DDR=%d%d%d%d  MSK=%02X %02X %02X %02X  ST=%02X", (pia0_ddr_a ? 1:0), (pia0_ddr_b ? 1:0), (pia1_ddr_a ? 1:0), (pia1_ddr_b ? 1:0), pia0_ddr_a_mask, pia0_ddr_b_mask, pia1_ddr_a_mask, pia1_ddr_b_mask, cpu.cpu_state);
     DSPrint(0, idx++, 0, tmp);
-    sprintf(tmp, "MPU=%d     OUT=%02X %02X %02X %02X  LA=%02X", sam_registers.mpu_rate, pia0_a_output_latch, pia0_b_output_latch, pia1_a_output_latch, pia1_b_output_latch, cpu.irq_asserted | cpu.firq_asserted | cpu.nmi_latched);
+    sprintf(tmp, "MPU=%s%d  OUT=%02X %02X %02X %02X  LA=%02X", sam_registers.memory_map_type ? "32K":"64K",sam_registers.mpu_rate, pia0_a_output_latch, pia0_b_output_latch, pia1_a_output_latch, pia1_b_output_latch, cpu.irq_asserted | cpu.firq_asserted | cpu.nmi_latched);
     DSPrint(0, idx++, 0, tmp);
 }
 
@@ -738,7 +739,7 @@ u8 __attribute__((noinline)) handle_meta_key(u8 meta_key)
                 last_file_size = ReadFileCarefully(gpFic[ucGameChoice].szName, TapeCartDiskBuffer, sizeof(TapeCartDiskBuffer), 0);
                 strcpy(last_file, gpFic[ucGameChoice].szName);
                 fdc_reset(0);
-                
+
                 // if a .CAS file was loaded, reset those key vars
                 tape_pos = 0;
                 cas_eof = 0;
@@ -783,7 +784,7 @@ char *check_filename_for_file(void)
             return (char *)&initial_file[i+2];
         }
     }
-    
+
     return NULL;
 }
 
@@ -836,7 +837,7 @@ void InjectKey(char ch)
     {
         BufferKey(31 + (ch - '1'));
     }
-    else 
+    else
     {
         BufferKey(5 + (ch - 'A'));
     }
@@ -887,7 +888,7 @@ void DracoDS_main(void)
   SetYtrigger(190); //trigger 2 lines before vblank
   irqSet(IRQ_VBLANK,  irqVBlank);
   irqEnable(IRQ_VBLANK);
-  
+
   // -----------------------------------------------------------
   // Stay in this loop running the game until the user exits...
   // -----------------------------------------------------------
@@ -1022,7 +1023,7 @@ void DracoDS_main(void)
                 {
                     bFirstTime = 0;
                     char *fn = disk_get_filename();
-                    
+
                     if (!fn) // No files found... maybe DOS disk...
                     {
                         BufferKey(8);     // D
@@ -1036,9 +1037,9 @@ void DracoDS_main(void)
                         BufferKey(19);    // O
                         BufferKey(5) ;    // A
                         BufferKey(8);     // D
-                        
+
                         char *filename_fn = check_filename_for_file();
-                        
+
                         if (filename_fn)
                         {
                             if (strstr(filename_fn, ".BAS"))
@@ -1071,7 +1072,7 @@ void DracoDS_main(void)
                         BufferKey(49);    // Space
                         BufferKey(55);    // Shift
                         BufferKey(32);    // '2' for double quote
-                        
+
                         if (filename_fn)
                         {
                             int i = 0;
@@ -1083,7 +1084,7 @@ void DracoDS_main(void)
                                 }
                                 i++;
                             }
-                            
+
                             BufferKey(48);    // ENTER
 
                         }
@@ -1098,12 +1099,12 @@ void DracoDS_main(void)
                                         InjectKey(fn[i]);
                                     }
                                 }
-                                
+
                                 BufferKey(48);    // ENTER
                             }
                         }
                     }
-                    
+
                     BufferKey(255);   // END
                 }
             }
@@ -1122,7 +1123,7 @@ void DracoDS_main(void)
                         BufferKey(22);    // R
                         BufferKey(25);    // U
                         BufferKey(18);    // N
-                        
+
                         BufferKey(48);    // ENTER
                         BufferKey(255);   // END
                     }
@@ -1136,7 +1137,7 @@ void DracoDS_main(void)
                     if (bFirstTimeSelect)
                     {
                         bFirstTimeSelect = 0;
-                        
+
                         if (probably_basic)
                         {
                             BufferKey(22);    // R
@@ -1150,7 +1151,7 @@ void DracoDS_main(void)
                             BufferKey(9) ;    // E
                             BufferKey(7);     // C
                         }
-                        
+
                         BufferKey(48);    // ENTER
                         BufferKey(255);   // END
                     }
@@ -1223,7 +1224,7 @@ void DracoDS_main(void)
                             }
                             last_kbd_key = kbd_key;
                             bFirstTimeSelect = 0;
-                            bFirstTime = 0;                            
+                            bFirstTime = 0;
                         }
                     }
                   }
@@ -1535,15 +1536,15 @@ void DracoDSInit(void)
     videoSetModeSub(MODE_0_2D | DISPLAY_BG0_ACTIVE  | DISPLAY_BG1_ACTIVE | DISPLAY_SPR_1D_LAYOUT | DISPLAY_SPR_ACTIVE);
     vramSetBankA(VRAM_A_MAIN_BG);
     vramSetBankC(VRAM_C_SUB_BG);
-   
+
     //  Stop blending effect of intro
     REG_BLDCNT=0; REG_BLDCNT_SUB=0; REG_BLDY=0; REG_BLDY_SUB=0;
-   
+
     //  Render the top screen
     bg0 = bgInit(0, BgType_Text8bpp,  BgSize_T_256x512, 31,0);
     bg1 = bgInit(1, BgType_Text8bpp,  BgSize_T_256x512, 29,0);
     bgSetPriority(bg0,1);bgSetPriority(bg1,0);
-   
+
     if (myGlobalConfig.defMachine)
     {
         decompress(top_cocoTiles,  bgGetGfxPtr(bg0), LZ77Vram);
@@ -1558,10 +1559,10 @@ void DracoDSInit(void)
     }
     unsigned  short dmaVal =*(bgGetMapPtr(bg0)+51*32);
     dmaFillWords(dmaVal | (dmaVal<<16),(void*)  bgGetMapPtr(bg1),32*24*2);
-   
+
     // Put up the options screen
     BottomScreenOptions();
-   
+
     //  Find the files
     DracoDSFindFiles(0);
 }
@@ -1721,39 +1722,39 @@ int main(int argc, char **argv)
 {
     //  Init sound
     consoleDemoInit();
-   
+
     if  (!fatInitDefault())
     {
        iprintf("Unable to initialize libfat!\n");
        return -1;
     }
-   
+
     lcdMainOnTop();
-   
+
     //  Init timer for frame management
     TIMER2_DATA=0;
     TIMER2_CR=TIMER_ENABLE|TIMER_DIV_1024;
     dsInstallSoundEmuFIFO();
-   
+
     // -----------------------------------------------------------------
     // And do an initial load of configuration... We'll match it up
     // with the game that was selected later...
     // -----------------------------------------------------------------
     LoadConfig();
-   
+
     //  Show the fade-away intro logo...
     intro_logo();
-   
+
     SetYtrigger(190); //trigger 2 lines before vblank
     irqSet(IRQ_VBLANK,  irqVBlank);
     irqEnable(IRQ_VBLANK);
-   
+
     // -----------------------------------------------------------------
     // Grab the BIOS before we try to switch any directories around...
     // -----------------------------------------------------------------
     useVRAM();
     LoadBIOSFiles();
-   
+
     //  Handle command line argument... mostly for TWL++
     if  (argc > 1)
     {
@@ -1777,7 +1778,7 @@ int main(int argc, char **argv)
     else
     {
         cmd_line_file[0]=0; // No file passed on command line...
-   
+
         if ((myGlobalConfig.lastDir == 2) && (strlen(myGlobalConfig.szLastPath) > 2))
         {
             chdir(myGlobalConfig.szLastPath);  // Try to start back where we last were...
@@ -1797,18 +1798,18 @@ int main(int argc, char **argv)
             }
         }
     }
-   
+
     SoundPause();
-   
+
     srand(time(NULL));
-   
+
     //  ------------------------------------------------------------
     //  We run this loop forever until game exit is selected...
     //  ------------------------------------------------------------
     while(1)
     {
       DracoDSInit();
-   
+
       // ---------------------------------------------------------------
       // Let the user know what BIOS files were found - the only BIOS
       // that must exist is 48.rom or else the show is off...
@@ -1821,7 +1822,7 @@ int main(int argc, char **argv)
           DSPrint(2,15,0," /ROMS/BIOS OR WITH EMULATOR");
           while(1) ;  // We're done... Need a bios to run this emulator
       }
-   
+
       while(1)
       {
         SoundPause();
@@ -1838,13 +1839,13 @@ int main(int argc, char **argv)
         {
             DracoDSChangeOptions();
         }
-   
+
         //  Run Machine
         DracoDSInitCPU();
         DracoDS_main();
       }
     }
-    
+
     return(0);
 }
 

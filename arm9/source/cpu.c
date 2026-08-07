@@ -421,7 +421,7 @@ ITCM_CODE void cpu_run(void)
                 cc.i = CC_FLAG_SET;
 
                 cpu.pc = (mem_read(VEC_FIRQ) << 8) + mem_read(VEC_FIRQ+1);
-                
+
                 extern u8 clear_firq_immediate;
                 if (clear_firq_immediate) // Shamus hack
                 {

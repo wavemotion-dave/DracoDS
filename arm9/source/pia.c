@@ -338,16 +338,16 @@ void pia_init(void)
     mux_select           = 0x00; // The Comparator Mux
     cas_eof              = 0;    // End of Cassette File
 
-    pia0_ddr_a     = PIA_DDR;    // Data Direction Register (normal data selected)
-    pia0_ddr_b     = PIA_DDR;    // Data Direction Register (normal data selected)
-    pia1_ddr_a     = PIA_DDR;    // Data Direction Register (normal data selected)
-    pia1_ddr_b     = PIA_DDR;    // Data Direction Register (normal data selected)
-    
+    pia0_ddr_a     = PIA_DDR;    // Data Direction Register (normal data register selected)
+    pia0_ddr_b     = PIA_DDR;    // Data Direction Register (normal data register selected)
+    pia1_ddr_a     = PIA_DDR;    // Data Direction Register (normal data register selected)
+    pia1_ddr_b     = PIA_DDR;    // Data Direction Register (normal data register selected)
+
     pia0_ddr_a_mask      = 0xFF;
-    pia0_a_output_latch  = 0x00;    
-    
+    pia0_a_output_latch  = 0x00;
+
     pia0_ddr_b_mask      = 0xFF;
-    pia0_b_output_latch  = 0x00;    
+    pia0_b_output_latch  = 0x00;
 }
 
 /*------------------------------------------------
@@ -566,7 +566,7 @@ ITCM_CODE static uint8_t io_handler_pia0_pa(uint16_t address, uint8_t data, mem_
 
             data &= ~pia0_ddr_a_mask;
             data |= (pia0_a_output_latch & pia0_ddr_a_mask);
-            
+
             memory_RAM[PIA0_PA] = data;
         }
         else // return the DDR register
@@ -584,7 +584,7 @@ ITCM_CODE static uint8_t io_handler_pia0_pa(uint16_t address, uint8_t data, mem_
         }
         else // We are Data Direction
         {
-            // We assume this key IO register is always an input...
+            // Set the data mask
             pia0_ddr_a_mask = data;
         }
     }
@@ -623,7 +623,7 @@ ITCM_CODE static uint8_t io_handler_pia0_cra(uint16_t address, uint8_t data, mem
 
         pia0_ca1_int_enabled = (data & PIA_CR_INTR);
 
-        pia0_ddr_a = (data & PIA_DDR); // 0 = DDR, PIA_DDR = Normal Data Register
+        pia0_ddr_a = (data & PIA_DDR); // 0 = DDR, 1 = PDR (Normal Data Register)
 
         // These are read-only bits...
         data &= 0x7F;
@@ -678,7 +678,7 @@ ITCM_CODE static uint8_t io_handler_pia0_pb(uint16_t address, uint8_t data, mem_
         {
             memory_RAM[PIA0_CRB] &= ~PIA_CR_IRQ_STAT;  // VSYNC IRQ
             cpu_irq(0);
-            
+
             data &= ~pia0_ddr_b_mask;
             data |= (pia0_b_output_latch & pia0_ddr_b_mask);
             memory_RAM[PIA0_PB] = data;
@@ -720,11 +720,11 @@ ITCM_CODE static uint8_t io_handler_pia0_crb(uint16_t address, uint8_t data, mem
                 cpu_irq(INT_IRQ);
             }
         }
-        
-        pia0_cb1_int_enabled = (data & PIA_CR_INTR);
-        
 
-        pia0_ddr_b = (data & PIA_DDR); // 0 = DDR, PIA_DDR = Normal Data Register
+        pia0_cb1_int_enabled = (data & PIA_CR_INTR);
+
+
+        pia0_ddr_b = (data & PIA_DDR); // 0 = DDR, 1 = PDR (Normal Data Register)
 
         // These are read-only bits...
         data &= 0x3F;
@@ -845,10 +845,10 @@ ITCM_CODE static uint8_t io_handler_pia1_pa(uint16_t address, uint8_t data, mem_
             }
 
             bit_timing_count++;
-            
+
             data &= ~pia1_ddr_a_mask;
             data |= (pia1_a_output_latch & pia1_ddr_a_mask);
-            memory_RAM[PIA1_PA] = data;            
+            memory_RAM[PIA1_PA] = data;
         }
         else
         {
@@ -893,7 +893,7 @@ ITCM_CODE static uint8_t io_handler_pia1_cra(uint16_t address, uint8_t data, mem
             }
         }
 
-        pia1_ddr_a = (data & PIA_DDR); // 0 = DDR, PIA_DDR = Normal Data Register
+        pia1_ddr_a = (data & PIA_DDR); // 0 = DDR, 1 = PDR (Normal Data Register)
 
         // These are read-only bits...
         data &= 0x7F;
@@ -901,7 +901,7 @@ ITCM_CODE static uint8_t io_handler_pia1_cra(uint16_t address, uint8_t data, mem
 
         memory_RAM[PIA1_CRA] = data;
     }
-    else
+    else // MEM_READ
     {
         data = memory_RAM[PIA1_CRA];
     }
@@ -954,12 +954,13 @@ ITCM_CODE static uint8_t io_handler_pia1_pb(uint16_t address, uint8_t data, mem_
     {
         if (pia1_ddr_b) // Does the DDR tell us we are normal data input?
         {
-            data |= 1;                                // RS232 In/Printer Busy
-            
             memory_RAM[PIA1_CRB] &= ~PIA_CR_IRQ_STAT; // Cart IRQ cleared
             cpu_firq(0);
-            
-            // Report output bits
+
+            data |= 0x01;   // RS232 In/Printer Busy
+            data &= 0x04;   // Memory size 32K/64K
+
+            // Report back the output bits
             data &= ~pia1_ddr_b_mask;
             data |= (pia1_b_output_latch & pia1_ddr_b_mask);
         }
@@ -1002,7 +1003,7 @@ ITCM_CODE static uint8_t io_handler_pia1_crb(uint16_t address, uint8_t data, mem
 
         sound_enable = (data & 0x08);
 
-        pia1_ddr_b = (data & PIA_DDR); // 0 = DDR, PIA_DDR = Normal Data Register
+        pia1_ddr_b = (data & PIA_DDR); // 0 = DDR, 1 = PDR (Normal Data Register)
 
         // These are read-only bits...
         data &= 0x3F;
@@ -1010,7 +1011,7 @@ ITCM_CODE static uint8_t io_handler_pia1_crb(uint16_t address, uint8_t data, mem
 
         memory_RAM[PIA1_CRB] = data;
     }
-    else
+    else // MEM_READ
     {
         data = memory_RAM[PIA1_CRB];
     }

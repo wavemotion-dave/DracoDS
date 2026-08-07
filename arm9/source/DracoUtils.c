@@ -831,7 +831,7 @@ int detect_cas_file_type(const uint8_t *buffer, size_t size)
     uint8_t block_len  = buffer[i+1];
 
     if (block_len != 0x0F) {
-        return TAPE_ERROR_NO_HEADER; 
+        return TAPE_ERROR_NO_HEADER;
     }
 
     // Verify block checksum to ensure data integrity.
@@ -849,7 +849,7 @@ int detect_cas_file_type(const uint8_t *buffer, size_t size)
     // The 15-byte payload starts at buffer[i+2]
     // Byte 8 of the payload is the File Type:
     // 0 = BASIC, 1 = Data, 2 = Machine Code
-    uint8_t file_type_byte = buffer[i + 2 + 8]; 
+    uint8_t file_type_byte = buffer[i + 2 + 8];
 
     return (int)file_type_byte;
 }
@@ -940,13 +940,13 @@ void SetDefaultGameConfig(void)
     myConfig.reserved8   = 0;
     myConfig.reserved9   = 0;
     myConfig.reserved10  = 0xA5;    // So it's easy to spot on an "upgrade" and we can re-default it
-    
+
     // We only support TANDY in disk mode
     if ((draco_mode == MODE_DSK) || (draco_mode == MODE_CART))
     {
         myConfig.machine = 1; // CoCo only
     }
-    
+
     // If CAS, we do our best to match the known Dragon32 games...
     if (draco_mode == MODE_CAS)
     {
@@ -966,19 +966,19 @@ void SetDefaultGameConfig(void)
     }
 
     // Now some special overrides for known games that need it - all these games use Left Joystick
-    if ((file_crc == 0x6f1e913a) || (file_crc == 0x3ee6ed00) || (file_crc == 0xEF6D0774) || (file_crc == 0x2ADF1579) || 
+    if ((file_crc == 0x6f1e913a) || (file_crc == 0x3ee6ed00) || (file_crc == 0xEF6D0774) || (file_crc == 0x2ADF1579) ||
         (file_crc == 0xA50F46B1) || (file_crc == 0xE14BF7F6) || (file_crc == 0xF4F2B0A0) || (file_crc == 0x7D1CAC0E) ||
-        (file_crc == 0x8CD56308) || (file_crc == 0xAC4DE2DA) || (file_crc == 0xEDA97D6F) || (file_crc == 0x044605D2) || 
+        (file_crc == 0x8CD56308) || (file_crc == 0xAC4DE2DA) || (file_crc == 0xEDA97D6F) || (file_crc == 0x044605D2) ||
         (file_crc == 0xF4700120) || (file_crc == 0x0AD7855B) || (file_crc == 0x65EDB45C) || (file_crc == 0x984EE0D9) ||
         (file_crc == 0xAB96914A) || (file_crc == 0xACC9F6AD) || (file_crc == 0x644CEF62) || (file_crc == 0x7FBD7156) ||
-        (file_crc == 0xD2C69D4A) || (file_crc == 0xA8BD5404) || (file_crc == 0x8A36614A) || (file_crc == 0xF14F7494) || 
+        (file_crc == 0xD2C69D4A) || (file_crc == 0xA8BD5404) || (file_crc == 0x8A36614A) || (file_crc == 0xF14F7494) ||
         (file_crc == 0x2E93509C) || (file_crc == 0x849C3DD6) || (file_crc == 0x9316AE56) || (file_crc == 0xFA0BBE42) ||
-        (file_crc == 0xB740AB41) || (file_crc == 0xDD632BF8) || (file_crc == 0xF659A608) || (file_crc == 0x195BA0F8) || 
-        (file_crc == 0x7A6D6D5F) || (file_crc == 0x7F1C75F7))    
+        (file_crc == 0xB740AB41) || (file_crc == 0xDD632BF8) || (file_crc == 0xF659A608) || (file_crc == 0x195BA0F8) ||
+        (file_crc == 0x7A6D6D5F) || (file_crc == 0x7F1C75F7))
     {
         myConfig.joystick = 1;   // Uses Left Joystick
     }
-    
+
     if ((file_crc == 0xd45e59e3) || (file_crc == 0xc985282a))  // Dungeons of Daggorath
     {
         myConfig.keymap[0]   = 62;   // NDS D-Pad mapped to MOVE (FORWARD)
@@ -995,7 +995,7 @@ void SetDefaultGameConfig(void)
         myConfig.keymap[10]  = 69;   // NDS START mapped to EXAMINE
         myConfig.keymap[11]  = 70;   // NDS SELECT mapped to LOOK
     }
-    
+
     // This just makes it easier to search the filename if we are all caps...
     for (int i=0; i<strlen(initial_file); i++)
     {
@@ -1003,12 +1003,12 @@ void SetDefaultGameConfig(void)
     }
 
     // These games generally want the 'Digital plus Offset' handling
-    if (strstr(initial_file, "BANDITO") || strstr(initial_file, "NERBLE") || strstr(initial_file, "AVENGER") || 
+    if (strstr(initial_file, "BANDITO") || strstr(initial_file, "NERBLE") || strstr(initial_file, "AVENGER") ||
         strstr(initial_file, "SHOCK")   || strstr(initial_file, "FANGMAN"))
     {
         myConfig.joyType = 7;
     }
-    
+
     if (strstr(initial_file, "CHUCKIE"))
     {
         myConfig.dpad = DPAD_SLIDE_N_GLIDE;
@@ -1020,7 +1020,7 @@ void SetDefaultGameConfig(void)
     {
         force_vdg_mismatch_lower = 1;
     }
-    
+
     if (strstr(initial_file, "BUZZARD"))
     {
         myConfig.joystick = 1; // Uses Left Joystick
@@ -1033,7 +1033,7 @@ void SetDefaultGameConfig(void)
         myConfig.keymap[5]   = 28;   // NDS B Button mapped to X
         myConfig.keymap[4]   = 7;    // NDS A Button mapped to C
     }
-    
+
     if (detect_cas_file_type(TapeCartDiskBuffer, file_size) == TAPE_TYPE_BASIC)
     {
         myConfig.autoLoad    = 2;    // Looks like a BASIC loader... Use CLOAD vs CLOADM
@@ -1093,7 +1093,7 @@ void FindConfig(void)
             break;
         }
     }
-    
+
     clear_firq_immediate = 0;
     if (strstr(initial_file, "SHAMUS"))
     {
@@ -1203,7 +1203,7 @@ void DracoDSGameOptions(bool bIsGlobal)
         if (keys_pressed != last_keys_pressed)
         {
             u8 optionChanged = 0;
-            
+
             last_keys_pressed = keys_pressed;
             if (keysCurrent() & KEY_UP) // Previous option
             {
@@ -1239,7 +1239,7 @@ void DracoDSGameOptions(bool bIsGlobal)
                 DSPrint(1,6+optionHighlighted,2, strBuf);
                 optionChanged = 1;
             }
-            
+
             if (optionChanged)
             {
                 if (myConfig.machine != last_machine_type) // Machine type changed
@@ -1256,7 +1256,7 @@ void DracoDSGameOptions(bool bIsGlobal)
                     idx=display_options_list(true);
                 }
             }
-            
+
             if (keysCurrent() & KEY_START)  // Save Options
             {
                 SaveConfig(TRUE);
@@ -1848,7 +1848,7 @@ void ProcessBufferedKeys(void)
                 BufferedKeysReadIdx = (BufferedKeysReadIdx+1) % 32;
                 next_dampen_time = 8;
                 if (buf_held == 255) {buf_held = 0; kbd_key = 0;}
-                
+
                 if (buf_held == 55) // Shift Key? Grab the next one to go with it...
                 {
                     kbd_keys[kbd_keys_pressed++] = buf_held;
@@ -1925,19 +1925,19 @@ void DragonTandyRun(void)
 // ------------------------------------------------------------------------------------
 // These colors were derived by using other emulators and taking screenshots and then
 // using GIMPs color-picker to try and get as close as possible. At first I was just
-// assigning RGB values that made sense - for example FB_CYAN was 0x00FFFF but in 
-// reality the color names are only approximations of the actual colors rendered by 
+// assigning RGB values that made sense - for example FB_CYAN was 0x00FFFF but in
+// reality the color names are only approximations of the actual colors rendered by
 // the Motorola video chip... these aren't perfect but they will be good enough.
 // ------------------------------------------------------------------------------------
 u8 Dragon_Coco_palette[16*3] =
 {
   0x00, 0x00, 0x00, // FB_BLACK
-  
+
   0x00, 0xFF, 0x00, // FB_GREEN
   0xFF, 0xFF, 0x83, // FB_YELLOW
   0x1B, 0x16, 0xEB, // FB_BLUE
   0xC0, 0x0E, 0x24, // FB_RED
-  
+
   0xF0, 0xF0, 0xF0, // FB_BUFF (White-ish)
   0x1D, 0x9C, 0x5D, // FB_CYAN (slightly more greenish)
   0xFD, 0x25, 0xFF, // FB_MAGENTA (slightly more purplish)
@@ -1946,7 +1946,7 @@ u8 Dragon_Coco_palette[16*3] =
   0x00, 0x80, 0xFF, // Artifact BLUE
   0xFF, 0x80, 0x00, // Artifact ORANGE
   0x00, 0x80, 0x00, // Artifact Green
-  
+
   0x10, 0x40, 0x10, // Dark  Green Text
   0x78, 0x50, 0x20, // Dark  Orange Text
   0x00, 0xFF, 0x00, // Light Green Text

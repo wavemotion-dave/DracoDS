@@ -99,11 +99,18 @@ void mem_load_rom(int addr_start, const uint8_t *buffer, int length)
  */
 static uint8_t do_nothing_io_handler(uint16_t address, uint8_t data, mem_operation_t op)
 {
-    if (op == MEM_WRITE) return data;
-    return (uint8_t)(address >> 8); // Generally non-connected IO will return high byte of the address
+    return 0xFF;  // Generally non-connected IO will return the high byte of the address... which will be 0xFF
 }
 
-// I'm not sure this is even possible... but we don't inline it as I'm never really expecting it to be called...
+/*------------------------------------------------
+ * io_read16()
+ *
+ *  I'm not sure this is even possible... but we don't inline
+ *  it as I'm never really expecting it to be called...
+ *
+ *  param:  address to read
+ *  return: 16-bit I/O value
+ */
 __attribute__((noinline)) uint16_t io_read16(uint16_t address)
 {
     /* An attempt to read an IO address will trigger
