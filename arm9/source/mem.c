@@ -116,7 +116,8 @@ __attribute__((noinline)) uint16_t io_read16(uint16_t address)
     /* An attempt to read an IO address will trigger
      * the callback that may return an alternative value.
      */
-    memory_RAM[address] = callback_io[address]((uint16_t) address, memory_RAM[address], MEM_READ);
-    memory_RAM[address+1] = callback_io[address+1]((uint16_t) address+1, memory_RAM[address+1], MEM_READ);
-    return (memory_RAM[address] << 8) | memory_RAM[address+1];
+    u8 hi = callback_io[address]((uint16_t) address, memory_RAM[address], MEM_READ);
+    address++;
+    u8 lo = callback_io[address]((uint16_t) address, memory_RAM[address], MEM_READ);
+    return (hi << 8) | lo;
 }

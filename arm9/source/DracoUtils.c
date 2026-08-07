@@ -974,7 +974,8 @@ void SetDefaultGameConfig(void)
         (file_crc == 0xD2C69D4A) || (file_crc == 0xA8BD5404) || (file_crc == 0x8A36614A) || (file_crc == 0xF14F7494) ||
         (file_crc == 0x2E93509C) || (file_crc == 0x849C3DD6) || (file_crc == 0x9316AE56) || (file_crc == 0xFA0BBE42) ||
         (file_crc == 0xB740AB41) || (file_crc == 0xDD632BF8) || (file_crc == 0xF659A608) || (file_crc == 0x195BA0F8) ||
-        (file_crc == 0x7A6D6D5F) || (file_crc == 0x7F1C75F7))
+        (file_crc == 0x7A6D6D5F) || (file_crc == 0x7F1C75F7) || (file_crc == 0x261831C5) || (file_crc == 0x7A6D6D5F) ||
+        (file_crc == 0x54094DEA))
     {
         myConfig.joystick = 1;   // Uses Left Joystick
     }
@@ -1002,11 +1003,16 @@ void SetDefaultGameConfig(void)
         initial_file[i] = toupper(initial_file[i]);
     }
 
-    // These games generally want the 'Digital plus Offset' handling
-    if (strstr(initial_file, "BANDITO") || strstr(initial_file, "NERBLE") || strstr(initial_file, "AVENGER") ||
-        strstr(initial_file, "SHOCK")   || strstr(initial_file, "FANGMAN"))
+    // These games generally want the 'Digital plus Offset' handling (offset type 1)
+    if (strstr(initial_file, "BANDITO"))
     {
         myConfig.joyType = 7;
+    }
+
+    // These games generally want the 'Digital plus Offset' handling (offset type 2)
+    if (strstr(initial_file, "NERBLE") || strstr(initial_file, "AVENGER") || strstr(initial_file, "SHOCK")   || strstr(initial_file, "FANGMAN"))
+    {
+        myConfig.joyType = 8;
     }
 
     if (strstr(initial_file, "CHUCKIE"))
@@ -1131,7 +1137,8 @@ const struct options_t Option_Table[2][20] =
         {"NDS D-PAD",      {"NORMAL", "SLIDE-N-GLIDE", "DIAGONALS"},                   &myConfig.dpad,              3},
         {"JOYSTICK",       {"RIGHT", "LEFT"},                                          &myConfig.joystick,          2},
         {"JOY TYPE",       {"DIGITAL", "ANALOG SLOW", "ANALOG MEDIUM", "ANALOG FAST",
-                     "SLOW CENTER", "MEDIUM CENTER", "FAST CENTER", "DIGITAL OFFSET"}, &myConfig.joyType,           8},
+                            "SLOW CENTER", "MEDIUM CENTER", "FAST CENTER", 
+                            "DIG OFFSET 1", "DIG OFFSET 2"},                           &myConfig.joyType,           9},
         {"ANALG CENTER",   {"31", "32", "33"},                                         &myConfig.analogCenter,      3},
         {NULL,             {"",      ""},                                              NULL,                        1},
     },

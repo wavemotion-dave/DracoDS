@@ -67,8 +67,7 @@ inline __attribute__((always_inline)) uint8_t mem_read(int address)
         /* An attempt to read an IO address will trigger
          * the callback that may return an alternative value.
          */
-        memory_RAM[address] = callback_io[address]((uint16_t) address, memory_RAM[address], MEM_READ);
-        return memory_RAM[address];
+        return callback_io[address]((uint16_t) address, memory_RAM[address], MEM_READ);
     }
     else if (sam_registers.memory_map_type & address)
     {
@@ -112,7 +111,7 @@ inline __attribute__((always_inline)) void mem_write(int address, int data)
 {
     if (!(~address & 0xFF00))
     {
-        memory_RAM[address] = callback_io[address]((uint16_t) address, (uint8_t)data, MEM_WRITE);
+        callback_io[address]((uint16_t) address, (uint8_t)data, MEM_WRITE);
     }
     else
     {
@@ -130,7 +129,7 @@ inline __attribute__((always_inline)) void mem_write_fast(int address, uint8_t d
 {
     if (!(~address & 0xFF00))
     {
-        memory_RAM[address] = callback_io[address]((uint16_t) address, (uint8_t)data, MEM_WRITE);
+        callback_io[address]((uint16_t) address, (uint8_t)data, MEM_WRITE);
     }
     else
     {

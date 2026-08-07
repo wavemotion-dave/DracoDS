@@ -217,9 +217,11 @@ ITCM_CODE mm_word OurSoundMixer(mm_word len, mm_addr dest, mm_stream_formats for
 // --------------------------------------------------------------------------------------------
 // This is called when we want to sample the audio directly - we grab 4x sound samples.
 // --------------------------------------------------------------------------------------------
-s16 mixbuf[4]    __attribute__((section(".dtcm")));
-s16 beeper_vol   __attribute__((section(".dtcm"))) = 0x0000;
-s16 last_dac     __attribute__((section(".dtcm"))) = 0;
+s16 mixbuf[4]                                           __attribute__((section(".dtcm")));
+s16 beeper_vol                                          __attribute__((section(".dtcm"))) = 0x0000;
+s16 samples_since_last_call[MAX_SOUNDS_PER_SCANLINE]    __attribute__((section(".dtcm"))) = {0};
+u8 samples_since_idx                                    __attribute__((section(".dtcm"))) = 0;
+
 ITCM_CODE void processDirectAudio(void)
 {
     u8 num_samples = 2;
@@ -228,12 +230,19 @@ ITCM_CODE void processDirectAudio(void)
 
     if (catch_up) {catch_up--; num_samples=6;} // Queue nearly empty... catch up
 
+    int idx = 0;
+    s16 last_dac;
     for (u8 i=0; i<num_samples; i++)
     {
+        last_dac = samples_since_last_call[idx];
+        if ((idx+1) < samples_since_idx) idx++;
         mixer[mixer_write] = beeper_vol + last_dac;
         mixer_write++; mixer_write &= WAVE_DIRECT_BUF_SIZE;
         if (((mixer_write+1)&WAVE_DIRECT_BUF_SIZE) == mixer_read) {breather = 1024; break;} // Let the buffer drain a bit...
     }
+    
+    samples_since_idx=0;
+    samples_since_last_call[0] = last_dac;
 }
 
 // -----------------------------------------------------------------------------------------------
@@ -1487,7 +1496,18 @@ void DracoDS_main(void)
             if ( JoyState & JST_RIGHT ) {joy_dampen = 6; if (joy_x < 63) joy_x += 2; else joy_x = 64;}
             break;
 
-          case 7:  // Digital Offset
+          case 7:  // Digital Offset 1
+            joy_x = JOY_CENTER + digital_offset_x; // Self-centering... almost
+            joy_y = JOY_CENTER + digital_offset_y; // Self-centering... almost
+
+            if ( JoyState & JST_UP )    {joy_y = 0;   digital_offset_y = -1;  digital_offset_x = 0;}
+            if ( JoyState & JST_DOWN)   {joy_y = 64;  digital_offset_y = +1;  digital_offset_x = 0;}
+
+            if ( JoyState & JST_LEFT )  {joy_x = 0;   digital_offset_x = -1;  digital_offset_y = 0;}
+            if ( JoyState & JST_RIGHT ) {joy_x = 64;  digital_offset_x = +1;  digital_offset_y = 0;}
+            break;
+
+          case 8:  // Digital Offset 2 (same as Digital Offset 1 above but X doesn't reset on Y movement)
             joy_x = JOY_CENTER + digital_offset_x; // Self-centering... with slight bias
             joy_y = JOY_CENTER + digital_offset_y; // Self-centering... with slight bias
 

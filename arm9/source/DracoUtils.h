@@ -34,6 +34,8 @@
 #define DPAD_SLIDE_N_GLIDE          1
 #define DPAD_DIAGONALS              2
 
+#define MAX_SOUNDS_PER_SCANLINE     0x20
+
 extern unsigned char DragonBASIC[0x4000];
 extern unsigned char CoCoBASIC[0x4000];
 extern unsigned char DiskROM[0x4000];
@@ -41,6 +43,7 @@ extern unsigned char DiskROM[0x4000];
 extern char last_path[MAX_FILENAME_LEN];
 extern char last_file[MAX_FILENAME_LEN];
 
+extern u8  samples_since_idx;
 extern u32 draco_line;
 extern u8  draco_special_key;
 extern u32 last_file_size;

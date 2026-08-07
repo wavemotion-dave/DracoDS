@@ -102,12 +102,13 @@ uint8_t   sound_enable         __attribute__((section(".dtcm"))) = 1;
 uint8_t   last_comparator      __attribute__((section(".dtcm"))) = 0;
 uint8_t   cas_eof              __attribute__((section(".dtcm"))) = 0;
 
-uint8_t tape_byte              __attribute__((section(".dtcm"))) = 0;
-int     bit_index              __attribute__((section(".dtcm"))) = 0;
-int     bit_timing_threshold   __attribute__((section(".dtcm"))) = 0;
-int     bit_timing_count       __attribute__((section(".dtcm"))) = 0;
+uint8_t   tape_byte            __attribute__((section(".dtcm"))) = 0;
+int       bit_index            __attribute__((section(".dtcm"))) = 0;
+int       bit_timing_threshold __attribute__((section(".dtcm"))) = 0;
+int       bit_timing_count     __attribute__((section(".dtcm"))) = 0;
 
 extern signed short int beeper_vol;
+extern s16 samples_since_last_call[];
 
 /*
     Dragon keyboard map
@@ -775,8 +776,10 @@ ITCM_CODE static uint8_t io_handler_pia1_pa(uint16_t address, uint8_t data, mem_
             // Set the last sound value if enabled...
             if (pia_is_audio_dac_enabled())
             {
-                extern s16 last_dac;
-                last_dac = dac_output*384;
+                if (samples_since_idx < MAX_SOUNDS_PER_SCANLINE) 
+                {
+                    samples_since_last_call[samples_since_idx++] = dac_output*384;
+                }
             }
         }
         else
@@ -940,7 +943,7 @@ ITCM_CODE static uint8_t io_handler_pia1_pb(uint16_t address, uint8_t data, mem_
 
             vdg_set_mode_pia(((data >> 3) & 0x1f));
 
-            beeper_vol = ((data & 0x02) ? 0xFFF:0x000);
+            beeper_vol = ((data & 0x02) ? 0x2000:0x000);
         }
         else
         {
@@ -1001,6 +1004,16 @@ ITCM_CODE static uint8_t io_handler_pia1_crb(uint16_t address, uint8_t data, mem
         else
             pia1_cb1_int_enabled = 0;
 
+        if (sound_enable ^ (data & 0x08))
+        {
+            if (!(data & 0x08))
+            {
+                if (samples_since_idx < MAX_SOUNDS_PER_SCANLINE) 
+                {
+                    samples_since_last_call[samples_since_idx++] = 0;
+                }
+            }
+        }
         sound_enable = (data & 0x08);
 
         pia1_ddr_b = (data & PIA_DDR); // 0 = DDR, 1 = PDR (Normal Data Register)
