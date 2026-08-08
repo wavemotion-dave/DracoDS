@@ -295,8 +295,9 @@ And then move the soundbank.h file to the arm9/sources directory
 
 Versions :
 -----------------------
-V1.7: 09-Aug-2026 by wavemotion-dave
+V1.7: 08-Aug-2026 by wavemotion-dave
 * Improved sound driver for better accuracy. Games like Demon Attack now sound reasonably correct.
+* Fix for speeds other than 100% on NTSC CoCo emulation.
 * More tweaks to more games so they play as intended (correct joystick map, Dragonfire colors, etc).
 * New options to allow Analog sensitivity on a per-axis (X or Y) basis.
 * New option to boost volume for some games that were a bit quiet (e.g. Demon Attack).
