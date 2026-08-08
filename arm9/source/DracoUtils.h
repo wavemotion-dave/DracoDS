@@ -16,12 +16,12 @@
 #include "DracoDS.h"
 #include "cpu.h"
 
-#define MAX_FILES                   1048
+#define MAX_FILES                   1024
 #define MAX_FILENAME_LEN            160
 #define MAX_FILE_SIZE               (256*1024) // 256K is big enough for any .CAS or .CCC file or standard (160K / 180K) .DSK file
 
-#define MAX_CONFIGS                 1000
-#define CONFIG_VERSION              0x0004
+#define MAX_CONFIGS                 970
+#define CONFIG_VERSION              0x0007
 
 #define DRACO_FILE                  0x01
 #define DIRECTORY                   0x02
@@ -94,21 +94,22 @@ struct __attribute__((__packed__)) Config_t
     u32 game_crc;
     u8  keymap[12];
     u8  machine;
-    u8  autoLoad;
+    u8  loadType;
     u8  gameSpeed;
     u8  joystick;
     u8  autoFire;
     u8  joyType;
     u8  dpad;
     u8  forceCSS;
-    u8  reserved1;
+    u8  soundVolume;
     u8  diskSave;
     u8  analogCenter;
     u8  artifacts;
-    u8  reserved7;
-    u8  reserved8;
-    u8  reserved9;
-    u8  reserved10;
+    u8  sensitivityX;
+    u8  sensitivityY;
+    u8  clickFilter;
+    u8  reserved1;
+    u8  reserved2;
 };
 
 extern struct Config_t       myConfig;

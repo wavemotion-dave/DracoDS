@@ -724,7 +724,7 @@ void SaveConfig(bool bShow)
     FILE *fp;
     int slot = 0;
 
-    if (bShow) DSPrint(6,23,0, (char*)"SAVING CONFIGURATION");
+    if (bShow) DSPrint(1,23,0, (char*)"     SAVING CONFIGURATION     ");
 
     // Set the global configuration version number...
     myGlobalConfig.config_ver = CONFIG_VERSION;
@@ -774,12 +774,14 @@ void SaveConfig(bool bShow)
         fwrite(&myGlobalConfig, sizeof(myGlobalConfig), 1, fp); // Write the global config
         fwrite(&AllConfigs, sizeof(AllConfigs), 1, fp);         // Write the array of all configurations
         fclose(fp);
-    } else DSPrint(4,23,0, (char*)"ERROR SAVING CONFIG FILE");
+    }
+    else
+    DSPrint(1,23,0, (char*)"   ERROR SAVING CONFIG FILE!   ");
 
     if (bShow)
     {
         WAITVBL;WAITVBL;WAITVBL;WAITVBL;WAITVBL;
-        DSPrint(4,23,0, (char*)"                        ");
+        DSPrint(1,23, 0, (char *)" B=EXIT, X=GLOBAL, START=SAVE  ");
     }
 }
 
@@ -924,22 +926,23 @@ void SetDefaultGameConfig(void)
 
     MapPlayer1();                // Default to Player 1 mapping
 
-    myConfig.machine     = myGlobalConfig.defMachine;   // Default is Tandy Coco (0=Dragon)
-    myConfig.joystick    = 0;                           // Right Joystick by default
-    myConfig.joyType     = 0;                           // Joystick is Digital
-    myConfig.autoFire    = 0;                           // Default to no auto-fire on either button
-    myConfig.dpad        = DPAD_NORMAL;                 // Normal DPAD use - mapped to joystick
-    myConfig.autoLoad    = 1;                           // Default is to to auto-load games as CLOADM
-    myConfig.gameSpeed   = 0;                           // Default is 100% game speed
-    myConfig.forceCSS    = 0;                           // Normal - not forced Color Select
-    myConfig.diskSave    = myGlobalConfig.defDiskSave;  // Default is to auto-save disk files
-    myConfig.analogCenter= 1;                           // Default is center=32
-    myConfig.artifacts   = 0;                           // Default is BLUE/ORANGE
-    myConfig.reserved1   = 0;
-    myConfig.reserved7   = 0;
-    myConfig.reserved8   = 0;
-    myConfig.reserved9   = 0;
-    myConfig.reserved10  = 0xA5;    // So it's easy to spot on an "upgrade" and we can re-default it
+    myConfig.machine        = myGlobalConfig.defMachine;   // Default is Tandy Coco (0=Dragon)
+    myConfig.joystick       = 0;                           // Right Joystick by default
+    myConfig.joyType        = 0;                           // Joystick is Digital
+    myConfig.autoFire       = 0;                           // Default to no auto-fire on either button
+    myConfig.dpad           = DPAD_NORMAL;                 // Normal DPAD use - mapped to joystick
+    myConfig.loadType       = 1;                           // Default is to to auto-load games as CLOADM
+    myConfig.gameSpeed      = 0;                           // Default is 100% game speed
+    myConfig.forceCSS       = 0;                           // Normal - not forced Color Select
+    myConfig.diskSave       = myGlobalConfig.defDiskSave;  // Default is to auto-save disk files
+    myConfig.analogCenter   = 1;                           // Default is center=32
+    myConfig.artifacts      = 0;                           // Default is BLUE/ORANGE
+    myConfig.soundVolume    = 0;                           // Default is normal sound
+    myConfig.sensitivityX   = 0;                           // Normal Analog X Sensitivity
+    myConfig.sensitivityY   = 0;                           // Normal Analog Y Sensitivity
+    myConfig.clickFilter    = 1;                           // Sound click filter (for games like Androne but not for Demon Attack)
+    myConfig.reserved1      = 0;
+    myConfig.reserved2      = 0;
 
     // We only support TANDY in disk mode
     if ((draco_mode == MODE_DSK) || (draco_mode == MODE_CART))
@@ -1006,13 +1009,13 @@ void SetDefaultGameConfig(void)
     // These games generally want the 'Digital plus Offset' handling (offset type 1)
     if (strstr(initial_file, "BANDITO"))
     {
-        myConfig.joyType = 7;
+        myConfig.joyType = 3;
     }
 
     // These games generally want the 'Digital plus Offset' handling (offset type 2)
-    if (strstr(initial_file, "NERBLE") || strstr(initial_file, "AVENGER") || strstr(initial_file, "SHOCK")   || strstr(initial_file, "FANGMAN"))
+    if (strstr(initial_file, "NERBLE") || strstr(initial_file, "AVENGER") || strstr(initial_file, "SHOCK") || strstr(initial_file, "FANGMAN") || strstr(initial_file, "STARBLAZE"))
     {
-        myConfig.joyType = 8;
+        myConfig.joyType = 4;
     }
 
     if (strstr(initial_file, "CHUCKIE"))
@@ -1021,15 +1024,30 @@ void SetDefaultGameConfig(void)
         Cursors();
     }
 
+    if ((strstr(initial_file, "DRAGONFIRE")) || (strstr(initial_file, "DRAGON FIRE")))
+    {
+        myConfig.forceCSS = 1;
+    }
+
     force_vdg_mismatch_lower = 0;
     if (strstr(initial_file, "GALACTICAT") || strstr(initial_file, "GALACTIC AT"))
     {
         force_vdg_mismatch_lower = 1;
     }
 
+    if ((strstr(initial_file, "DEMON ATTACK")) || (strstr(initial_file, "DEMONATTACK")))
+    {
+        myConfig.clickFilter = 0;   // Demon Attack does magic with the enable/disable of speaker to produce sounds and we can't filter it
+    }
+        
     if (strstr(initial_file, "BUZZARD"))
     {
         myConfig.joystick = 1; // Uses Left Joystick
+    }
+
+    if (strstr(initial_file, "ANDRONE"))  // Analog Center
+    {
+        myConfig.joyType = 2;
     }
 
     if (strstr(initial_file, "POLARIS"))
@@ -1042,7 +1060,7 @@ void SetDefaultGameConfig(void)
 
     if (detect_cas_file_type(TapeCartDiskBuffer, file_size) == TAPE_TYPE_BASIC)
     {
-        myConfig.autoLoad    = 2;    // Looks like a BASIC loader... Use CLOAD vs CLOADM
+        myConfig.loadType    = 2;    // Looks like a BASIC loader... Use CLOAD vs CLOADM
     }
 }
 
@@ -1128,7 +1146,7 @@ const struct options_t Option_Table[2][20] =
     // Game Specific Configuration
     {
         {"MACHINE TYPE",   {"DRAGON 32", "TANDY COCO"},                                &myConfig.machine,           2},
-        {"AUTO LOAD",      {"NO", "CLOADM [EXEC]", "CLOAD [RUN]"},                     &myConfig.autoLoad,          3},
+        {"CASS LOAD",      {"MANUAL", "CLOADM [EXEC]", "CLOAD [RUN]"},                 &myConfig.loadType,          3},
         {"AUTO FIRE",      {"OFF", "ON"},                                              &myConfig.autoFire,          2},
         {"GAME SPEED",     {"100%", "110%", "120%", "130%", "90%", "80%"},             &myConfig.gameSpeed,         6},
         {"DISK WRITE",     {"OFF", "ON"},                                              &myConfig.diskSave,          2},
@@ -1136,10 +1154,14 @@ const struct options_t Option_Table[2][20] =
         {"ARTIFACTS",      {"BLUE/ORANGE", "ORANGE/BLUE", "OFF (BW)"},                 &myConfig.artifacts,         3},
         {"NDS D-PAD",      {"NORMAL", "SLIDE-N-GLIDE", "DIAGONALS"},                   &myConfig.dpad,              3},
         {"JOYSTICK",       {"RIGHT", "LEFT"},                                          &myConfig.joystick,          2},
-        {"JOY TYPE",       {"DIGITAL", "ANALOG SLOW", "ANALOG MEDIUM", "ANALOG FAST",
-                            "SLOW CENTER", "MEDIUM CENTER", "FAST CENTER", 
-                            "DIG OFFSET 1", "DIG OFFSET 2"},                           &myConfig.joyType,           9},
+        {"JOY TYPE",       {"DIGITAL", "ANALOG", "ANALOG CENTER", 
+                            "DIG OFFSET 1", "DIG OFFSET 2"},                           &myConfig.joyType,           5},
+        {"ANALG SENS X",   {"LOW", "MEDIUM", "HIGH"},                                  &myConfig.sensitivityX,      3},
+        {"ANALG SENS Y",   {"LOW", "MEDIUM", "HIGH"},                                  &myConfig.sensitivityY,      3},
         {"ANALG CENTER",   {"31", "32", "33"},                                         &myConfig.analogCenter,      3},
+        {"CLICK FILTER",   {"NORMAL", "ENABLED"},                                      &myConfig.clickFilter,       2},
+        {"SOUND VOLUME",   {"NORMAL", "LOUDER"},                                       &myConfig.soundVolume,       2},
+        
         {NULL,             {"",      ""},                                              NULL,                        1},
     },
     // Global Options
@@ -1162,6 +1184,8 @@ u8 display_options_list(bool bFullDisplay)
     s16 len=0;
 
     DSPrint(1,21, 0, (char *)"                              ");
+    DSPrint(1,22, 0, (char *)"                              ");
+    
     if (bFullDisplay)
     {
         while (true)
@@ -1178,7 +1202,7 @@ u8 display_options_list(bool bFullDisplay)
         }
     }
 
-    DSPrint(1,22, 0, (char *)" B=EXIT, X=GLOBAL, START=SAVE  ");
+    DSPrint(1,23, 0, (char *)" B=EXIT, X=GLOBAL, START=SAVE  ");
     return len;
 }
 

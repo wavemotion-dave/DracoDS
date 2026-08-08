@@ -611,7 +611,7 @@ ITCM_CODE static uint8_t io_handler_pia0_cra(uint16_t address, uint8_t data, mem
             mux_select |= 0x01;
         else
             mux_select &= ~0x01;
-
+            
         // When enabling the interrupt, if we have interrupt pending, fire it!
         if (!pia0_ca1_int_enabled && (data & PIA_CR_INTR))
         {
@@ -778,7 +778,7 @@ ITCM_CODE static uint8_t io_handler_pia1_pa(uint16_t address, uint8_t data, mem_
             {
                 if (samples_since_idx < MAX_SOUNDS_PER_SCANLINE) 
                 {
-                    samples_since_last_call[samples_since_idx++] = dac_output*384;
+                    samples_since_last_call[samples_since_idx++] = dac_output*(384 + (128 * myConfig.soundVolume));
                 }
             }
         }
@@ -1004,12 +1004,21 @@ ITCM_CODE static uint8_t io_handler_pia1_crb(uint16_t address, uint8_t data, mem
         else
             pia1_cb1_int_enabled = 0;
 
-        if (sound_enable ^ (data & 0x08))
+        // ---------------------------------------------------------------------------------------
+        // If the sound enable bit is being changed... TBD!!
+        // ---------------------------------------------------------------------------------------
+        if (sound_enable ^ (data & 0x08) && !mux_select)
         {
-            if (!(data & 0x08))
+            if (myConfig.clickFilter == 0)
             {
-                if (samples_since_idx < MAX_SOUNDS_PER_SCANLINE) 
+                if ((data & 0x08)) // Turning sound on
                 {
+                    samples_since_idx = 0;
+                    samples_since_last_call[samples_since_idx++] = dac_output*(384 + (128 * myConfig.soundVolume));
+                }
+                else // Turning the sound off
+                {
+                    samples_since_idx = 0;
                     samples_since_last_call[samples_since_idx++] = 0;
                 }
             }

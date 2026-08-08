@@ -152,7 +152,7 @@ void SoundUnPause(void)
 // We were using the normal ARM7 sound core but it sounded "scratchy" and so with the help
 // of FluBBa, we've swiched over to the maxmod sound core which performs much better.
 // --------------------------------------------------------------------------------------------
-#define SAMPLE_RATE_NTSC    15580       // To roughly match how many samples (262 scanlines x 60 frames = 15720). We purposely undershoot to keep buffer full.
+#define SAMPLE_RATE_NTSC    15650       // To roughly match how many samples (262 scanlines x 60 frames = 15720). We purposely undershoot to keep buffer full.
 #define SAMPLE_RATE_PAL     15400       // To roughly match how many samples (312 scanlines x 50 frames = 15600). We purposely undershoot to keep buffer full.
 u16     sample_rate = SAMPLE_RATE_NTSC;
 
@@ -984,7 +984,7 @@ void DracoDS_main(void)
         // ------------------------------------------------------------------------------------
         // The first time we press KEY_START, we might be loading up the Cassette or Cartridge
         // ------------------------------------------------------------------------------------
-        if (bFirstTime && myConfig.autoLoad)
+        if (bFirstTime && myConfig.loadType)
         {
             if (draco_mode == MODE_CART)
             {
@@ -1002,7 +1002,7 @@ void DracoDS_main(void)
                     BufferKey(19);    // O
                     BufferKey(5);     // A
                     BufferKey(8);     // D
-                    if (myConfig.autoLoad == 1)
+                    if (myConfig.loadType == 1)
                     {
                         BufferKey(17);    // M
                         BufferKey(44);    // :
@@ -1012,7 +1012,7 @@ void DracoDS_main(void)
                         BufferKey(9);     // E
                         BufferKey(7);     // C
                     }
-                    else if (myConfig.autoLoad == 2)
+                    else if (myConfig.loadType == 2)
                     {
                         BufferKey(44);    // :
 
@@ -1119,7 +1119,7 @@ void DracoDS_main(void)
             }
         }
 
-        if (bFirstTimeSelect && myConfig.autoLoad)
+        if (bFirstTimeSelect && myConfig.loadType)
         {
             if (draco_mode == MODE_CAS)
             {
@@ -1418,51 +1418,48 @@ void DracoDS_main(void)
             if ( JoyState & JST_RIGHT ) joy_x = 64;
             break;
 
-          case 1:  // Analog Slow - every other frame
-            if (timingFrames & 1)
+          case 1:  // Analog
+            switch (myConfig.sensitivityX)
             {
-                if ( JoyState & JST_UP )    {if (joy_y > 1)  joy_y -= 1; else joy_y = 0;}
-                if ( JoyState & JST_DOWN)   {if (joy_y < 64) joy_y += 1; else joy_y = 64;}
-                if ( JoyState & JST_LEFT )  {if (joy_x > 1)  joy_x -= 1; else joy_x = 0;}
-                if ( JoyState & JST_RIGHT ) {if (joy_x < 64) joy_x += 1; else joy_x = 64;}
-            }
-            break;
-
-          case 2:  // Analog Medium
-            if ( JoyState & JST_UP )    {if (joy_y > 1)  joy_y -= 1; else joy_y = 0;}
-            if ( JoyState & JST_DOWN)   {if (joy_y < 64) joy_y += 1; else joy_y = 64;}
-            if ( JoyState & JST_LEFT )  {if (joy_x > 1)  joy_x -= 1; else joy_x = 0;}
-            if ( JoyState & JST_RIGHT ) {if (joy_x < 64) joy_x += 1; else joy_x = 64;}
-            break;
-
-          case 3:  // Analog Fast
-            if ( JoyState & JST_UP )    {if (joy_y > 2)  joy_y -= 2; else joy_y = 0;}
-            if ( JoyState & JST_DOWN)   {if (joy_y < 63) joy_y += 2; else joy_y = 64;}
-            if ( JoyState & JST_LEFT )  {if (joy_x > 2)  joy_x -= 2; else joy_x = 0;}
-            if ( JoyState & JST_RIGHT ) {if (joy_x < 63) joy_x += 2; else joy_x = 64;}
-            break;
-
-          case 4:  // Analog Slow - Self Center
-            if (timingFrames & 1)
-            {
-                if ((JoyState & (JST_UP | JST_DOWN | JST_LEFT | JST_RIGHT | JST_FIRE)) == 0)
-                {
-                    if (joy_dampen)
+                case 0:
+                    if (timingFrames & 1)
                     {
-                        if (--joy_dampen == 0)
-                        {
-                            joy_x = joy_y = JOY_CENTER; // Self-centering
-                        }
+                        if ( JoyState & JST_LEFT )  {if (joy_x > 1)  joy_x -= 1; else joy_x = 0;}
+                        if ( JoyState & JST_RIGHT ) {if (joy_x < 64) joy_x += 1; else joy_x = 64;}
                     }
-                }
-                if (JoyState & JST_UP )    {joy_dampen = 3; if (joy_y > 1)  joy_y -= 1; else joy_y = 0;}
-                if (JoyState & JST_DOWN)   {joy_dampen = 3; if (joy_y < 64) joy_y += 1; else joy_y = 64;}
-                if (JoyState & JST_LEFT)   {joy_dampen = 3; if (joy_x > 1)  joy_x -= 1; else joy_x = 0;}
-                if (JoyState & JST_RIGHT)  {joy_dampen = 3; if (joy_x < 64) joy_x += 1; else joy_x = 64;}
+                    break;
+                case 1:
+                    if ( JoyState & JST_LEFT )  {if (joy_x > 1)  joy_x -= 1; else joy_x = 0;}
+                    if ( JoyState & JST_RIGHT ) {if (joy_x < 64) joy_x += 1; else joy_x = 64;}
+                    break;
+                case 2:
+                    if ( JoyState & JST_LEFT )  {if (joy_x > 2)  joy_x -= 2; else joy_x = 0;}
+                    if ( JoyState & JST_RIGHT ) {if (joy_x < 63) joy_x += 2; else joy_x = 64;}
+                    break;
+            }
+            
+            switch (myConfig.sensitivityY)
+            {
+                case 0:
+                    if (timingFrames & 1)
+                    {
+                        if ( JoyState & JST_UP )    {if (joy_y > 1)  joy_y -= 1; else joy_y = 0;}
+                        if ( JoyState & JST_DOWN)   {if (joy_y < 64) joy_y += 1; else joy_y = 64;}
+                    }
+                    break;
+                case 1:
+                    if ( JoyState & JST_UP )    {if (joy_y > 1)  joy_y -= 1; else joy_y = 0;}
+                    if ( JoyState & JST_DOWN)   {if (joy_y < 64) joy_y += 1; else joy_y = 64;}
+                    break;
+                case 2:
+                    if ( JoyState & JST_UP )    {if (joy_y > 2)  joy_y -= 2; else joy_y = 0;}
+                    if ( JoyState & JST_DOWN)   {if (joy_y < 63) joy_y += 2; else joy_y = 64;}
+                    break;
             }
             break;
+            
 
-          case 5:  // Analog Medium - Self Center
+          case 2:  // Analog - Self Center
             if ((JoyState & (JST_UP | JST_DOWN | JST_LEFT | JST_RIGHT | JST_FIRE)) == 0)
             {
                 if (joy_dampen)
@@ -1473,30 +1470,46 @@ void DracoDS_main(void)
                     }
                 }
             }
-            if (JoyState & JST_UP )    {joy_dampen = 6; if (joy_y > 1)  joy_y -= 1; else joy_y = 0;}
-            if (JoyState & JST_DOWN)   {joy_dampen = 6; if (joy_y < 64) joy_y += 1; else joy_y = 64;}
-            if (JoyState & JST_LEFT)   {joy_dampen = 6; if (joy_x > 1)  joy_x -= 1; else joy_x = 0;}
-            if (JoyState & JST_RIGHT)  {joy_dampen = 6; if (joy_x < 64) joy_x += 1; else joy_x = 64;}
-            break;
-
-          case 6:  // Analog Fast - Self Center
-            if ((JoyState & (JST_UP | JST_DOWN | JST_LEFT | JST_RIGHT | JST_FIRE)) == 0)
+            switch (myConfig.sensitivityX)
             {
-                if (joy_dampen)
-                {
-                    if (--joy_dampen == 0)
+                case 0:
+                    if (timingFrames & 1)
                     {
-                        joy_x = joy_y = JOY_CENTER; // Self-centering
+                        if ( JoyState & JST_LEFT )  {joy_dampen = 6; if (joy_x > 1)  joy_x -= 1; else joy_x = 0;}
+                        if ( JoyState & JST_RIGHT ) {joy_dampen = 6; if (joy_x < 64) joy_x += 1; else joy_x = 64;}
                     }
-                }
+                    break;
+                case 1:
+                    if ( JoyState & JST_LEFT )  {joy_dampen = 6; if (joy_x > 1)  joy_x -= 1; else joy_x = 0;}
+                    if ( JoyState & JST_RIGHT ) {joy_dampen = 6; if (joy_x < 64) joy_x += 1; else joy_x = 64;}
+                    break;
+                case 2:
+                    if ( JoyState & JST_LEFT )  {joy_dampen = 6; if (joy_x > 2)  joy_x -= 2; else joy_x = 0;}
+                    if ( JoyState & JST_RIGHT ) {joy_dampen = 6; if (joy_x < 63) joy_x += 2; else joy_x = 64;}
+                    break;
             }
-            if ( JoyState & JST_UP )    {joy_dampen = 6; if (joy_y > 2)  joy_y -= 2; else joy_y = 0;}
-            if ( JoyState & JST_DOWN)   {joy_dampen = 6; if (joy_y < 63) joy_y += 2; else joy_y = 64;}
-            if ( JoyState & JST_LEFT )  {joy_dampen = 6; if (joy_x > 2)  joy_x -= 2; else joy_x = 0;}
-            if ( JoyState & JST_RIGHT ) {joy_dampen = 6; if (joy_x < 63) joy_x += 2; else joy_x = 64;}
+            
+            switch (myConfig.sensitivityY)
+            {
+                case 0:
+                    if (timingFrames & 1)
+                    {
+                        if ( JoyState & JST_UP )    {joy_dampen = 6; if (joy_y > 1)  joy_y -= 1; else joy_y = 0;}
+                        if ( JoyState & JST_DOWN)   {joy_dampen = 6; if (joy_y < 64) joy_y += 1; else joy_y = 64;}
+                    }
+                    break;
+                case 1:
+                    if ( JoyState & JST_UP )    {joy_dampen = 6; if (joy_y > 1)  joy_y -= 1; else joy_y = 0;}
+                    if ( JoyState & JST_DOWN)   {joy_dampen = 6; if (joy_y < 64) joy_y += 1; else joy_y = 64;}
+                    break;
+                case 2:
+                    if ( JoyState & JST_UP )    {joy_dampen = 6; if (joy_y > 2)  joy_y -= 2; else joy_y = 0;}
+                    if ( JoyState & JST_DOWN)   {joy_dampen = 6; if (joy_y < 63) joy_y += 2; else joy_y = 64;}
+                    break;
+            }
             break;
 
-          case 7:  // Digital Offset 1
+          case 3:  // Digital Offset 1
             joy_x = JOY_CENTER + digital_offset_x; // Self-centering... almost
             joy_y = JOY_CENTER + digital_offset_y; // Self-centering... almost
 
@@ -1507,7 +1520,7 @@ void DracoDS_main(void)
             if ( JoyState & JST_RIGHT ) {joy_x = 64;  digital_offset_x = +1;  digital_offset_y = 0;}
             break;
 
-          case 8:  // Digital Offset 2 (same as Digital Offset 1 above but X doesn't reset on Y movement)
+          case 4:  // Digital Offset 2 (same as Digital Offset 1 above but X doesn't reset on Y movement)
             joy_x = JOY_CENTER + digital_offset_x; // Self-centering... with slight bias
             joy_y = JOY_CENTER + digital_offset_y; // Self-centering... with slight bias
 
