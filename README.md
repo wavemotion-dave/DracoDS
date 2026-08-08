@@ -169,28 +169,38 @@ Joystick Options :
 -----------------------
 The Tandy CoCo and Dragon machines used an analog joystick that is difficult to emulate properly on the DS/DSi. To that end, the default 'Joystick' is digital - that 
 is, pressing the D-Pad will emualte extreme analog positions of a real joystick. This works fine for many games... but some games really did take advantage of the
-multi-position of a real analog stick. So you can change the default 'DIGITAL' controller to 3 speeds of Analog - both self-centering and none. Games like POLARIS, for
-example, play fine with the 'SLOW ANALOG' setting.  Experiment and figure out what works best for any given game. Your joystick settings are saved on a per-game basis.
+multi-position of a real analog stick. So you can change the default 'DIGITAL' controller to some flavor of Analog - both normal and self-centering versions. 
+Games like POLARIS, for example, play fine with the 'SLOW ANALOG' setting. Experiment and figure out what works best for any given game. Your joystick settings 
+are saved on a per-game basis.
 
 Here is a short breakdown of the various joystick handling modes:
 
 * DIGITAL - Pressing any direction instantly brings the analog axis value to the min/max. Releasing keys brings it back to the center position (32,32).
-* ANALOG SLOW - Pressing any direction moves the analog values towards either min or max (depending on direction pressed) and does not auto-center.
-* ANALOG MEDIUM - Pressing any direction moves the analog values towards either min or max (depending on direction pressed) and does not auto-center.
-* ANALOG FAST - Pressing any direction moves the analog values towards either min or max (depending on direction pressed) and does not auto-center.
-* SLOW CENTER - Pressing any direction moves the analog values towards either min or max (depending on direction pressed) and when released, brings it back to center.
-* MEDIUM CENTER - Pressing any direction moves the analog values towards either min or max (depending on direction pressed) and when released, brings it back to center.
-* FAST CENTER - Pressing any direction moves the analog values towards either min or max (depending on direction pressed) and when released, brings it back to center.
-* DIGITAL OFFSET - Pressing any direction moves the analog values towards either min or max (depending on direction pressed) and when released, brings it _almost_ to center but leaves it slightly towards the last value pressed. Useful for some maze games.
+* ANALOG  - Pressing any direction moves the analog values towards either min or max (depending on direction pressed) and does not auto-center.
+* ANALOG CENTER - Pressing any direction moves the analog values towards either min or max (depending on direction pressed) and when released, brings it back to center.
+* DIGITAL OFFSET - Pressing any direction moves the analog values towards either min or max (depending on direction pressed) and when released, brings it _almost_ to center but leaves it slightly towards the last value pressed. Useful for some maze games. If you find a game where your character slowly drifts in a direction, try one of the digital offset settings.
+
+You can also change the analog sensitivity on a per-axis basis (X axis, Y axis). Generally 'Slow' is fine but you might want a more responsive joystick control.
 
 The default joystick is the RIGHT port joystick but every game seems to be different... if the game isn't responding to the RIGHT joystick port, switch it in the 
 game options to the LEFT port (you don't have to exit the game to make this change - the DS MINI menu has the Game Options available from the little Cassette Icon)
 
-There is also a very useful mode of the d-pad called "SLIDE-N-GLIDE" which was originally designed by me to play and enjoy Chuckie Egg on my ZX Spectrum Emulator. 
+Miscellaneous Options :
+-----------------------
+There is a useful mode of the d-pad called "SLIDE-N-GLIDE" which was originally designed by me to play and enjoy Chuckie Egg on my ZX Spectrum Emulator. 
 If you've ever played a ladder climbing game or maze game where getting on/off the ladder or turning a corner was difficult, then SLIDE-N-GLIDE might be just the
 ticket. It causes the movement of the player to continue to move in the horizontal or vertical direction while you change direction on the d-pad. This makes for 
 much smoother transitions onto/off laders and makes for very easy cornering in maze games. Turn this on in configuration - you may just find it the most enjoyable 
 option in the emulator!
+
+Force CSS will force the color select. Some games like DragonFire will try to change the CSS mid-scaline to produce some amazing trickery in allowing more colors than
+normal to be displayed. But the emulator only renders the video at the end of scanlines - so this trick won't work. Forcing CSS allows the user to choose one color set
+or the other ... for DragonFire, it is set by default to CSS 1 and that produces a mostly green coloring for the drawbridge which is pleasant enough.
+
+Lastly, there is a Click Filter that is enabled by default. Due to the multiplexing nature of the system, enabling and disabling sound can produce audio clicks as
+the sound output suddenly drops or is engaged. Some games like Demon Attack take advantage of this to produce in-game sounds. Some games like Androne will hit the
+hardware in such a way as to produce barely audible buzz on real hardware - but under emulation it will sound much louder and grating. To that end, most games run
+and sound fine with the Sound Filter enabled... but a few rare games (like Demon Attack) won't have proper sounds unless you disable the filter. Emulation is rarely perfect.
 
 Keyboards :
 -----------------------
@@ -225,6 +235,7 @@ Known Issues:
 -----------------------
 * Shamus loads and runs but has no sound during gameplay. Cause unknown (but likely PIA emulation inaccuracies).
 * Oodles loads but freezes after startup. Cause unknown (but likely PIA emulation inaccuracies).
+* Dragonfire is not color-accurate on the brawbridge screen. Mid-scanline CSS trickery is not supported by this emulation. Game plays fine, however.
 * Rocky's Boots two-disk version will not load. Cause unknown. Seek the 180K single-disk version which does work.
 
 Recommended Games:
@@ -284,6 +295,12 @@ And then move the soundbank.h file to the arm9/sources directory
 
 Versions :
 -----------------------
+V1.7: 09-Aug-2026 by wavemotion-dave
+* Improved sound driver for better accuracy. Games like Demon Attack now sound reasonably correct.
+* More tweaks to more games so they play as intended (correct joystick map, Dragonfire colors, etc).
+* New options to allow Analog sensitivity on a per-axis (X or Y) basis.
+* New option to boost volume for some games that were a bit quiet (e.g. Demon Attack).
+* More cleanup and minor improvements as time permitted.
 
 V1.6: 05-Aug-2026 by wavemotion-dave
 * Improved accuracy on PIA handling (DDR and masking supported) - sound and keyboard reading more robust. More games read keys/joystick more correctly.

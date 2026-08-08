@@ -983,7 +983,7 @@ void SetDefaultGameConfig(void)
         myConfig.joystick = 1;   // Uses Left Joystick
     }
 
-    if ((file_crc == 0xd45e59e3) || (file_crc == 0xc985282a))  // Dungeons of Daggorath
+    if ((file_crc == 0xd45e59e3) || (file_crc == 0xc985282a) || strstr(initial_file, "DAGGORATH"))  // Dungeons of Daggorath
     {
         myConfig.keymap[0]   = 62;   // NDS D-Pad mapped to MOVE (FORWARD)
         myConfig.keymap[1]   = 66;   // NDS D-Pad mapped to TURN AROUND
@@ -1048,6 +1048,11 @@ void SetDefaultGameConfig(void)
     if (strstr(initial_file, "ANDRONE"))  // Analog Center
     {
         myConfig.joyType = 2;
+    }
+
+    if ((strstr(initial_file, "SPACE ASSAULT")) || (strstr(initial_file, "SPACEASSAULT")))  // Analog Slow
+    {
+        myConfig.joyType = 1;
     }
 
     if (strstr(initial_file, "POLARIS"))
