@@ -55,7 +55,7 @@ uint32_t sam_64k_mode_counter   __attribute__((section(".dtcm"))) = 0;
  */
 void sam_init(void)
 {
-    mem_define_io(0xfff2, 0xffff, io_handler_vector_redirect);
+    mem_define_io(0xfff0, 0xffff, io_handler_vector_redirect);
     mem_define_io(0xffc0, 0xffdd, io_handler_sam_write);
 
     mem_define_io(0xffde, 0xffde, io_rom_mode);     // RAM/ROM (type 0 map)

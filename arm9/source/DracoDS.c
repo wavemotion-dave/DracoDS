@@ -86,6 +86,9 @@ u16 joy_x           __attribute__((section(".dtcm"))) = 0;
 u16 joy_y           __attribute__((section(".dtcm"))) = 0;
 u16 joy_dampen      __attribute__((section(".dtcm"))) = 0;
 
+u8 shift_key = 0;
+u8 last_kbd_key = 0;
+
 #define JOY_CENTER  (31+myConfig.analogCenter)
 
 // ----------------------------------------------------------------------------------
@@ -374,6 +377,9 @@ void ResetDragonTandy(void)
 
     joy_x = joy_y = JOY_CENTER;
     joy_dampen = 0;
+    
+    shift_key = 0;
+    last_kbd_key = 0;
 }
 
 
@@ -595,10 +601,6 @@ u8 MiniMenu(void)
 // that we can feed into the key processing handler in spectrum.c when the
 // IO port is read.
 // -------------------------------------------------------------------------
-
-u8 shift_key = 0;
-u8 last_kbd_key = 0;
-
 u8 handle_keyboard_press(u16 iTx, u16 iTy)  // Dragon/Tandy keyboard
 {
     if ((iTy >= 40) && (iTy < 72))   // Row 1 (number row)

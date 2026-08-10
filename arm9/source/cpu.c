@@ -335,7 +335,12 @@ ITCM_CODE void cpu_run(void)
 
             if (cpu.cpu_state == CPU_HALTED)
             {
-                if ( !(cc.f) && (intr_latch & INT_FIRQ) )
+                if (intr_latch & INT_NMI)
+                {
+                    cpu.cpu_state = CPU_EXEC;
+                    cpu.pc = (mem_read(VEC_NMI) << 8) + mem_read(VEC_NMI+1);
+                }
+                else if ( !(cc.f) && (intr_latch & INT_FIRQ) )
                 {
                     cpu.cpu_state = CPU_EXEC;
                     cpu.pc = (mem_read(VEC_FIRQ) << 8) + mem_read(VEC_FIRQ+1);
@@ -369,32 +374,20 @@ ITCM_CODE void cpu_run(void)
             {
                 cpu.cpu_state = CPU_EXEC;
                 cc.e = CC_FLAG_SET;
-                cycles_this_scanline += 20;
+                cycles_this_scanline += 19;
 
-                cpu.s--;
-                mem_write_fast(cpu.s, cpu.pc & 0xff);
-                cpu.s--;
-                mem_write_fast(cpu.s, (cpu.pc >> 8) & 0xff);
-                cpu.s--;
-                mem_write_fast(cpu.s, cpu.u & 0xff);
-                cpu.s--;
-                mem_write_fast(cpu.s, (cpu.u >> 8) & 0xff);
-                cpu.s--;
-                mem_write_fast(cpu.s, cpu.y & 0xff);
-                cpu.s--;
-                mem_write_fast(cpu.s, (cpu.y >> 8) & 0xff);
-                cpu.s--;
-                mem_write_fast(cpu.s, cpu.x & 0xff);
-                cpu.s--;
-                mem_write_fast(cpu.s, (cpu.x >> 8) & 0xff);
-                cpu.s--;
-                mem_write_fast(cpu.s, cpu.dp);
-                cpu.s--;
-                mem_write_fast(cpu.s, cpu.b);
-                cpu.s--;
-                mem_write_fast(cpu.s, cpu.a);
-                cpu.s--;
-                mem_write_fast(cpu.s, get_cc());
+                mem_write_fast(--cpu.s, cpu.pc & 0xff);
+                mem_write_fast(--cpu.s, (cpu.pc >> 8) & 0xff);
+                mem_write_fast(--cpu.s, cpu.u & 0xff);
+                mem_write_fast(--cpu.s, (cpu.u >> 8) & 0xff);
+                mem_write_fast(--cpu.s, cpu.y & 0xff);
+                mem_write_fast(--cpu.s, (cpu.y >> 8) & 0xff);
+                mem_write_fast(--cpu.s, cpu.x & 0xff);
+                mem_write_fast(--cpu.s, (cpu.x >> 8) & 0xff);
+                mem_write_fast(--cpu.s, cpu.dp);
+                mem_write_fast(--cpu.s, cpu.b);
+                mem_write_fast(--cpu.s, cpu.a);
+                mem_write_fast(--cpu.s, get_cc());
 
                 cpu.nmi_latched = 0;
                 intr_latch &= ~INT_NMI;
@@ -410,12 +403,9 @@ ITCM_CODE void cpu_run(void)
                 cc.e = CC_FLAG_CLR;
                 cycles_this_scanline += 10;
 
-                cpu.s--;
-                mem_write_fast(cpu.s, cpu.pc & 0xff);
-                cpu.s--;
-                mem_write_fast(cpu.s, (cpu.pc >> 8) & 0xff);
-                cpu.s--;
-                mem_write_fast(cpu.s, get_cc());
+                mem_write_fast(--cpu.s, cpu.pc & 0xff);
+                mem_write_fast(--cpu.s, (cpu.pc >> 8) & 0xff);
+                mem_write_fast(--cpu.s, get_cc());
 
                 cc.f = CC_FLAG_SET;
                 cc.i = CC_FLAG_SET;
@@ -432,32 +422,20 @@ ITCM_CODE void cpu_run(void)
             {
                 cpu.cpu_state = CPU_EXEC;
                 cc.e = CC_FLAG_SET;
-                cycles_this_scanline += 20;
+                cycles_this_scanline += 21;
 
-                cpu.s--;
-                mem_write_fast(cpu.s, cpu.pc & 0xff);
-                cpu.s--;
-                mem_write_fast(cpu.s, (cpu.pc >> 8) & 0xff);
-                cpu.s--;
-                mem_write_fast(cpu.s, cpu.u & 0xff);
-                cpu.s--;
-                mem_write_fast(cpu.s, (cpu.u >> 8) & 0xff);
-                cpu.s--;
-                mem_write_fast(cpu.s, cpu.y & 0xff);
-                cpu.s--;
-                mem_write_fast(cpu.s, (cpu.y >> 8) & 0xff);
-                cpu.s--;
-                mem_write_fast(cpu.s, cpu.x & 0xff);
-                cpu.s--;
-                mem_write_fast(cpu.s, (cpu.x >> 8) & 0xff);
-                cpu.s--;
-                mem_write_fast(cpu.s, cpu.dp);
-                cpu.s--;
-                mem_write_fast(cpu.s, cpu.b);
-                cpu.s--;
-                mem_write_fast(cpu.s, cpu.a);
-                cpu.s--;
-                mem_write_fast(cpu.s, get_cc());
+                mem_write_fast(--cpu.s, cpu.pc & 0xff);
+                mem_write_fast(--cpu.s, (cpu.pc >> 8) & 0xff);
+                mem_write_fast(--cpu.s, cpu.u & 0xff);
+                mem_write_fast(--cpu.s, (cpu.u >> 8) & 0xff);
+                mem_write_fast(--cpu.s, cpu.y & 0xff);
+                mem_write_fast(--cpu.s, (cpu.y >> 8) & 0xff);
+                mem_write_fast(--cpu.s, cpu.x & 0xff);
+                mem_write_fast(--cpu.s, (cpu.x >> 8) & 0xff);
+                mem_write_fast(--cpu.s, cpu.dp);
+                mem_write_fast(--cpu.s, cpu.b);
+                mem_write_fast(--cpu.s, cpu.a);
+                mem_write_fast(--cpu.s, get_cc());
 
                 cc.i = CC_FLAG_SET;
 
@@ -520,7 +498,7 @@ ITCM_CODE void cpu_run(void)
                             /* Exception: Illegal 0x11 op-code cpu_run()
                              */
                             if (debug[6] == 0) {debug[6] = op_code;}
-                            cpu.cpu_state = CPU_EXCEPTION;
+                            cpu.cpu_state = CPU_EXCEPTION;                            
                     }
                 }
                 break;
@@ -625,7 +603,7 @@ ITCM_CODE void cpu_run(void)
                         default:
                             /* Exception: Illegal 0x10 op-code cpu_run()
                              */
-                             if (debug[6] == 0) {debug[6] = op_code;}
+                             if (debug[5] == 0) {debug[5] = op_code;}
                             cpu.cpu_state = CPU_EXCEPTION;
                     }
                 }
@@ -1666,30 +1644,18 @@ void cwai(uint8_t byte)
     temp_cc |= 0x80;
     set_cc(temp_cc);
 
-    cpu.s--;
-    mem_write_fast(cpu.s, cpu.pc & 0xff);
-    cpu.s--;
-    mem_write_fast(cpu.s, (cpu.pc >> 8) & 0xff);
-    cpu.s--;
-    mem_write_fast(cpu.s, cpu.u & 0xff);
-    cpu.s--;
-    mem_write_fast(cpu.s, (cpu.u >> 8) & 0xff);
-    cpu.s--;
-    mem_write_fast(cpu.s, cpu.y & 0xff);
-    cpu.s--;
-    mem_write_fast(cpu.s, (cpu.y >> 8) & 0xff);
-    cpu.s--;
-    mem_write_fast(cpu.s, cpu.x & 0xff);
-    cpu.s--;
-    mem_write_fast(cpu.s, (cpu.x >> 8) & 0xff);
-    cpu.s--;
-    mem_write_fast(cpu.s, cpu.dp);
-    cpu.s--;
-    mem_write_fast(cpu.s, cpu.b);
-    cpu.s--;
-    mem_write_fast(cpu.s, cpu.a);
-    cpu.s--;
-    mem_write_fast(cpu.s, temp_cc);
+    mem_write_fast(--cpu.s, cpu.pc & 0xff);
+    mem_write_fast(--cpu.s, (cpu.pc >> 8) & 0xff);
+    mem_write_fast(--cpu.s, cpu.u & 0xff);
+    mem_write_fast(--cpu.s, (cpu.u >> 8) & 0xff);
+    mem_write_fast(--cpu.s, cpu.y & 0xff);
+    mem_write_fast(--cpu.s, (cpu.y >> 8) & 0xff);
+    mem_write_fast(--cpu.s, cpu.x & 0xff);
+    mem_write_fast(--cpu.s, (cpu.x >> 8) & 0xff);
+    mem_write_fast(--cpu.s, cpu.dp);
+    mem_write_fast(--cpu.s, cpu.b);
+    mem_write_fast(--cpu.s, cpu.a);
+    mem_write_fast(--cpu.s, temp_cc);
 
     cpu.cpu_state = CPU_HALTED;
 }

@@ -142,8 +142,17 @@ void disk_intrq(void)
     }
 }
 
+/*------------------------------------------------
+ * disk_get_filename()
+ *
+ *  Scan disk directory entry block for a filename
+ *
+ *  param:  None
+ *  return: The first file found or empty string.
+ */
 char *disk_get_filename(void)
 {
+    // Look for printable ASCII character and a 'B' where BIN or BAS would be... 
     if (isprint(TapeCartDiskBuffer[0x13400]) && (TapeCartDiskBuffer[0x13408] == 'B'))
     {
         return (char *)&TapeCartDiskBuffer[0x13400];

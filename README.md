@@ -234,7 +234,8 @@ Pressing and holding the L/R shoulder buttons plus Y will create a screen snapsh
 Known Issues:
 -----------------------
 * Shamus loads and runs but has no sound during gameplay. Cause unknown (but likely PIA emulation inaccuracies).
-* Oodles loads but freezes after startup. Cause unknown (but likely PIA emulation inaccuracies).
+* Oodles loads but freezes after startup. Cause unknown (sits in tight loop waiting for something to change at memory location 0x0010).
+* Spooks freezes as soon as it's executed. Cause unknown (illegal instruction seen but likely problem is deeper than that).
 * Dragonfire is not color-accurate on the brawbridge screen. Mid-scanline CSS trickery is not supported by this emulation. Game plays fine, however.
 * Rocky's Boots two-disk version will not load. Cause unknown. Seek the 180K single-disk version which does work.
 
