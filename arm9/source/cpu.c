@@ -324,7 +324,6 @@ ITCM_CODE void cpu_run(void)
             {
                 if ( intr_latch & (INT_NMI | INT_FIRQ | INT_IRQ) )
                 {
-                    cycles_this_scanline = 0;
                     cpu.cpu_state = CPU_EXEC;
                 }
                 else
@@ -339,16 +338,19 @@ ITCM_CODE void cpu_run(void)
                 {
                     cpu.cpu_state = CPU_EXEC;
                     cpu.pc = (mem_read(VEC_NMI) << 8) + mem_read(VEC_NMI+1);
+                    intr_latch = 0;
                 }
                 else if ( !(cc.f) && (intr_latch & INT_FIRQ) )
                 {
                     cpu.cpu_state = CPU_EXEC;
                     cpu.pc = (mem_read(VEC_FIRQ) << 8) + mem_read(VEC_FIRQ+1);
+                    intr_latch = 0;
                 }
                 else if ( !(cc.i) && (intr_latch & INT_IRQ) )
                 {
                     cpu.cpu_state = CPU_EXEC;
                     cpu.pc = (mem_read(VEC_IRQ) << 8) + mem_read(VEC_IRQ+1);
+                    intr_latch = 0;
                 }
                 else return; // We're waiting for an unmasked interrupt
             }
@@ -600,6 +602,11 @@ ITCM_CODE void cpu_run(void)
                             swi(2);
                             break;
 
+                        case 0xcf:
+                            operand16 = mem_read16(eff_addr);
+                            cmp16(cpu.u, operand16);
+                            break;
+                            
                         default:
                             /* Exception: Illegal 0x10 op-code cpu_run()
                              */
@@ -608,6 +615,7 @@ ITCM_CODE void cpu_run(void)
                     }
                 }
                 break;
+                
                 /* ABX
                  */
                 case 0x3a:
@@ -903,10 +911,8 @@ ITCM_CODE void cpu_run(void)
                 case 0x9d:
                 case 0xad:
                 case 0xbd:
-                    cpu.s--;
-                    mem_write_fast(cpu.s, GET_REG_LOW(cpu.pc));
-                    cpu.s--;
-                    mem_write_fast(cpu.s, GET_REG_HIGH(cpu.pc));
+                    mem_write_fast(--cpu.s, GET_REG_LOW(cpu.pc));
+                    mem_write_fast(--cpu.s, GET_REG_HIGH(cpu.pc));
                     cpu.pc = eff_addr;
                     break;
 
@@ -1146,11 +1152,9 @@ ITCM_CODE void cpu_run(void)
                 case 0x39:
                      /* Restore PC and return
                       */
-                     operand8 = mem_read(cpu.s);
-                     cpu.s++;
+                     operand8 = mem_read(cpu.s++);
                      cpu.pc = (uint16_t) operand8 << 8;
-                     operand8 = mem_read(cpu.s);
-                     cpu.s++;
+                     operand8 = mem_read(cpu.s++);
                      cpu.pc += operand8;
                      break;
 
@@ -1329,10 +1333,8 @@ ITCM_CODE void cpu_run(void)
                  */
                 case 0x8d:
                 case 0x17:
-                    cpu.s--;
-                    mem_write_fast(cpu.s, GET_REG_LOW(cpu.pc));
-                    cpu.s--;
-                    mem_write_fast(cpu.s, GET_REG_HIGH(cpu.pc));
+                    mem_write_fast(--cpu.s, GET_REG_LOW(cpu.pc));
+                    mem_write_fast(--cpu.s, GET_REG_HIGH(cpu.pc));
                     cpu.pc = eff_addr;
                     break;
 
@@ -1869,61 +1871,49 @@ void pshs(uint8_t push_list, int *cycles)
     if ( push_list & 0x80 )
     {
         (*cycles)++;
-        cpu.s--;
-        mem_write_fast(cpu.s, cpu.pc & 0xff);
-        cpu.s--;
-        mem_write_fast(cpu.s, (cpu.pc >> 8) & 0xff);
+        mem_write_fast(--cpu.s, cpu.pc & 0xff);
+        mem_write_fast(--cpu.s, (cpu.pc >> 8) & 0xff);
     }
 
     if ( push_list & 0x40 )
     {
         (*cycles)++;
-        cpu.s--;
-        mem_write_fast(cpu.s, cpu.u & 0xff);
-        cpu.s--;
-        mem_write_fast(cpu.s, (cpu.u >> 8) & 0xff);
+        mem_write_fast(--cpu.s, cpu.u & 0xff);
+        mem_write_fast(--cpu.s, (cpu.u >> 8) & 0xff);
     }
 
     if ( push_list & 0x20 )
     {
         (*cycles)++;
-        cpu.s--;
-        mem_write_fast(cpu.s, cpu.y & 0xff);
-        cpu.s--;
-        mem_write_fast(cpu.s, (cpu.y >> 8) & 0xff);
+        mem_write_fast(--cpu.s, cpu.y & 0xff);
+        mem_write_fast(--cpu.s, (cpu.y >> 8) & 0xff);
     }
 
     if ( push_list & 0x10 )
     {
         (*cycles)++;
-        cpu.s--;
-        mem_write_fast(cpu.s, cpu.x & 0xff);
-        cpu.s--;
-        mem_write_fast(cpu.s, (cpu.x >> 8) & 0xff);
+        mem_write_fast(--cpu.s, cpu.x & 0xff);
+        mem_write_fast(--cpu.s, (cpu.x >> 8) & 0xff);
     }
 
     if ( push_list & 0x08 )
     {
-        cpu.s--;
-        mem_write_fast(cpu.s, cpu.dp);
+        mem_write_fast(--cpu.s, cpu.dp);
     }
 
     if ( push_list & 0x04 )
     {
-        cpu.s--;
-        mem_write_fast(cpu.s, cpu.b);
+        mem_write_fast(--cpu.s, cpu.b);
     }
 
     if ( push_list & 0x02 )
     {
-        cpu.s--;
-        mem_write_fast(cpu.s, cpu.a);
+        mem_write_fast(--cpu.s, cpu.a);
     }
 
     if ( push_list & 0x01 )
     {
-        cpu.s--;
-        mem_write_fast(cpu.s, (int) get_cc());
+        mem_write_fast(--cpu.s, (int) get_cc());
     }
 }
 
@@ -1943,61 +1933,49 @@ void pshu(uint8_t push_list, int *cycles)
     if ( push_list & 0x80 )
     {
         (*cycles)++;
-        cpu.u--;
-        mem_write(cpu.u, cpu.pc & 0xff);
-        cpu.u--;
-        mem_write(cpu.u, (cpu.pc >> 8) & 0xff);
+        mem_write(--cpu.u, cpu.pc & 0xff);
+        mem_write(--cpu.u, (cpu.pc >> 8) & 0xff);
     }
 
     if ( push_list & 0x40 )
     {
         (*cycles)++;
-        cpu.u--;
-        mem_write(cpu.u, cpu.s & 0xff);
-        cpu.u--;
-        mem_write(cpu.u, (cpu.s >> 8) & 0xff);
+        mem_write(--cpu.u, cpu.s & 0xff);
+        mem_write(--cpu.u, (cpu.s >> 8) & 0xff);
     }
 
     if ( push_list & 0x20 )
     {
         (*cycles)++;
-        cpu.u--;
-        mem_write(cpu.u, cpu.y & 0xff);
-        cpu.u--;
-        mem_write(cpu.u, (cpu.y >> 8) & 0xff);
+        mem_write(--cpu.u, cpu.y & 0xff);
+        mem_write(--cpu.u, (cpu.y >> 8) & 0xff);
     }
 
     if ( push_list & 0x10 )
     {
         (*cycles)++;
-        cpu.u--;
-        mem_write(cpu.u, cpu.x & 0xff);
-        cpu.u--;
-        mem_write(cpu.u, (cpu.x >> 8) & 0xff);
+        mem_write(--cpu.u, cpu.x & 0xff);
+        mem_write(--cpu.u, (cpu.x >> 8) & 0xff);
     }
 
     if ( push_list & 0x08 )
     {
-        cpu.u--;
-        mem_write(cpu.u, cpu.dp);
+        mem_write(--cpu.u, cpu.dp);
     }
 
     if ( push_list & 0x04 )
     {
-        cpu.u--;
-        mem_write(cpu.u, cpu.b);
+        mem_write(--cpu.u, cpu.b);
     }
 
     if ( push_list & 0x02 )
     {
-        cpu.u--;
-        mem_write(cpu.u, cpu.a);
+        mem_write(--cpu.u, cpu.a);
     }
 
     if ( push_list & 0x01 )
     {
-        cpu.u--;
-        mem_write(cpu.u, get_cc());
+        mem_write(--cpu.u, get_cc());
     }
 }
 
@@ -2018,69 +1996,57 @@ void puls(uint8_t pull_list, int *cycles)
 
     if ( pull_list & 0x01 )
     {
-        val = mem_read(cpu.s);
-        cpu.s++;
+        val = mem_read(cpu.s++);
         set_cc((uint8_t) val);
     }
 
     if ( pull_list & 0x02 )
     {
-        val = mem_read(cpu.s);
-        cpu.s++;
+        val = mem_read(cpu.s++);
         cpu.a = val;
     }
 
     if ( pull_list & 0x04 )
     {
-        val = mem_read(cpu.s);
-        cpu.s++;
+        val = mem_read(cpu.s++);
         cpu.b = val;
     }
 
     if ( pull_list & 0x08 )
     {
-        val = mem_read(cpu.s);
-        cpu.s++;
+        val = mem_read(cpu.s++);
         cpu.dp = val;
     }
 
     if ( pull_list & 0x10 )
     {
         (*cycles)++;
-        val = mem_read(cpu.s) << 8;
-        cpu.s++;
-        val += mem_read(cpu.s);
-        cpu.s++;
+        val = mem_read(cpu.s++) << 8;
+        val += mem_read(cpu.s++);
         cpu.x = val;
     }
 
     if ( pull_list & 0x20 )
     {
         (*cycles)++;
-        val = mem_read(cpu.s) << 8;
-        cpu.s++;
-        val += mem_read(cpu.s);
-        cpu.s++;
+        val = mem_read(cpu.s++) << 8;
+        val += mem_read(cpu.s++);
         cpu.y = val;
     }
 
     if ( pull_list & 0x40 )
     {
         (*cycles)++;
-        val = mem_read(cpu.s) << 8;
-        cpu.s++;
-        val += mem_read(cpu.s);
-        cpu.s++;
+        val = mem_read(cpu.s++) << 8;
+        val += mem_read(cpu.s++);
         cpu.u = val;
     }
 
     if ( pull_list & 0x80 )
     {
         (*cycles)++;
-        val = mem_read(cpu.s) << 8;
-        cpu.s++;
-        val += mem_read(cpu.s);
-        cpu.s++;
+        val = mem_read(cpu.s++) << 8;
+        val += mem_read(cpu.s++);
         cpu.pc = val;
     }
 }
@@ -2102,69 +2068,57 @@ void pulu(uint8_t pull_list, int *cycles)
 
     if ( pull_list & 0x01 )
     {
-        val = mem_read(cpu.u);
-        cpu.u++;
+        val = mem_read(cpu.u++);
         set_cc((uint8_t) val);
     }
 
     if ( pull_list & 0x02 )
     {
-        val = mem_read(cpu.u);
-        cpu.u++;
+        val = mem_read(cpu.u++);
         cpu.a = val;
     }
 
     if ( pull_list & 0x04 )
     {
-        val = mem_read(cpu.u);
-        cpu.u++;
+        val = mem_read(cpu.u++);
         cpu.b = val;
     }
 
     if ( pull_list & 0x08 )
     {
-        val = mem_read(cpu.u);
-        cpu.u++;
+        val = mem_read(cpu.u++);
         cpu.dp = val;
     }
 
     if ( pull_list & 0x10 )
     {
         (*cycles)++;
-        val = mem_read(cpu.u) << 8;
-        cpu.u++;
-        val += mem_read(cpu.u);
-        cpu.u++;
+        val = mem_read(cpu.u++) << 8;
+        val += mem_read(cpu.u++);
         cpu.x = val;
     }
 
     if ( pull_list & 0x20 )
     {
         (*cycles)++;
-        val = mem_read(cpu.u) << 8;
-        cpu.u++;
-        val += mem_read(cpu.u);
-        cpu.u++;
+        val = mem_read(cpu.u++) << 8;
+        val += mem_read(cpu.u++);
         cpu.y = val;
     }
 
     if ( pull_list & 0x40 )
     {
         (*cycles)++;
-        val = mem_read(cpu.u) << 8;
-        cpu.u++;
-        val += mem_read(cpu.u);
-        cpu.u++;
+        val = mem_read(cpu.u++) << 8;
+        val += mem_read(cpu.u++);
         cpu.s = val;
     }
 
     if ( pull_list & 0x80 )
     {
         (*cycles)++;
-        val = mem_read(cpu.u) << 8;
-        cpu.u++;
-        val += mem_read(cpu.u);
-        cpu.u++;
+        val = mem_read(cpu.u++) << 8;
+        val += mem_read(cpu.u++);
         cpu.pc = val;
     }
 }
@@ -2237,8 +2191,7 @@ void rti(int *cycles)
 
     /* Restore CCR
      */
-    byte = mem_read(cpu.s);
-    cpu.s++;
+    byte = mem_read(cpu.s++);
     set_cc(byte);
 
     /* Restore registers if this is an extended
@@ -2246,36 +2199,24 @@ void rti(int *cycles)
      */
     if ( cc.e )
     {
-        cpu.a = mem_read(cpu.s);
-        cpu.s++;
-        cpu.b = mem_read(cpu.s);
-        cpu.s++;
-        cpu.dp = mem_read(cpu.s);
-        cpu.s++;
-        cpu.x = mem_read(cpu.s) << 8;
-        cpu.s++;
-        cpu.x += mem_read(cpu.s);
-        cpu.s++;
-        cpu.y = mem_read(cpu.s) << 8;
-        cpu.s++;
-        cpu.y += mem_read(cpu.s);
-        cpu.s++;
-        cpu.u = mem_read(cpu.s) << 8;
-        cpu.s++;
-        cpu.u += mem_read(cpu.s);
-        cpu.s++;
+        cpu.a = mem_read(cpu.s++);
+        cpu.b = mem_read(cpu.s++);
+        cpu.dp = mem_read(cpu.s++);
+        cpu.x = mem_read(cpu.s++) << 8;
+        cpu.x += mem_read(cpu.s++);
+        cpu.y = mem_read(cpu.s++) << 8;
+        cpu.y += mem_read(cpu.s++);
+        cpu.u = mem_read(cpu.s++) << 8;
+        cpu.u += mem_read(cpu.s++);
 
         (*cycles) += 9;
     }
 
     /* Restore PC and return
      */
-    byte = mem_read(cpu.s);
-    cpu.s++;
+    byte = mem_read(cpu.s++);
     cpu.pc = (uint16_t) byte << 8;
-
-    byte = mem_read(cpu.s);
-    cpu.s++;
+    byte = mem_read(cpu.s++);
     cpu.pc += (uint16_t) byte;
 }
 
@@ -2374,30 +2315,18 @@ void swi(int swi_id)
 {
     cc.e = CC_FLAG_SET;
 
-    cpu.s--;
-    mem_write_fast(cpu.s, cpu.pc & 0xff);
-    cpu.s--;
-    mem_write_fast(cpu.s, (cpu.pc >> 8) & 0xff);
-    cpu.s--;
-    mem_write_fast(cpu.s, cpu.u & 0xff);
-    cpu.s--;
-    mem_write_fast(cpu.s, (cpu.u >> 8) & 0xff);
-    cpu.s--;
-    mem_write_fast(cpu.s, cpu.y & 0xff);
-    cpu.s--;
-    mem_write_fast(cpu.s, (cpu.y >> 8) & 0xff);
-    cpu.s--;
-    mem_write_fast(cpu.s, cpu.x & 0xff);
-    cpu.s--;
-    mem_write_fast(cpu.s, (cpu.x >> 8) & 0xff);
-    cpu.s--;
-    mem_write_fast(cpu.s, cpu.dp);
-    cpu.s--;
-    mem_write_fast(cpu.s, cpu.b);
-    cpu.s--;
-    mem_write_fast(cpu.s, cpu.a);
-    cpu.s--;
-    mem_write_fast(cpu.s, get_cc());
+    mem_write_fast(--cpu.s, cpu.pc & 0xff);
+    mem_write_fast(--cpu.s, (cpu.pc >> 8) & 0xff);
+    mem_write_fast(--cpu.s, cpu.u & 0xff);
+    mem_write_fast(--cpu.s, (cpu.u >> 8) & 0xff);
+    mem_write_fast(--cpu.s, cpu.y & 0xff);
+    mem_write_fast(--cpu.s, (cpu.y >> 8) & 0xff);
+    mem_write_fast(--cpu.s, cpu.x & 0xff);
+    mem_write_fast(--cpu.s, (cpu.x >> 8) & 0xff);
+    mem_write_fast(--cpu.s, cpu.dp);
+    mem_write_fast(--cpu.s, cpu.b);
+    mem_write_fast(--cpu.s, cpu.a);
+    mem_write_fast(--cpu.s, get_cc());
 
     switch ( swi_id )
     {

@@ -359,21 +359,21 @@ machine_code_t machine_code_10[] __attribute__((section(".dtcm"))) =
     {ILLEGAL_OP     , 0}, // 0x1f
     
     {ILLEGAL_OP     , 0}, // 0x20
-    {ADDR_LRELATIVE , 5}, // 0x21
-    {ADDR_LRELATIVE , 5}, // 0x22
-    {ADDR_LRELATIVE , 5}, // 0x23
-    {ADDR_LRELATIVE , 5}, // 0x24 - lbhs
-    {ADDR_LRELATIVE , 5}, // 0x25 - lblo
-    {ADDR_LRELATIVE , 5}, // 0x26
-    {ADDR_LRELATIVE , 5}, // 0x27
-    {ADDR_LRELATIVE , 5}, // 0x28
-    {ADDR_LRELATIVE , 5}, // 0x29
-    {ADDR_LRELATIVE , 5}, // 0x2a
-    {ADDR_LRELATIVE , 5}, // 0x2b
-    {ADDR_LRELATIVE , 5}, // 0x2c
-    {ADDR_LRELATIVE , 5}, // 0x2d
-    {ADDR_LRELATIVE , 5}, // 0x2e
-    {ADDR_LRELATIVE , 5}, // 0x2f
+    {ADDR_LRELATIVE , 5}, // 0x21 - LBRN
+    {ADDR_LRELATIVE , 5}, // 0x22 - LBHI
+    {ADDR_LRELATIVE , 5}, // 0x23 - LBLS
+    {ADDR_LRELATIVE , 5}, // 0x24 - LBCC
+    {ADDR_LRELATIVE , 5}, // 0x25 - LBCS
+    {ADDR_LRELATIVE , 5}, // 0x26 - LBNE
+    {ADDR_LRELATIVE , 5}, // 0x27 - LBEQ
+    {ADDR_LRELATIVE , 5}, // 0x28 - LBVC
+    {ADDR_LRELATIVE , 5}, // 0x29 - LBVS
+    {ADDR_LRELATIVE , 5}, // 0x2a - LBPL
+    {ADDR_LRELATIVE , 5}, // 0x2b - LBMI
+    {ADDR_LRELATIVE , 5}, // 0x2c - LBGE
+    {ADDR_LRELATIVE , 5}, // 0x2d - LBLT
+    {ADDR_LRELATIVE , 5}, // 0x2e - LBGT
+    {ADDR_LRELATIVE , 5}, // 0x2f - LBLE
     
     {ILLEGAL_OP     , 0}, // 0x30
     {ILLEGAL_OP     , 0}, // 0x31
@@ -390,7 +390,7 @@ machine_code_t machine_code_10[] __attribute__((section(".dtcm"))) =
     {ILLEGAL_OP     , 0}, // 0x3c
     {ILLEGAL_OP     , 0}, // 0x3d
     {ILLEGAL_OP     , 0}, // 0x3e
-    {ADDR_INHERENT  , 20}, // 0x3f
+    {ADDR_INHERENT  ,20}, // 0x3f - SWI2
     
     {ILLEGAL_OP     , 0}, // 0x40
     {ILLEGAL_OP     , 0}, // 0x41
@@ -463,7 +463,7 @@ machine_code_t machine_code_10[] __attribute__((section(".dtcm"))) =
     {ILLEGAL_OP     , 0}, // 0x80
     {ILLEGAL_OP     , 0}, // 0x81
     {ILLEGAL_OP     , 0}, // 0x82
-    {ADDR_LIMMEDIATE, 5}, // 0x83
+    {ADDR_LIMMEDIATE, 5}, // 0x83 - CMPD
     {ILLEGAL_OP     , 0}, // 0x84
     {ILLEGAL_OP     , 0}, // 0x85
     {ILLEGAL_OP     , 0}, // 0x86
@@ -472,15 +472,15 @@ machine_code_t machine_code_10[] __attribute__((section(".dtcm"))) =
     {ILLEGAL_OP     , 0}, // 0x89
     {ILLEGAL_OP     , 0}, // 0x8a
     {ILLEGAL_OP     , 0}, // 0x8b
-    {ADDR_LIMMEDIATE, 5}, // 0x8c
+    {ADDR_LIMMEDIATE, 5}, // 0x8c - CMPY
     {ILLEGAL_OP     , 0}, // 0x8d
-    {ADDR_LIMMEDIATE, 4}, // 0x8e
+    {ADDR_LIMMEDIATE, 4}, // 0x8e - LDY
     {ILLEGAL_OP     , 0}, // 0x8f
     
     {ILLEGAL_OP     , 0}, // 0x90
     {ILLEGAL_OP     , 0}, // 0x91
     {ILLEGAL_OP     , 0}, // 0x92
-    {ADDR_DIRECT    , 7}, // 0x93
+    {ADDR_DIRECT    , 7}, // 0x93 - CMPD
     {ILLEGAL_OP     , 0}, // 0x94
     {ILLEGAL_OP     , 0}, // 0x95
     {ILLEGAL_OP     , 0}, // 0x96
@@ -489,15 +489,15 @@ machine_code_t machine_code_10[] __attribute__((section(".dtcm"))) =
     {ILLEGAL_OP     , 0}, // 0x99
     {ILLEGAL_OP     , 0}, // 0x9a
     {ILLEGAL_OP     , 0}, // 0x9b
-    {ADDR_DIRECT    , 7}, // 0x9c
+    {ADDR_DIRECT    , 7}, // 0x9c - CMPY
     {ILLEGAL_OP     , 0}, // 0x9d
-    {ADDR_DIRECT    , 6}, // 0x9e
-    {ADDR_DIRECT    , 6}, // 0x9f
+    {ADDR_DIRECT    , 6}, // 0x9e - LDY
+    {ADDR_DIRECT    , 6}, // 0x9f - STY
     
     {ILLEGAL_OP     , 0}, // 0xa0
     {ILLEGAL_OP     , 0}, // 0xa1
     {ILLEGAL_OP     , 0}, // 0xa2
-    {ADDR_INDEXED   , 7}, // 0xa3
+    {ADDR_INDEXED   , 7}, // 0xa3 - CMPD
     {ILLEGAL_OP     , 0}, // 0xa4
     {ILLEGAL_OP     , 0}, // 0xa5
     {ILLEGAL_OP     , 0}, // 0xa6
@@ -506,15 +506,15 @@ machine_code_t machine_code_10[] __attribute__((section(".dtcm"))) =
     {ILLEGAL_OP     , 0}, // 0xa9
     {ILLEGAL_OP     , 0}, // 0xaa
     {ILLEGAL_OP     , 0}, // 0xab
-    {ADDR_INDEXED   , 7}, // 0xac
+    {ADDR_INDEXED   , 7}, // 0xac - CMPY
     {ILLEGAL_OP     , 0}, // 0xad
-    {ADDR_INDEXED   , 6}, // 0xae
-    {ADDR_INDEXED   , 6}, // 0xaf
+    {ADDR_INDEXED   , 6}, // 0xae - LDY
+    {ADDR_INDEXED   , 6}, // 0xaf - STY
 
     {ILLEGAL_OP     , 0}, // 0xb0
     {ILLEGAL_OP     , 0}, // 0xb1
     {ILLEGAL_OP     , 0}, // 0xb2
-    {ADDR_EXTENDED  , 8}, // 0xb3
+    {ADDR_EXTENDED  , 8}, // 0xb3 - CMPD
     {ILLEGAL_OP     , 0}, // 0xb4
     {ILLEGAL_OP     , 0}, // 0xb5
     {ILLEGAL_OP     , 0}, // 0xb6
@@ -523,10 +523,10 @@ machine_code_t machine_code_10[] __attribute__((section(".dtcm"))) =
     {ILLEGAL_OP     , 0}, // 0xb9
     {ILLEGAL_OP     , 0}, // 0xba
     {ILLEGAL_OP     , 0}, // 0xbb
-    {ADDR_EXTENDED  , 8}, // 0xbc
+    {ADDR_EXTENDED  , 8}, // 0xbc - CMPY
     {ILLEGAL_OP     , 0}, // 0xbd
-    {ADDR_EXTENDED  , 7}, // 0xbe
-    {ADDR_EXTENDED  , 7}, // 0xbf
+    {ADDR_EXTENDED  , 7}, // 0xbe - LDY
+    {ADDR_EXTENDED  , 7}, // 0xbf - STY
 
     {ILLEGAL_OP     , 0}, // 0xc0
     {ILLEGAL_OP     , 0}, // 0xc1
@@ -542,7 +542,7 @@ machine_code_t machine_code_10[] __attribute__((section(".dtcm"))) =
     {ILLEGAL_OP     , 0}, // 0xcb
     {ILLEGAL_OP     , 0}, // 0xcc
     {ILLEGAL_OP     , 0}, // 0xcd
-    {ADDR_LIMMEDIATE, 4}, // 0xce
+    {ADDR_LIMMEDIATE, 4}, // 0xce - LDS
     {ILLEGAL_OP     , 0}, // 0xcf
     
     {ILLEGAL_OP     , 0}, // 0xd0
@@ -559,8 +559,8 @@ machine_code_t machine_code_10[] __attribute__((section(".dtcm"))) =
     {ILLEGAL_OP     , 0}, // 0xdb
     {ILLEGAL_OP     , 0}, // 0xdc
     {ILLEGAL_OP     , 0}, // 0xdd
-    {ADDR_DIRECT    , 6}, // 0xde
-    {ADDR_DIRECT    , 6}, // 0xdf
+    {ADDR_DIRECT    , 6}, // 0xde - LDS
+    {ADDR_DIRECT    , 6}, // 0xdf - STS
     
     {ILLEGAL_OP     , 0}, // 0xe0
     {ILLEGAL_OP     , 0}, // 0xe1
@@ -576,8 +576,8 @@ machine_code_t machine_code_10[] __attribute__((section(".dtcm"))) =
     {ILLEGAL_OP     , 0}, // 0xeb
     {ILLEGAL_OP     , 0}, // 0xec
     {ILLEGAL_OP     , 0}, // 0xed
-    {ADDR_INDEXED   , 6}, // 0xee
-    {ADDR_INDEXED   , 6}, // 0xef
+    {ADDR_INDEXED   , 6}, // 0xee - LDS
+    {ADDR_INDEXED   , 6}, // 0xef - STS
     
     {ILLEGAL_OP     , 0}, // 0xf0
     {ILLEGAL_OP     , 0}, // 0xf1
@@ -593,8 +593,8 @@ machine_code_t machine_code_10[] __attribute__((section(".dtcm"))) =
     {ILLEGAL_OP     , 0}, // 0xfb
     {ILLEGAL_OP     , 0}, // 0xfc
     {ILLEGAL_OP     , 0}, // 0xfd
-    {ADDR_EXTENDED  , 7}, // 0xfe
-    {ADDR_EXTENDED  , 7}  // 0xff
+    {ADDR_EXTENDED  , 7}, // 0xfe - LDS
+    {ADDR_EXTENDED  , 7}  // 0xff - STS
 };
 
 /* Double byte 0x11 op-codes */
@@ -666,7 +666,7 @@ machine_code_t machine_code_11[] __attribute__((section(".dtcm"))) =
     {ILLEGAL_OP     , 0}, // 0x3c
     {ILLEGAL_OP     , 0}, // 0x3d
     {ILLEGAL_OP     , 0}, // 0x3e
-    {ADDR_INHERENT  , 20}, // 0x3f
+    {ADDR_INHERENT  ,20}, // 0x3f - SWI3
 
     {ILLEGAL_OP     , 0}, // 0x40
     {ILLEGAL_OP     , 0}, // 0x41
@@ -739,7 +739,7 @@ machine_code_t machine_code_11[] __attribute__((section(".dtcm"))) =
     {ILLEGAL_OP     , 0}, // 0x80
     {ILLEGAL_OP     , 0}, // 0x81
     {ILLEGAL_OP     , 0}, // 0x82
-    {ADDR_LIMMEDIATE, 5}, // 0x83
+    {ADDR_LIMMEDIATE, 5}, // 0x83 - CMPU
     {ILLEGAL_OP     , 0}, // 0x84
     {ILLEGAL_OP     , 0}, // 0x85
     {ILLEGAL_OP     , 0}, // 0x86
@@ -748,7 +748,7 @@ machine_code_t machine_code_11[] __attribute__((section(".dtcm"))) =
     {ILLEGAL_OP     , 0}, // 0x89
     {ILLEGAL_OP     , 0}, // 0x8a
     {ILLEGAL_OP     , 0}, // 0x8b
-    {ADDR_LIMMEDIATE, 5}, // 0x8c
+    {ADDR_LIMMEDIATE, 5}, // 0x8c - CMPS
     {ILLEGAL_OP     , 0}, // 0x8d
     {ILLEGAL_OP     , 0}, // 0x8e
     {ILLEGAL_OP     , 0}, // 0x8f
@@ -756,7 +756,7 @@ machine_code_t machine_code_11[] __attribute__((section(".dtcm"))) =
     {ILLEGAL_OP     , 0}, // 0x90
     {ILLEGAL_OP     , 0}, // 0x91
     {ILLEGAL_OP     , 0}, // 0x92
-    {ADDR_DIRECT    , 7}, // 0x93
+    {ADDR_DIRECT    , 7}, // 0x93 - CMPU
     {ILLEGAL_OP     , 0}, // 0x94
     {ILLEGAL_OP     , 0}, // 0x95
     {ILLEGAL_OP     , 0}, // 0x96
@@ -765,7 +765,7 @@ machine_code_t machine_code_11[] __attribute__((section(".dtcm"))) =
     {ILLEGAL_OP     , 0}, // 0x99
     {ILLEGAL_OP     , 0}, // 0x9a
     {ILLEGAL_OP     , 0}, // 0x9b
-    {ADDR_DIRECT    , 7}, // 0x9c
+    {ADDR_DIRECT    , 7}, // 0x9c - CMPS
     {ILLEGAL_OP     , 0}, // 0x9d
     {ILLEGAL_OP     , 0}, // 0x9e
     {ILLEGAL_OP     , 0}, // 0x9f
@@ -773,7 +773,7 @@ machine_code_t machine_code_11[] __attribute__((section(".dtcm"))) =
     {ILLEGAL_OP     , 0}, // 0xa0
     {ILLEGAL_OP     , 0}, // 0xa1
     {ILLEGAL_OP     , 0}, // 0xa2
-    {ADDR_INDEXED   , 7}, // 0xa3
+    {ADDR_INDEXED   , 7}, // 0xa3 - CMPU
     {ILLEGAL_OP     , 0}, // 0xa4
     {ILLEGAL_OP     , 0}, // 0xa5
     {ILLEGAL_OP     , 0}, // 0xa6
@@ -782,7 +782,7 @@ machine_code_t machine_code_11[] __attribute__((section(".dtcm"))) =
     {ILLEGAL_OP     , 0}, // 0xa9
     {ILLEGAL_OP     , 0}, // 0xaa
     {ILLEGAL_OP     , 0}, // 0xab
-    {ADDR_INDEXED   , 7}, // 0xac
+    {ADDR_INDEXED   , 7}, // 0xac - CMPS
     {ILLEGAL_OP     , 0}, // 0xad
     {ILLEGAL_OP     , 0}, // 0xae
     {ILLEGAL_OP     , 0}, // 0xaf
@@ -790,7 +790,7 @@ machine_code_t machine_code_11[] __attribute__((section(".dtcm"))) =
     {ILLEGAL_OP     , 0}, // 0xb0
     {ILLEGAL_OP     , 0}, // 0xb1
     {ILLEGAL_OP     , 0}, // 0xb2
-    {ADDR_EXTENDED  , 8}, // 0xb3
+    {ADDR_EXTENDED  , 8}, // 0xb3 - CMPU
     {ILLEGAL_OP     , 0}, // 0xb4
     {ILLEGAL_OP     , 0}, // 0xb5
     {ILLEGAL_OP     , 0}, // 0xb6
@@ -799,7 +799,7 @@ machine_code_t machine_code_11[] __attribute__((section(".dtcm"))) =
     {ILLEGAL_OP     , 0}, // 0xb9
     {ILLEGAL_OP     , 0}, // 0xba
     {ILLEGAL_OP     , 0}, // 0xbb
-    {ADDR_EXTENDED  , 8}, // 0xbc
+    {ADDR_EXTENDED  , 8}, // 0xbc - CMPS
     {ILLEGAL_OP     , 0}, // 0xbd
     {ILLEGAL_OP     , 0}, // 0xbe
     {ILLEGAL_OP     , 0}, // 0xbf

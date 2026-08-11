@@ -95,11 +95,11 @@ void mem_load_rom(int addr_start, const uint8_t *buffer, int length)
  *  A default do-nothing IO handler
  *
  *  param:  Nothing
- *  return: Nothing
+ *  return: Last address byte to mimic floating IO hardware
  */
 static uint8_t do_nothing_io_handler(uint16_t address, uint8_t data, mem_operation_t op)
 {
-    return 0xFF;  // Generally non-connected IO will return the high byte of the address... which will be 0xFF
+    return address & 0xFF;  // Generally non-connected IO will return the last data bus byte fetched... in this case the low byte of the address
 }
 
 /*------------------------------------------------
