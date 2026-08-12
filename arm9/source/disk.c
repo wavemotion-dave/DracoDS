@@ -48,8 +48,8 @@ static uint8_t  io_handler_drive_ctrl(uint16_t address, uint8_t data, mem_operat
 /* -----------------------------------------
    Module globals
 ----------------------------------------- */
-uint8_t nmi_enable = 0;
-uint8_t halt_flag = 0;
+uint8_t nmi_enable  __attribute__((section(".dtcm"))) = 0;
+uint8_t halt_flag   __attribute__((section(".dtcm"))) = 0;
 
 /*------------------------------------------------
  * disk_init()

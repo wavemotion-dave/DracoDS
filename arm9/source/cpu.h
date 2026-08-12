@@ -1,3 +1,14 @@
+// =====================================================================================
+// Copyright (c) 2025-2026 Dave Bernazzani (wavemotion-dave)
+//
+// Copying and distribution of this emulator, its source code and associated
+// readme files, with or without modification, are permitted in any medium without
+// royalty provided this copyright notice is used and wavemotion-dave and eyalabraham
+// (Dragon 32 emu core) are thanked profusely.
+//
+// The Draco-DS emulator is offered as-is, without any warranty. Please see readme.md
+// =====================================================================================
+
 /********************************************************************
  * cpu.h
  *
@@ -18,8 +29,8 @@
 typedef enum
 {
     CPU_EXEC        = 0,    // Normal state instruction execution
-    CPU_HALTED      = 1,    // Is halted
-    CPU_SYNC        = 2,    // Waiting in SYNC state (for 'sync' and 'cwai')
+    CPU_HALTED      = 1,    // Is halted (for 'cwai')
+    CPU_SYNC        = 2,    // Waiting in SYNC state (for 'sync' )
     CPU_RESET       = 4,    // Held in reset
     CPU_EXCEPTION   = 5,    // Signal an emulation exception (bad op-code)
 } cpu_run_state_t;

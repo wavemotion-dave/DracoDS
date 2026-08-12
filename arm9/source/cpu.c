@@ -102,13 +102,13 @@ uint8_t lsr(uint8_t byte);
 uint8_t neg(uint8_t byte);
 uint8_t or(uint8_t acc, uint8_t byte);
 void    orcc(uint8_t byte);
-void    pshs(uint8_t push_list, int *cycles);
-void    pshu(uint8_t push_list, int *cycles);
-void    puls(uint8_t pull_list, int *cycles);
-void    pulu(uint8_t pull_list, int *cycles);
+void    pshs(uint8_t push_list);
+void    pshu(uint8_t push_list);
+void    puls(uint8_t pull_list);
+void    pulu(uint8_t pull_list);
 uint8_t rol(uint8_t byte);
 uint8_t ror(uint8_t byte);
-void    rti(int *cycles);
+void    rti(void);
 uint8_t sbc(uint8_t acc, uint8_t byte);
 void    sex(void);
 uint8_t sub(uint8_t acc, uint8_t byte);
@@ -163,6 +163,9 @@ struct cc_t
 int cycles_this_scanline    __attribute__((section(".dtcm"))) = 0;
 
 #define     d       ((uint16_t)(((uint16_t)cpu.a << 8) + cpu.b))    // Accumulator D
+
+static uint16_t *reg_lookup[4] __attribute__((section(".dtcm"))) = {&cpu.x, &cpu.y, &cpu.u, &cpu.s};
+
 
 /*------------------------------------------------
  * cpu_init()
@@ -1085,24 +1088,24 @@ ITCM_CODE void cpu_run(void)
                  */
                 case 0x34:
                     operand8 = (uint8_t) mem_read(eff_addr);
-                    pshs(operand8, &cycles_this_scanline);
+                    pshs(operand8);
                     break;
 
                 case 0x36:
                     operand8 = (uint8_t) mem_read(eff_addr);
-                    pshu(operand8, &cycles_this_scanline);
+                    pshu(operand8);
                     break;
 
                 /* PULS, PULU
                  */
                 case 0x35:
                     operand8 = (uint8_t) mem_read(eff_addr);
-                    puls(operand8, &cycles_this_scanline);
+                    puls(operand8);
                     break;
 
                 case 0x37:
                     operand8 = (uint8_t) mem_read(eff_addr);
-                    pulu(operand8, &cycles_this_scanline);
+                    pulu(operand8);
                     break;
 
                 /* ROL, ROLA, ROLB
@@ -1144,7 +1147,7 @@ ITCM_CODE void cpu_run(void)
                 /* RTI
                  */
                 case 0x3b:
-                    rti(&cycles_this_scanline);
+                    rti();
                     break;
 
                 /* RTS
@@ -1864,34 +1867,34 @@ inline __attribute__((always_inline)) void orcc(uint8_t byte)
  *  param:  Push-list operand, and command cycles to update if needed.
  *  return: Nothing
  */
-void pshs(uint8_t push_list, int *cycles)
+void pshs(uint8_t push_list)
 {
-    (*cycles)++;
+    cycles_this_scanline++;
 
     if ( push_list & 0x80 )
     {
-        (*cycles)++;
+        cycles_this_scanline++;
         mem_write_fast(--cpu.s, cpu.pc & 0xff);
         mem_write_fast(--cpu.s, (cpu.pc >> 8) & 0xff);
     }
 
     if ( push_list & 0x40 )
     {
-        (*cycles)++;
+        cycles_this_scanline++;
         mem_write_fast(--cpu.s, cpu.u & 0xff);
         mem_write_fast(--cpu.s, (cpu.u >> 8) & 0xff);
     }
 
     if ( push_list & 0x20 )
     {
-        (*cycles)++;
+        cycles_this_scanline++;
         mem_write_fast(--cpu.s, cpu.y & 0xff);
         mem_write_fast(--cpu.s, (cpu.y >> 8) & 0xff);
     }
 
     if ( push_list & 0x10 )
     {
-        (*cycles)++;
+        cycles_this_scanline++;
         mem_write_fast(--cpu.s, cpu.x & 0xff);
         mem_write_fast(--cpu.s, (cpu.x >> 8) & 0xff);
     }
@@ -1926,34 +1929,34 @@ void pshs(uint8_t push_list, int *cycles)
  *  param:  Push-list operand, and command cycles to update if needed.
  *  return: Nothing
  */
-void pshu(uint8_t push_list, int *cycles)
+void pshu(uint8_t push_list)
 {
-    (*cycles)++;
+    cycles_this_scanline++;
 
     if ( push_list & 0x80 )
     {
-        (*cycles)++;
+        cycles_this_scanline++;
         mem_write(--cpu.u, cpu.pc & 0xff);
         mem_write(--cpu.u, (cpu.pc >> 8) & 0xff);
     }
 
     if ( push_list & 0x40 )
     {
-        (*cycles)++;
+        cycles_this_scanline++;
         mem_write(--cpu.u, cpu.s & 0xff);
         mem_write(--cpu.u, (cpu.s >> 8) & 0xff);
     }
 
     if ( push_list & 0x20 )
     {
-        (*cycles)++;
+        cycles_this_scanline++;
         mem_write(--cpu.u, cpu.y & 0xff);
         mem_write(--cpu.u, (cpu.y >> 8) & 0xff);
     }
 
     if ( push_list & 0x10 )
     {
-        (*cycles)++;
+        cycles_this_scanline++;
         mem_write(--cpu.u, cpu.x & 0xff);
         mem_write(--cpu.u, (cpu.x >> 8) & 0xff);
     }
@@ -1988,11 +1991,11 @@ void pshu(uint8_t push_list, int *cycles)
  *  param:  Pull-list operand, and command cycles to update if needed.
  *  return: Nothing
  */
-void puls(uint8_t pull_list, int *cycles)
+void puls(uint8_t pull_list)
 {
     uint16_t    val;
 
-    (*cycles)++;
+    cycles_this_scanline++;
 
     if ( pull_list & 0x01 )
     {
@@ -2020,7 +2023,7 @@ void puls(uint8_t pull_list, int *cycles)
 
     if ( pull_list & 0x10 )
     {
-        (*cycles)++;
+        cycles_this_scanline++;
         val = mem_read(cpu.s++) << 8;
         val += mem_read(cpu.s++);
         cpu.x = val;
@@ -2028,7 +2031,7 @@ void puls(uint8_t pull_list, int *cycles)
 
     if ( pull_list & 0x20 )
     {
-        (*cycles)++;
+        cycles_this_scanline++;
         val = mem_read(cpu.s++) << 8;
         val += mem_read(cpu.s++);
         cpu.y = val;
@@ -2036,7 +2039,7 @@ void puls(uint8_t pull_list, int *cycles)
 
     if ( pull_list & 0x40 )
     {
-        (*cycles)++;
+        cycles_this_scanline++;
         val = mem_read(cpu.s++) << 8;
         val += mem_read(cpu.s++);
         cpu.u = val;
@@ -2044,7 +2047,7 @@ void puls(uint8_t pull_list, int *cycles)
 
     if ( pull_list & 0x80 )
     {
-        (*cycles)++;
+        cycles_this_scanline++;
         val = mem_read(cpu.s++) << 8;
         val += mem_read(cpu.s++);
         cpu.pc = val;
@@ -2060,11 +2063,11 @@ void puls(uint8_t pull_list, int *cycles)
  *  param:  Pull-list operand, and command cycles to update if needed.
  *  return: Nothing
  */
-void pulu(uint8_t pull_list, int *cycles)
+void pulu(uint8_t pull_list)
 {
     uint16_t    val;
 
-    (*cycles)++;
+    cycles_this_scanline++;
 
     if ( pull_list & 0x01 )
     {
@@ -2092,7 +2095,7 @@ void pulu(uint8_t pull_list, int *cycles)
 
     if ( pull_list & 0x10 )
     {
-        (*cycles)++;
+        cycles_this_scanline++;
         val = mem_read(cpu.u++) << 8;
         val += mem_read(cpu.u++);
         cpu.x = val;
@@ -2100,7 +2103,7 @@ void pulu(uint8_t pull_list, int *cycles)
 
     if ( pull_list & 0x20 )
     {
-        (*cycles)++;
+        cycles_this_scanline++;
         val = mem_read(cpu.u++) << 8;
         val += mem_read(cpu.u++);
         cpu.y = val;
@@ -2108,7 +2111,7 @@ void pulu(uint8_t pull_list, int *cycles)
 
     if ( pull_list & 0x40 )
     {
-        (*cycles)++;
+        cycles_this_scanline++;
         val = mem_read(cpu.u++) << 8;
         val += mem_read(cpu.u++);
         cpu.s = val;
@@ -2116,7 +2119,7 @@ void pulu(uint8_t pull_list, int *cycles)
 
     if ( pull_list & 0x80 )
     {
-        (*cycles)++;
+        cycles_this_scanline++;
         val = mem_read(cpu.u++) << 8;
         val += mem_read(cpu.u++);
         cpu.pc = val;
@@ -2185,7 +2188,7 @@ inline __attribute__((always_inline)) uint8_t ror(uint8_t byte)
  *  Return from interrupt
  *
  */
-void rti(int *cycles)
+void rti(void)
 {
     uint8_t byte;
 
@@ -2209,7 +2212,7 @@ void rti(int *cycles)
         cpu.u = mem_read(cpu.s++) << 8;
         cpu.u += mem_read(cpu.s++);
 
-        (*cycles) += 9;
+        cycles_this_scanline += 9;
     }
 
     /* Restore PC and return
@@ -2568,7 +2571,6 @@ inline __attribute__((always_inline)) int get_eff_addr(int mode)
 
         case ADDR_INDEXED:
             {
-                uint16_t   *index_reg = 0;
                 uint8_t    postbyte;
                 uint8_t    mode;
                 uint8_t    indirect;
@@ -2579,29 +2581,8 @@ inline __attribute__((always_inline)) int get_eff_addr(int mode)
                 indirect = (postbyte & INDX_POST_INDIRECT) ? 1 : 0;
                 reg_select = (uint8_t)((postbyte & INDX_POST_REG) >> 5);
 
-                switch ( reg_select )
-                {
-                    case 0x00:
-                        index_reg = &cpu.x;
-                        break;
-
-                    case 0x01:
-                        index_reg = &cpu.y;
-                        break;
-
-                    case 0x02:
-                        index_reg = &cpu.u;
-                        break;
-
-                    case 0x03:
-                        index_reg = &cpu.s;
-                        break;
-
-                    default:
-                        cpu.cpu_state = CPU_EXCEPTION;
-                        return effective_addr;
-                }
-
+                uint16_t *index_reg = reg_lookup[reg_select];
+                
                 /* Check if 5-bit offset is in the post-byte
                  * then process more index address bytes if not.
                  */
