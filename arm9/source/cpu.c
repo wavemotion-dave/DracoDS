@@ -499,6 +499,15 @@ ITCM_CODE void cpu_run(void)
                             swi(3);
                             break;
 
+                        case 0x3d:  // Technically invalid... but MUL
+                            operand16 = cpu.a * cpu.b;
+                            cpu.a = GET_REG_HIGH(operand16);
+                            cpu.b = GET_REG_LOW(operand16);
+                            eval_cc_z16(operand16);
+                            cc.c = (cpu.b & 0x80) ? CC_FLAG_SET : CC_FLAG_CLR;
+                            break;
+
+
                         default:
                             /* Exception: Illegal 0x11 op-code cpu_run()
                              */

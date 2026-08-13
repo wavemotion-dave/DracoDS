@@ -1004,9 +1004,12 @@ ITCM_CODE static uint8_t io_handler_pia1_crb(uint16_t address, uint8_t data, mem
         else
             pia1_cb1_int_enabled = 0;
 
-        // ---------------------------------------------------------------------------------------
-        // If the sound enable bit is being changed... TBD!!
-        // ---------------------------------------------------------------------------------------
+        // -------------------------------------------------------------------------------
+        // If the sound enable bit is being changed... this can produce or stop sound
+        // output. Games like Demon Attack use this method to generate much of the sound 
+        // output. However, some games like Androne will hit this quickly enough that it 
+        // will produce a buzzing sound - so we have a filter to help here.
+        // -------------------------------------------------------------------------------
         if (sound_enable ^ (data & 0x08) && !mux_select)
         {
             if (myConfig.clickFilter == 0)
@@ -1018,7 +1021,7 @@ ITCM_CODE static uint8_t io_handler_pia1_crb(uint16_t address, uint8_t data, mem
                 }
                 else // Turning the sound off
                 {
-                    samples_since_idx = 0;
+                    if (samples_since_idx > 1) samples_since_idx = 1;
                     samples_since_last_call[samples_since_idx++] = 0;
                 }
             }

@@ -1164,7 +1164,7 @@ const struct options_t Option_Table[2][20] =
         {"ANALG SENS X",   {"LOW", "MEDIUM", "HIGH"},                                  &myConfig.sensitivityX,      3},
         {"ANALG SENS Y",   {"LOW", "MEDIUM", "HIGH"},                                  &myConfig.sensitivityY,      3},
         {"ANALG CENTER",   {"31", "32", "33"},                                         &myConfig.analogCenter,      3},
-        {"CLICK FILTER",   {"NORMAL", "ENABLED"},                                      &myConfig.clickFilter,       2},
+        {"CLICK FILTER",   {"DISABLED", "ENABLED"},                                    &myConfig.clickFilter,       2},
         {"SOUND VOLUME",   {"NORMAL", "LOUDER"},                                       &myConfig.soundVolume,       2},
         
         {NULL,             {"",      ""},                                              NULL,                        1},

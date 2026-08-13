@@ -664,7 +664,7 @@ machine_code_t machine_code_11[] __attribute__((section(".dtcm"))) =
     {ILLEGAL_OP     , 0}, // 0x3a
     {ILLEGAL_OP     , 0}, // 0x3b
     {ILLEGAL_OP     , 0}, // 0x3c
-    {ILLEGAL_OP     , 0}, // 0x3d
+    {ILLEGAL_OP     ,12}, // 0x3d - illegal... but MUL
     {ILLEGAL_OP     , 0}, // 0x3e
     {ADDR_INHERENT  ,20}, // 0x3f - SWI3
 
