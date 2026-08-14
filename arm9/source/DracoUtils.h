@@ -138,7 +138,7 @@ extern u8   showMessage(char *szCh1, char *szCh2);
 extern void DracoDSFindFiles(u8 bDiskOnly);
 extern void DracoDSChangeOptions(void);
 extern void DracoDSGameOptions(bool bIsGlobal);
-extern void DSPrint(int iX,int iY,int iScr,char *szMessage);
+extern void DSPrint(int iX,int iY,int iScr,const char *szMessage);
 extern u32  crc32 (unsigned int crc, const unsigned char *buf, unsigned int len);
 extern void FadeToColor(unsigned char ucSens, unsigned short ucBG, unsigned char ucScr, unsigned char valEnd, unsigned char uWait);
 extern u8   DracoDSLoadFile(u8 bDiskOnly);

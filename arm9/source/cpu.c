@@ -1448,7 +1448,7 @@ inline __attribute__((always_inline)) uint8_t add(uint8_t acc, uint8_t byte)
  *
  *  acc+word
  */
-void addd(uint16_t word)
+inline __attribute__((always_inline)) void addd(uint16_t word)
 {
     uint16_t acc;
     uint32_t result;
@@ -1490,7 +1490,7 @@ inline __attribute__((always_inline)) uint8_t and(uint8_t acc, uint8_t byte)
  *  Logical AND condition-code register with operand.
  *
  */
-void andcc(uint8_t byte)
+inline __attribute__((always_inline)) void andcc(uint8_t byte)
 {
     uint8_t temp_cc;
 
@@ -1680,7 +1680,7 @@ void cwai(uint8_t byte)
  *  Decimal adjust accumulator A
  *
  */
-void daa(void)
+inline __attribute__((always_inline)) void daa(void)
 {
     uint16_t    temp;
     uint16_t    high_nibble;
@@ -2298,7 +2298,7 @@ inline __attribute__((always_inline)) uint8_t sub(uint8_t acc, uint8_t byte)
  *  Using 2's complement addition.
  *
  */
-void subd(uint16_t word)
+inline __attribute__((always_inline)) void subd(uint16_t word)
 {
     uint16_t acc;
     uint32_t result;
@@ -3015,7 +3015,7 @@ inline __attribute__((always_inline)) uint8_t get_cc(void)
  *  param:  8-bit value of CC register
  *  return: Nothing
  */
-inline void set_cc(uint8_t value)
+inline __attribute__((always_inline)) void set_cc(uint8_t value)
 {
     cc.c = (value & 0x01) ? CC_FLAG_SET : CC_FLAG_CLR;
     cc.v = (value & 0x02) ? CC_FLAG_SET : CC_FLAG_CLR;

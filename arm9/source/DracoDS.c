@@ -473,14 +473,14 @@ void DisplayStatusLine(void)
             DSPrint(27, 22, 2, "DEF");
 
             sprintf(tmp, "%03d", tape_pos/1024); // Tape Counter in 1K increments
-            DSPrint(27, 23, 6, tmp);
+            DSPrint(27, 23, 0, tmp);
         }
         else
         {
             // Show cassette in white (stopped)
             DSPrint(27, 21, 2, "!\"#");
             DSPrint(27, 22, 2, "ABC");
-            DSPrint(27, 23, 6, "   ");
+            DSPrint(27, 23, 0, "   ");
         }
     }
 
@@ -490,7 +490,7 @@ void DisplayStatusLine(void)
     }
     else
     {
-        DSPrint(1, 19, 6, " ");
+        DSPrint(1, 19, 0, " ");
     }
 }
 
@@ -512,7 +512,7 @@ void MiniMenuShow(bool bClearScreen, u8 sel)
       BottomScreenOptions();
     }
 
-    DSPrint(8,7,6,                                           " DS MINI MENU  ");
+    DSPrint(8,7,0,                                           " DS MINI MENU  ");
     DSPrint(8,9+mini_menu_items,(sel==mini_menu_items)?2:0,  " RESET  GAME   ");  mini_menu_items++;
     DSPrint(8,9+mini_menu_items,(sel==mini_menu_items)?2:0,  " QUIT   GAME   ");  mini_menu_items++;
     DSPrint(8,9+mini_menu_items,(sel==mini_menu_items)?2:0,  " SAVE   STATE  ");  mini_menu_items++;
@@ -932,7 +932,7 @@ void DracoDS_main(void)
                 szChai[1] = '0' + (emuFps%100) / 10;
                 szChai[2] = '0' + (emuFps%100) % 10;
                 szChai[3] = 0;
-                DSPrint(0,0,6,szChai);
+                DSPrint(0,0,0,szChai);
             }
             DisplayStatusLine();
             emuActFrames = 0;

@@ -248,10 +248,10 @@ u8 showMessage(char *szCh1, char *szCh2)
 
   BottomScreenOptions();
 
-  DSPrint(16-strlen(szCh1)/2,10,6,szCh1);
-  DSPrint(16-strlen(szCh2)/2,12,6,szCh2);
-  DSPrint(8,14,6,("> YES <"));
-  DSPrint(20,14,6,("  NO   "));
+  DSPrint(16-strlen(szCh1)/2,10,0,szCh1);
+  DSPrint(16-strlen(szCh2)/2,12,0,szCh2);
+  DSPrint(8,14,0,("> YES <"));
+  DSPrint(20,14,0,("  NO   "));
   while ((keysCurrent() & (KEY_TOUCH | KEY_LEFT | KEY_RIGHT | KEY_A ))!=0);
 
   while (uRet == ID_SHM_CANCEL)
@@ -264,8 +264,8 @@ u8 showMessage(char *szCh1, char *szCh2)
       iTy = touch.py;
       if ( (iTx>8*8) && (iTx<8*8+7*8) && (iTy>14*8-4) && (iTy<15*8+4) ) {
         if (!ucGauS) {
-          DSPrint(8,14,6,("> YES <"));
-          DSPrint(20,14,6,("  NO   "));
+          DSPrint(8,14,0,("> YES <"));
+          DSPrint(20,14,0,("  NO   "));
           ucGauS = 1;
           if (ucCho == ID_SHM_YES) {
             uRet = ucCho;
@@ -279,8 +279,8 @@ u8 showMessage(char *szCh1, char *szCh2)
         ucGauS = 0;
       if ( (iTx>20*8) && (iTx<20*8+7*8) && (iTy>14*8-4) && (iTy<15*8+4) ) {
         if (!ucDroS) {
-          DSPrint(8,14,6,("  YES  "));
-          DSPrint(20,14,6,("> NO  <"));
+          DSPrint(8,14,0,("  YES  "));
+          DSPrint(20,14,0,("> NO  <"));
           ucDroS = 1;
           if (ucCho == ID_SHM_NO) {
             uRet = ucCho;
@@ -303,13 +303,13 @@ u8 showMessage(char *szCh1, char *szCh2)
         ucGau = 1;
         if (ucCho == ID_SHM_YES) {
           ucCho = ID_SHM_NO;
-          DSPrint(8,14,6,("  YES  "));
-          DSPrint(20,14,6,("> NO  <"));
+          DSPrint(8,14,0,("  YES  "));
+          DSPrint(20,14,0,("> NO  <"));
         }
         else {
           ucCho  = ID_SHM_YES;
-          DSPrint(8,14,6,("> YES <"));
-          DSPrint(20,14,6,("  NO   "));
+          DSPrint(8,14,0,("> YES <"));
+          DSPrint(20,14,0,("  NO   "));
         }
         WAITVBL;
       }
@@ -322,13 +322,13 @@ u8 showMessage(char *szCh1, char *szCh2)
         ucDro = 1;
         if (ucCho == ID_SHM_YES) {
           ucCho  = ID_SHM_NO;
-          DSPrint(8,14,6,("  YES  "));
-          DSPrint(20,14,6,("> NO  <"));
+          DSPrint(8,14,0,("  YES  "));
+          DSPrint(20,14,0,("> NO  <"));
         }
         else {
           ucCho  = ID_SHM_YES;
-          DSPrint(8,14,6,("> YES <"));
-          DSPrint(20,14,6,("  NO   "));
+          DSPrint(8,14,0,("> YES <"));
+          DSPrint(20,14,0,("  NO   "));
         }
         WAITVBL;
       }
@@ -1791,20 +1791,20 @@ void DracoDSChangeOptions(void)
 //*****************************************************************************
 // Displays a message on the screen
 //*****************************************************************************
-void DSPrint(int iX,int iY,int iScr,char *szMessage)
+void DSPrint(int iX,int iY,int iScr,const char *szMessage)
 {
   u16 *pusScreen,*pusMap;
   u16 usCharac;
-  char *pTrTxt=szMessage;
+  const char *pTrTxt=szMessage;
 
-  pusScreen=(u16*) (iScr != 1 ? bgGetMapPtr(bg1b) : bgGetMapPtr(bg1))+iX+(iY<<5);
-  pusMap=(u16*) (iScr != 1 ? (iScr == 6 ? bgGetMapPtr(bg0b)+24*32 : (iScr == 0 ? bgGetMapPtr(bg0b)+24*32 : bgGetMapPtr(bg0b)+26*32 )) : bgGetMapPtr(bg0)+51*32 );
+  pusScreen = (u16*)(bgGetMapPtr(bg1b) + iX + (iY<<5));
+  pusMap = (u16*) (bgGetMapPtr(bg0b)+(24+iScr)*32);
 
   while((*pTrTxt)!='\0' )
   {
     char ch = *pTrTxt++;
-    if (ch >= 'a' && ch <= 'z') ch -= 32;   // Faster than strcpy/strtoupper
-
+    if ((unsigned int)(ch - 'a') <= ('z' - 'a')) ch ^= 32; // Convert lower case to upper
+    
     if (((ch)<' ') || ((ch)>'_'))
       usCharac=*(pusMap);                   // Will render as a vertical bar
     else if((ch)<'@')
@@ -2016,7 +2016,7 @@ void DragonTandySetPalette(void)
  *******************************************************************************/
 void getfile_crc(const char *filename)
 {
-    DSPrint(11,13,6, "LOADING...");
+    DSPrint(11,13,0, "LOADING...");
     WAITVBL;WAITVBL;WAITVBL;WAITVBL;WAITVBL;WAITVBL;
 
     file_crc = getFileCrc(filename);        // The CRC is used as a unique ID to save out High Scores and Configuration...
@@ -2028,7 +2028,7 @@ void getfile_crc(const char *filename)
         file_crc = getCRC32((u8 *)initial_file, strlen(initial_file));
     }
 
-    DSPrint(11,13,6, "          ");
+    DSPrint(11,13,0, "          ");
 }
 
 

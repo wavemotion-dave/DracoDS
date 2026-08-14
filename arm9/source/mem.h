@@ -123,17 +123,14 @@ inline __attribute__((always_inline)) void mem_write(int address, int data)
     }    
 }
 
-// For stack writes... we don't bother to trap on ROM writes. We're screwed
-// if someone  abused this anyway and we need the extra speed...
+// ---------------------------------------------------------------------------
+// For stack writes... we don't bother to trap on ROM writes nor do we handle
+// any kind of IO access here. We're screwed if someone  abused this anyway 
+// and we need the extra speed (and better code density for ITCM cache).
+// ---------------------------------------------------------------------------
 inline __attribute__((always_inline)) void mem_write_fast(int address, uint8_t data)
 {
-    if (!(~address & 0xFF00))
-    {
-        callback_io[address]((uint16_t) address, (uint8_t)data, MEM_WRITE);
-    }
-    else
-    {
-        memory_RAM[address] = data;
-    }
+    memory_RAM[address] = data;
 }
+
 #endif  /* __MEM_H__ */
