@@ -95,6 +95,7 @@ uint8_t colors[] __attribute__((section(".dtcm"))) = {
         ARTIFACT_BLUE,
         ARTIFACT_ORANGE,
         ARTIFACT_GREEN,
+        ARTIFACT_BLACK,
         
         // The Alphanumeric mode is Dark Green on Light Green or Dark Orange on Light Orange
         FB_DKGRN,
@@ -335,7 +336,6 @@ void vdg_init(void)
         color_artifact_mono_1[pixels_byte] = (buf[3] << 24) | (buf[2] << 16) | (buf[1] << 8) | (buf[0] << 0);
     }
     
-    
     // ---------------------------------------------------------------------------------
     // Pre-render the artifact color modes for fast look-up and 32-bit writes for speed
     // This one is for the "muddied green artifacting" when using the green color set.
@@ -355,7 +355,7 @@ void vdg_init(void)
                 if (pixel != last_pixel)
                 {
                     last_pixel = pixel;
-                    pixel  = ARTIFACT_GREEN;
+                    pixel = (buffer_index & 1) ? ARTIFACT_GREEN : ARTIFACT_BLACK;
                 }
             }
             else
@@ -364,7 +364,7 @@ void vdg_init(void)
                 if (pixel != last_pixel)
                 {
                     last_pixel = pixel;
-                    pixel  = ARTIFACT_GREEN;
+                    pixel = (buffer_index & 1) ? ARTIFACT_BLACK : ARTIFACT_GREEN;
                 }
             }
 
@@ -383,7 +383,7 @@ void vdg_init(void)
                 if (pixel != last_pixel)
                 {
                     last_pixel = pixel;
-                    pixel  = FB_GREEN;
+                    pixel = (buffer_index & 1) ? ARTIFACT_GREEN : ARTIFACT_BLACK;
                 }
             }
             else
@@ -392,7 +392,7 @@ void vdg_init(void)
                 if (pixel != last_pixel)
                 {
                     last_pixel = pixel;
-                    pixel  = FB_GREEN;
+                    pixel = (buffer_index & 1) ? ARTIFACT_BLACK : ARTIFACT_GREEN;
                 }
             }
 
@@ -862,7 +862,7 @@ ITCM_CODE void vdg_render_resl_graph(video_mode_t mode, int vdg_mem_base)
         fg_color = colors[DEF_COLOR_CSS_0];
     }
 
-    for ( vdg_mem_offset = 0; vdg_mem_offset < video_mem / sam_2x_rez; vdg_mem_offset++)
+    for (vdg_mem_offset = 0; vdg_mem_offset < video_mem / sam_2x_rez; vdg_mem_offset++)
     {
         pixels_byte = memory_RAM[vdg_mem_offset + vdg_mem_base];
 
@@ -939,7 +939,7 @@ ITCM_CODE void vdg_render_color_graph(video_mode_t mode, int vdg_mem_base)
     if ( mode == GRAPHICS_1C )
     {
         uint16_t *pixRowPtr = (uint16_t *)pixel_row;
-        for ( vdg_mem_offset = 0; vdg_mem_offset < video_mem; vdg_mem_offset++)
+        for (vdg_mem_offset = 0; vdg_mem_offset < video_mem; vdg_mem_offset++)
         {
             pixels_byte = memory_RAM[vdg_mem_offset + vdg_mem_base];
 
@@ -970,7 +970,7 @@ ITCM_CODE void vdg_render_color_graph(video_mode_t mode, int vdg_mem_base)
     else // Graphics 2C, 3C and 6C
     {
         uint16_t *pixRowPtr = (uint16_t *)pixel_row;
-        for ( vdg_mem_offset = 0; vdg_mem_offset < video_mem; vdg_mem_offset++)
+        for (vdg_mem_offset = 0; vdg_mem_offset < video_mem; vdg_mem_offset++)
         {
             pixels_byte = memory_RAM[vdg_mem_offset + vdg_mem_base];
 
@@ -1007,7 +1007,7 @@ ITCM_CODE void vdg_render_artifacting(video_mode_t mode, int vdg_mem_base)
     uint8_t     last_pixel = FB_BLACK;
     int         pix_char = 0;
 
-    if ( pia_video_mode & PIA_COLOR_SET )
+    if ( pia_video_mode & PIA_COLOR_SET)
     {
         // This is the NTSC Black/White artifacting mode...
     }
@@ -1024,7 +1024,7 @@ ITCM_CODE void vdg_render_artifacting(video_mode_t mode, int vdg_mem_base)
 
     last_pixel = ((memory_RAM[vdg_mem_base] & 0xC0) == 0xC0) ? FB_BUFF : FB_BLACK;
     
-    for ( vdg_mem_offset = 0; vdg_mem_offset < video_mem / sam_2x_rez; vdg_mem_offset++)
+    for (vdg_mem_offset = 0; vdg_mem_offset < video_mem / sam_2x_rez; vdg_mem_offset++)
     {
         pixels_byte = memory_RAM[vdg_mem_offset + vdg_mem_base];
 
@@ -1100,8 +1100,8 @@ ITCM_CODE void vdg_render_artifacting_green(video_mode_t mode, int vdg_mem_base)
     uint8_t bDoubleRez = ((resolution[mode][RES_ROW_REP] * sam_2x_rez) > 1) ? 1:0;
 
     last_pixel = ((memory_RAM[vdg_mem_base] & 0xC0) == 0xC0) ? FB_GREEN : FB_BLACK;
-    
-    for ( vdg_mem_offset = 0; vdg_mem_offset < video_mem / sam_2x_rez; vdg_mem_offset++)
+
+    for (vdg_mem_offset = 0; vdg_mem_offset < video_mem / sam_2x_rez; vdg_mem_offset++)
     {
         pixels_byte = memory_RAM[vdg_mem_offset + vdg_mem_base];
 
@@ -1123,7 +1123,7 @@ ITCM_CODE void vdg_render_artifacting_green(video_mode_t mode, int vdg_mem_base)
             *screen_buffer++ = color_artifact_green0[pixels_byte & 0x0F];
         }
 
-        last_pixel = (pixels_byte & 1) ? FB_GREEN : FB_BLACK;
+        last_pixel = (pixels_byte & 1) ? FB_BUFF : FB_BLACK;
 
         // Check if full line rendered... 32 chars (256 pixels)
         if (++pix_char & 0x20)
@@ -1165,7 +1165,7 @@ ITCM_CODE void vdg_render_artifacting_mono(video_mode_t mode, int vdg_mem_base)
     video_mem = resolution[mode][RES_MEM];
     uint8_t bDoubleRez = ((resolution[mode][RES_ROW_REP] * sam_2x_rez) > 1) ? 1:0;
 
-    for ( vdg_mem_offset = 0; vdg_mem_offset < video_mem / sam_2x_rez; vdg_mem_offset++)
+    for (vdg_mem_offset = 0; vdg_mem_offset < video_mem / sam_2x_rez; vdg_mem_offset++)
     {
         pixels_byte = memory_RAM[vdg_mem_offset + vdg_mem_base];
 
@@ -1251,14 +1251,7 @@ ITCM_CODE video_mode_t vdg_get_mode(void)
                 mode = GRAPHICS_6R;
                 if (sam_video_mode == 0x04)
                 {
-                    if (force_vdg_mismatch_lower)
-                    {
-                        mode = GRAPHICS_3C; // Bump down to 3K lower-rez mode
-                    }
-                    else
-                    {
-                        sam_2x_rez = 2;     // Essentially 256x96 using 3K
-                    }
+                    sam_2x_rez = 2;     // Essentially 256x96 using 3K... Temple of ROM and Galactic Attack utilize this mismatched mode
                 }
                 break;
         }

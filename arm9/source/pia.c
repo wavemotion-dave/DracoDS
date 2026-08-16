@@ -999,10 +999,7 @@ ITCM_CODE static uint8_t io_handler_pia1_crb(uint16_t address, uint8_t data, mem
 {
     if ( op == MEM_WRITE )
     {
-        if ( data & PIA_CR_INTR )
-            pia1_cb1_int_enabled = 1;
-        else
-            pia1_cb1_int_enabled = 0;
+        pia1_cb1_int_enabled = (data & PIA_CR_INTR);
 
         // -------------------------------------------------------------------------------
         // If the sound enable bit is being changed... this can produce or stop sound

@@ -45,12 +45,13 @@
 
 #define     ARTIFACT_BLUE           9  // For High-Res alternating white-black
 #define     ARTIFACT_ORANGE         10 // For High-Res alternating black-white
-#define     ARTIFACT_GREEN          11 // For High-Res green colorset
+#define     ARTIFACT_GREEN          11 // For High-Res green colorset green-black
+#define     ARTIFACT_BLACK          12 // For High-Res green colorset black-green
 
-#define     FB_DKGRN                12 // For the Alphanumeric modes...
-#define     FB_DKORG                13
-#define     FB_LTGRN                14
-#define     FB_LTORG                15
+#define     FB_DKGRN                13 // For the Alphanumeric modes...
+#define     FB_DKORG                14
+#define     FB_LTGRN                15
+#define     FB_LTORG                16
 
 #define     CHAR_SEMI_GRAPHICS      0x80
 #define     CHAR_INVERSE            0x40
