@@ -1958,7 +1958,7 @@ void DragonTandyRun(void)
 // reality the color names are only approximations of the actual colors rendered by
 // the Motorola video chip... these aren't perfect but they will be good enough.
 // ------------------------------------------------------------------------------------
-u8 Dragon_Coco_palette[17*3] =
+u8 Dragon_Coco_palette[16*3] =
 {
   0x00, 0x00, 0x00, // FB_BLACK
 
@@ -1975,7 +1975,6 @@ u8 Dragon_Coco_palette[17*3] =
   0x00, 0x80, 0xFF, // Artifact BLUE
   0xFF, 0x80, 0x00, // Artifact ORANGE
   0x00, 0x80, 0x00, // Artifact Muddy Green 1 (ARTIFACT_GREEN)
-  0x00, 0xFF, 0x00, // Artifact Muddy Green 2 (ARTIFACT_BLACK)
 
   0x10, 0x40, 0x10, // Dark  Green Text
   0x78, 0x50, 0x20, // Dark  Orange Text
@@ -1992,7 +1991,7 @@ void DragonTandySetPalette(void)
 {
   u8 uBcl,r,g,b;
 
-  for (uBcl=0;uBcl<17;uBcl++)
+  for (uBcl=0;uBcl<16;uBcl++)
   {
     r = (u8) ((float) Dragon_Coco_palette[uBcl*3+0]*0.121568f);
     g = (u8) ((float) Dragon_Coco_palette[uBcl*3+1]*0.121568f);

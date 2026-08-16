@@ -95,7 +95,6 @@ uint8_t colors[] __attribute__((section(".dtcm"))) = {
         ARTIFACT_BLUE,
         ARTIFACT_ORANGE,
         ARTIFACT_GREEN,
-        ARTIFACT_BLACK,
         
         // The Alphanumeric mode is Dark Green on Light Green or Dark Orange on Light Orange
         FB_DKGRN,
@@ -355,7 +354,7 @@ void vdg_init(void)
                 if (pixel != last_pixel)
                 {
                     last_pixel = pixel;
-                    pixel = (buffer_index & 1) ? ARTIFACT_GREEN : ARTIFACT_BLACK;
+                    pixel = (buffer_index & 1) ? ARTIFACT_GREEN : FB_GREEN;
                 }
             }
             else
@@ -364,7 +363,7 @@ void vdg_init(void)
                 if (pixel != last_pixel)
                 {
                     last_pixel = pixel;
-                    pixel = (buffer_index & 1) ? ARTIFACT_BLACK : ARTIFACT_GREEN;
+                    pixel = (buffer_index & 1) ? FB_GREEN : ARTIFACT_GREEN;
                 }
             }
 
@@ -383,7 +382,7 @@ void vdg_init(void)
                 if (pixel != last_pixel)
                 {
                     last_pixel = pixel;
-                    pixel = (buffer_index & 1) ? ARTIFACT_GREEN : ARTIFACT_BLACK;
+                    pixel = (buffer_index & 1) ? ARTIFACT_GREEN : FB_GREEN;
                 }
             }
             else
@@ -392,7 +391,7 @@ void vdg_init(void)
                 if (pixel != last_pixel)
                 {
                     last_pixel = pixel;
-                    pixel = (buffer_index & 1) ? ARTIFACT_BLACK : ARTIFACT_GREEN;
+                    pixel = (buffer_index & 1) ? FB_GREEN : ARTIFACT_GREEN;
                 }
             }
 
