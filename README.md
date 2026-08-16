@@ -296,6 +296,13 @@ And then move the soundbank.h file to the arm9/sources directory
 
 Versions :
 -----------------------
+V1.7d: 16-Aug-2026 by wavemotion-dave
+* Improved ADC/SBC to include the carry flag in the Overflow checks.
+* Improved green artifacting so Galactic Attack (and probably some others) looks more correct.
+* Improved PIA interrupt disable handling to clear the pending interrupt line.
+* Improved unmapped IO handling to return last bus value for better accuracy.
+* Minor refactor and cleanup as time permitted.
+
 V1.7: 08-Aug-2026 by wavemotion-dave
 * Improved sound driver for better accuracy. Games like Demon Attack now sound reasonably correct.
 * Fix for speeds other than 100% on NTSC CoCo emulation.
