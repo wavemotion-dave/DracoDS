@@ -1408,13 +1408,14 @@ inline __attribute__((always_inline)) uint8_t adc(uint8_t acc, uint8_t byte)
 {
     uint16_t result;
 
-    result = (acc + byte + cc.c);
+    uint8_t addend = (uint8_t)(byte + cc.c);
+    result = (acc + addend);
 
     eval_cc_c(result);
     eval_cc_z(result);
     eval_cc_n(result);
-    eval_cc_v(acc, byte, result);
-    eval_cc_h(acc, byte, result);
+    eval_cc_v(acc, addend, result);
+    eval_cc_h(acc, addend, result);
 
     return (uint8_t) result;
 }
@@ -1764,6 +1765,11 @@ inline __attribute__((always_inline)) void exg(uint8_t regs)
 
     src = (int)((regs >> 4) & 0x0f);
     dst = (int)(regs & 0x0f);
+    
+    if (((regs ^ (regs << 4)) & 0x80))
+    {
+        // 8-bit to 16-bit register mismatch... in theory, assembler shouldn't allow but 6809 will allow odd behavior here...
+    }
 
     temp1 = read_register(src);
     temp2 = read_register(dst);
@@ -2245,10 +2251,15 @@ inline __attribute__((always_inline)) uint8_t sbc(uint8_t acc, uint8_t byte)
 
     result = acc - byte - cc.c;
 
+    /* For overflow calculation treat subtraction as addition with one's complement
+     * of the subtrahend plus the borrow adjustment: result = acc + (~byte + (1 - C))
+     */
+    uint8_t subtrahend = (uint8_t)(~byte + (1 - cc.c));
+
     eval_cc_c(result);
     eval_cc_z(result);
     eval_cc_n(result);
-    eval_cc_v(acc, ~byte, result);
+    eval_cc_v(acc, subtrahend, result);
 
     return (uint8_t) result;
 }
@@ -2382,6 +2393,11 @@ void tfr(uint8_t regs)
     src = (int)((regs >> 4) & 0x0f);
     dst = (int)(regs & 0x0f);
 
+    if (((regs ^ (regs << 4)) & 0x80))
+    {
+        // 8-bit to 16-bit register mismatch... in theory, assembler shouldn't allow but 6809 will allow odd behavior here...
+    }
+    
     temp1 = read_register(src);
     write_register(dst, temp1);
 }
