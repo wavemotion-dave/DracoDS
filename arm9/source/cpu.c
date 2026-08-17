@@ -374,6 +374,12 @@ ITCM_CODE void cpu_run(void)
              * but if the IRQ/FIRQ signal was removed before sampling
              * then it will not be serviced.
              * The IRQ and FIRQ signal is level driven.
+             * 
+             * Note, the designers knew that the NMI would be a problem
+             * at reset so the NMI is only 'armed' and available after
+             * the stack pointer is initialized in some way. This emulation
+             * handles that by using cpu.nmi_armed flag which is set to 0 on
+             * reset but set to 1 on any stack write ensuring memory is ready.
              */
             if ( cpu.nmi_armed && (intr_latch & INT_NMI) )
             {

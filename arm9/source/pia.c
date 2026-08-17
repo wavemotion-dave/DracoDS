@@ -600,6 +600,15 @@ ITCM_CODE static uint8_t io_handler_pia0_pa(uint16_t address, uint8_t data, mem_
  *  IO call-back handler 0xFF01 PIA0-A Control register
  *  responding the audio multiplexer select bits
  *
+ *  Bit 7: Horizontal Sync Interrupt Flag (0 = No HSYNC transition, 1 = HSYNC active transition occurred/flag set
+ *  Bit 6: Not used / Always 0
+ *  Bit 5: CA2 Direction / Always 1 state in standard CoCo usage
+ *  Bit 4: CA2 Control / Always 1 state in standard CoCo usage
+ *  Bit 3: Analog Multiplexer Control Line (SEL1 - LSB of the two analog MUX select lines)
+ *  Bit 2: Data Direction Register Access (1 = Access Data Register at 0xFF00, 0 = Access Data Direction Register at 0xFF00)
+ *  Bit 1: Interrupt Polarity / Edge Control (0 = Flag set on falling edge of HSYNC, 1 = Flag set on rising edge of HSYNC)
+ *  Bit 0: HSYNC Interrupt Control (0 = IRQ to CPU disabled, 1 = IRQ to CPU enabled)
+ * 
  *  param:  Call address, data byte for write operation, and operation type
  *  return: Status or data byte
  */
@@ -647,6 +656,7 @@ ITCM_CODE static uint8_t io_handler_pia0_cra(uint16_t address, uint8_t data, mem
  * io_handler_pia0_pb()
  *
  *  IO call-back handler 0xFF02 PIA0-B Data
+ * 
  *  Bit 0..7 Output to keyboard columns
  *
  *  param:  Call address, data byte for write operation, and operation type
@@ -702,6 +712,15 @@ ITCM_CODE static uint8_t io_handler_pia0_pb(uint16_t address, uint8_t data, mem_
  *
  *  IO call-back handler 0xFF03 PIA0-B Control register
  *  to enabled/disable IRQ interrupt source.
+ * 
+ *  Bit 7: VSYNC (Field Sync) Interrupt Flag (0 = No trigger/sync, 1 = VSYNC triggered)
+ *  Bit 6: Not used / Always 0
+ *  Bit 5: Always 1 (CB2 control mode)
+ *  Bit 4: Always 1 (CB2 control mode)
+ *  Bit 3: Multiplexer Select MSB (Select Line 2 / analog MUX select)
+ *  Bit 2: Data Direction Register access (0 = Access Data Direction Register at 0xFF02, 1 = Normal operation/Access Output Register)
+ *  Bit 1: IRQ Polarity (0 = Interrupt flag set on high-to-low/falling edge, 1 = Set on low-to-high/rising edge)
+ *  Bit 0: VSYNC IRQ Enable (0 = Disabled, 1 = Enabled to CPU)
  *
  *  param:  Call address, data byte for write operation, and operation type
  *  return: Status or data byte
@@ -989,14 +1008,14 @@ ITCM_CODE static uint8_t io_handler_pia1_pb(uint16_t address, uint8_t data, mem_
  *  responding the audio multiplexer select bits, and
  *  PIA1-CRB1 interrupt enable/disable.
  *
- * Bit 7 (Cartridge Interrupt Flag): Read-only status flag indicating if a transition on CART* has occurred (cleared by reading/writing associated data registers).
- * Bit 6 (CB2 Interrupt Flag / Not Used): Unused or acts as a peripheral control flag depending on standard 6821 data sheet modes.
- * Bit 5 (CB2 Control / Interrupt): Combined with bit 4 for CB2 configuration (set to 1 along with bit 4 for CoCo audio control).
- * Bit 4 (CB2 Control / Direction): Combined with bit 5 to determine CB2 operation mode (set to 1 and 1 to make CB2 a software-driven output for sound/muting).
- * Bit 3 (Sound Enable / CB2 Output Level): Controls the sound mute/enable line (CB2). When bits 4 and 5 are set to configure CB2 as an output, bit 3 directly controls the state of the line (0 = mute sound, 1 = enable sound).
- * Bit 2 (Data/Direction Register Access): 0 = Access Data Direction Register at 0xFF22, 1 = Access Peripheral Data Register at 0xFF22 (normally 1).
- * Bit 1 (Interrupt Polarity/Edge): 0 = Interrupt flag set on falling edge of CART*, 1 = set on rising edge of CART* (normally 1).
- * Bit 0 (Cartridge Interrupt Control): 0 = Disable FIRQ* to CPU from cartridge (CART*), 1 = Enable FIRQ* to CPU.
+ *  Bit 7 (Cartridge Interrupt Flag): Read-only status flag indicating if a transition on CART* has occurred (cleared by reading/writing associated data registers).
+ *  Bit 6 (CB2 Interrupt Flag / Not Used): Unused or acts as a peripheral control flag depending on standard 6821 data sheet modes.
+ *  Bit 5 (CB2 Control / Interrupt): Combined with bit 4 for CB2 configuration (set to 1 along with bit 4 for CoCo audio control).
+ *  Bit 4 (CB2 Control / Direction): Combined with bit 5 to determine CB2 operation mode (set to 1 and 1 to make CB2 a software-driven output for sound/muting).
+ *  Bit 3 (Sound Enable / CB2 Output Level): Controls the sound mute/enable line (CB2). When bits 4 and 5 are set to configure CB2 as an output, bit 3 controls the state of the line (0 = mute sound, 1 = enable sound).
+ *  Bit 2 (Data/Direction Register Access): 0 = Access Data Direction Register at 0xFF22, 1 = Access Peripheral Data Register at 0xFF22 (normally 1).
+ *  Bit 1 (Interrupt Polarity/Edge): 0 = Interrupt flag set on falling edge of CART*, 1 = set on rising edge of CART* (normally 1).
+ *  Bit 0 (Cartridge Interrupt Control): 0 = Disable FIRQ* to CPU from cartridge (CART*), 1 = Enable FIRQ* to CPU.
  *
  *  param:  Call address, data byte for write operation, and operation type
  *  return: Status or data byte
