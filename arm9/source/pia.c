@@ -982,8 +982,11 @@ ITCM_CODE static uint8_t io_handler_pia1_pb(uint16_t address, uint8_t data, mem_
     {
         if (pia1_ddr_b) // Does the DDR tell us we are normal data input?
         {
-            memory_RAM[PIA1_CRB] &= ~PIA_CR_IRQ_STAT; // Cart IRQ cleared
-            cpu_firq(0);
+            if (draco_mode == MODE_CART)
+            {
+                memory_RAM[PIA1_CRB] &= ~PIA_CR_IRQ_STAT; // Cart IRQ cleared
+                cpu_firq(0);
+            }
 
             data |= 0x01;   // RS232 In/Printer Busy
             data &= 0x04;   // Memory size 32K/64K
