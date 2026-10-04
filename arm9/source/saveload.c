@@ -132,6 +132,7 @@ void DracoSaveState()
     if (retVal) retVal = fwrite(&timingFrames,            sizeof(timingFrames),             1, handle);
     
     // And some spare bytes we can eat into as needed without bumping the SAVE version
+    spare[0] = cart_get_bank();
     if (retVal) retVal = fwrite(spare,                    16,                               1, handle);    
     
     // -----------------------------------------------------------------------
@@ -273,6 +274,14 @@ void DracoLoadState()
         
         // And some spare bytes we can eat into as needed without bumping the SAVE version
         if (retVal) retVal = fread(spare,                    16,                               1, handle);    
+
+        // Refresh the cartridge window from the restored image and bank latch.
+        // Old saves have zero in spare[0], which selects the original first bank.
+        if (retVal && draco_mode == MODE_CART)
+        {
+            cart_init(TapeCartDiskBuffer, last_file_size < MAX_FILE_SIZE ? last_file_size : MAX_FILE_SIZE);
+            cart_select_bank(spare[0]);
+        }
 
         // Restore Main RAM memory
         int comp_len = 0;
