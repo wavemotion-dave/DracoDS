@@ -48,6 +48,11 @@ extern uint8_t  memory_ROM[MEMORY_SIZE];    // 64K ROM space... we only use the 
 
 void mem_init(void);
 
+/* The cartridge image must remain available until the next mem_init/cart_init. */
+void cart_init(const uint8_t *image, unsigned size);
+void cart_select_bank(uint8_t bank);
+uint8_t cart_get_bank(void);
+
 void mem_define_io(int addr_start, int addr_end, io_handler_callback io_handler);
 void mem_load_rom(int addr_start, const uint8_t *buffer, int length);
 

@@ -74,10 +74,10 @@ void dragon_reset(void)
         mem_load_rom(DRAGON_ROM_START, DragonBASIC, sizeof(DragonBASIC));
     }
 
-    // If the user loaded a cart, place that in memory up to 16K (less 256 bytes)
+    // Map the first cartridge bank; larger ROMs select banks through $FF40.
     if (draco_mode == MODE_CART)
     {
-        mem_load_rom(CARTRIDGE_ROM_BASE, TapeCartDiskBuffer, 0x4000-256);
+        cart_init(TapeCartDiskBuffer, last_file_size < MAX_FILE_SIZE ? last_file_size : MAX_FILE_SIZE);
         mem_write(EXEC_VECTOR_HI, 0xc0);
         mem_write(EXEC_VECTOR_LO, 0x00);
     }
