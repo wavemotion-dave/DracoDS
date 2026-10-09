@@ -1414,14 +1414,15 @@ inline __attribute__((always_inline)) uint8_t adc(uint8_t acc, uint8_t byte)
 {
     uint16_t result;
 
-    uint8_t addend = (uint8_t)(byte + cc.c);
-    result = (acc + addend);
+    /* Keep the carry in the full-width sum: $FF + C must not wrap
+     * before it is added to acc. V and H use the original operands. */
+    result = acc + byte + cc.c;
 
     eval_cc_c(result);
     eval_cc_z(result);
     eval_cc_n(result);
-    eval_cc_v(acc, addend, result);
-    eval_cc_h(acc, addend, result);
+    eval_cc_v(acc, byte, result);
+    eval_cc_h(acc, byte, result);
 
     return (uint8_t) result;
 }
