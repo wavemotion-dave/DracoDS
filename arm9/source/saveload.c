@@ -139,8 +139,8 @@ void DracoSaveState()
     // Compress the 64K RAM data using 'high' compression ratio... it's
     // still quite fast for such small memory buffers and gets us under 32K
     // -----------------------------------------------------------------------
-    int max_len = lzav_compress_bound_hi( 0x10000 );
-    int comp_len = lzav_compress_hi( memory_RAM, CompressBuffer, 0x10000, max_len );
+    int max_len = lzav_compress_bound( 0x10000 );
+    int comp_len = lzav_compress_default( memory_RAM, CompressBuffer, 0x10000, max_len );
 
     if (retVal) retVal = fwrite(&comp_len,          sizeof(comp_len), 1, handle);
     if (retVal) retVal = fwrite(&CompressBuffer,    comp_len,         1, handle);

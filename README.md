@@ -296,6 +296,11 @@ And then move the soundbank.h file to the arm9/sources directory
 
 Versions :
 -----------------------
+V1.9: 22-Oct-2026 by wavemotion-dave
+* Added support for Banked ROMs (The Rainbow Vol. 09 No. 11 - June 1990) (tnx costarc).
+* Fixed a bug where DracoDS drops a carry in the 6809 ADC instruction (tnx costarc).
+* Fix to ensure DS-Lite/Phat does not run out of memory when writing the Save State compression buffer.
+
 V1.8: 25-Aug-2026 by wavemotion-dave
 * Improved ADC/SBC to include the carry flag in the Overflow checks.
 * Improved green artifacting so Galactic Attack (and probably some others) looks more correct.
